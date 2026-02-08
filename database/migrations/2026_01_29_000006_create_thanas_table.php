@@ -14,7 +14,7 @@ return new class extends Migration {
             Schema::create('thanas', function (Blueprint $table) {
                 $table->bigIncrements('id');
                 $table->unsignedBigInteger('district_id');
-                $table->string('name')->unique();
+                $table->string('name');
                 $table->geometry('boundary_polygon');
 
                 $table->index('boundary_polygon');

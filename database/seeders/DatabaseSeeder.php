@@ -20,8 +20,10 @@ class DatabaseSeeder extends Seeder
             'email' => 'dev@email.com',
             'password' => '123',
         ]);
-//        $this->call([
+        $this->call([
 //            BrandSeeder::class,
-//        ]);
+            RoleTableSeeder::class,
+            UserRoleTableSeeder::class,
+        ]);
     }
 }

@@ -7,16 +7,78 @@ use App\Http\Controllers\Backend\KV\BrandController;
 use App\Http\Controllers\Backend\KV\CategoryController;
 use App\Http\Controllers\Backend\Asset\StoreController;
 
+use App\Http\Controllers\Admin\RoleController;
+use App\Http\Controllers\Admin\UsersController;
+
 Route::get('/', function () {
     return view('welcome');
 });
+
+Route::middleware([
+    'auth:sanctum',
+    config('jetstream.auth_session'),
+    'verified',
+    'resource.maker',
+    'auth.acl',
+])->group(function () {
+    Route::get('/dashboard', [AdminViewController::class, 'dashboard'])->name('dashboard');
+
+    Route::resources([
+        'brands' => BrandController::class,
+        'categories' => CategoryController::class,
+        'stores' => StoreController::class,
+    ]);
+
+    Route::prefix('admin')->middleware('resource.maker','auth.acl')->group(function () {
+        Route::resource('/roles',RoleController::class);
+        Route::resource('/users',UsersController::class);
+    });
+
+    // Cascading dropdowns for stores
+    Route::get('get-districts/{division}', [StoreController::class, 'getDistricts'])->name('get.districts');
+    Route::get('get-thanas/{district}', [StoreController::class, 'getThanas'])->name('get.thanas');
+
+});
+
 Route::get('/store-sync', function (){
     $locationDbStores = \Illuminate\Support\Facades\DB::connection('location_db')
         ->table('stores')
         ->select('*')
         ->get();
+
     try {
         \Illuminate\Support\Facades\DB::transaction(function () use ($locationDbStores) {
+            DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+            $locationDivisions = \Illuminate\Support\Facades\DB::connection('location_db')
+                ->table('divisions')->get();
+            $locationDistricts = \Illuminate\Support\Facades\DB::connection('location_db')
+                ->table('districts')->get();
+            $locationThanas = \Illuminate\Support\Facades\DB::connection('location_db')
+                ->table('thanas')->get();
+            if ($locationDivisions)
+            {
+                \Illuminate\Support\Facades\DB::table('divisions')->truncate();
+                foreach ($locationDivisions as $division) {
+                    \Illuminate\Support\Facades\DB::table('divisions')->insert((array) $division);
+                }
+            }
+
+            if ($locationDistricts)
+            {
+                \Illuminate\Support\Facades\DB::table('districts')->truncate();
+                foreach ($locationDistricts as $division) {
+                    \Illuminate\Support\Facades\DB::table('districts')->insert((array) $division);
+                }
+            }
+
+            if ($locationThanas)
+            {
+                \Illuminate\Support\Facades\DB::table('thanas')->truncate();
+                foreach ($locationThanas as $division) {
+                    \Illuminate\Support\Facades\DB::table('thanas')->insert((array) $division);
+                }
+            }
+
             foreach ($locationDbStores as $locationDbStore) {
                 $store = \App\Models\Store::updateOrCreate(['title' => $locationDbStore->name], [
                     'title' => $locationDbStore->name,
@@ -53,23 +115,4 @@ Route::get('/store-sync', function (){
     } catch (\Throwable $th) {
         return $th->getMessage();
     }
-});
-
-Route::middleware([
-    'auth:sanctum',
-    config('jetstream.auth_session'),
-    'verified',
-])->group(function () {
-    Route::get('/dashboard', [AdminViewController::class, 'dashboard'])->name('dashboard');
-
-    Route::resources([
-        'brands' => BrandController::class,
-        'categories' => CategoryController::class,
-        'stores' => StoreController::class,
-    ]);
-
-    // Cascading dropdowns for stores
-    Route::get('get-districts/{division}', [StoreController::class, 'getDistricts'])->name('get.districts');
-    Route::get('get-thanas/{district}', [StoreController::class, 'getThanas'])->name('get.thanas');
-
 });

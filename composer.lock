@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "a10fdbd4a573535e5cd0b14ba5a7ec07",
+    "content-hash": "e0214478e301f28055ee424ec2b450f9",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -7461,6 +7461,58 @@
                 "source": "https://github.com/tijsverkoyen/CssToInlineStyles/tree/v2.4.0"
             },
             "time": "2025-12-02T11:56:42+00:00"
+        },
+        {
+            "name": "uzzal/acl",
+            "version": "v3.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/mahabubulhasan/acl.git",
+                "reference": "f4abfb49c116b2d69a5d5edf44144f8736f6138a"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/mahabubulhasan/acl/zipball/f4abfb49c116b2d69a5d5edf44144f8736f6138a",
+                "reference": "f4abfb49c116b2d69a5d5edf44144f8736f6138a",
+                "shasum": ""
+            },
+            "require": {
+                "laravel/framework": ">=8.75",
+                "php": ">=8.0"
+            },
+            "type": "library",
+            "autoload": {
+                "files": [
+                    "src/helpers.php"
+                ],
+                "psr-4": {
+                    "Uzzal\\Acl\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Mahabubul Hasan",
+                    "email": "codehasan@gmail.com"
+                }
+            ],
+            "description": "Dynamically configurable authorization for Laravel framework",
+            "keywords": [
+                "acl",
+                "authorization",
+                "dynamic permission",
+                "laravel",
+                "rbac",
+                "security"
+            ],
+            "support": {
+                "issues": "https://github.com/mahabubulhasan/acl/issues",
+                "source": "https://github.com/mahabubulhasan/acl/tree/v3.0.0"
+            },
+            "time": "2023-05-18T08:33:34+00:00"
         },
         {
             "name": "vlucas/phpdotenv",

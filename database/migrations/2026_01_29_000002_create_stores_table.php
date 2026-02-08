@@ -13,7 +13,7 @@ return new class extends Migration {
         Schema::create('stores', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->string('title');
-            $table->string('code')->unique();
+            $table->string('code')->unique()->nullable();
             $table->decimal('total_area_sqft', 12, 2)->default(0);
             $table->text('address')->nullable();
             $table->string('area')->nullable();

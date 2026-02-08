@@ -12,8 +12,15 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        $middleware->alias([
+            'auth.acl'          => \Uzzal\Acl\Middleware\AuthenticateWithAcl::class,
+            'resource.maker'    => \Uzzal\Acl\Middleware\ResourceMaker::class,
+            'password.expiry'   => \App\Http\Middleware\PasswordExpiryCheck::class,
+        ]);
     })
+    ->withCommands([
+        \Uzzal\Acl\Commands\AclResource::class,
+    ])
     ->withExceptions(function (Exceptions $exceptions): void {
         //
     })->create();
