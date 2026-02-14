@@ -7,27 +7,27 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class StoreLayout extends Model
+class AssetType extends Model
 {
     use HasFactory;
     use Searchable;
     use SoftDeletes;
 
     protected $fillable = [
-        'store_id',
-        'layout_img',
-        'layout_pdf',
-        'changed_at',
-        'is_currently_active',
-        'change_log',
+        'name',
+        'default_image',
+        'height',
+        'width',
+        'depth',
+        'dimension_unit_name',
+        'default_price',
+        'status',
+        'is_digital',
+        'total_self',
+        'has_kv_space',
     ];
 
     protected $searchableFields = ['*'];
 
-    protected $table = 'store_layouts';
-
-    public function store()
-    {
-        return $this->belongsTo(Store::class);
-    }
+    protected $table = 'asset_types';
 }

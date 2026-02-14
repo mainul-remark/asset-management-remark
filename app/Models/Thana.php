@@ -13,6 +13,8 @@ class Thana extends Model
 
     protected $fillable = ['district_id', 'name', 'boundary_polygon'];
 
+    protected $hidden = ['boundary_polygon'];
+
     protected $searchableFields = ['*'];
 
     public function district()

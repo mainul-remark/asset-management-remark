@@ -6,6 +6,8 @@ use App\Http\Controllers\Backend\CommonPages\AdminViewController;
 use App\Http\Controllers\Backend\KV\BrandController;
 use App\Http\Controllers\Backend\KV\CategoryController;
 use App\Http\Controllers\Backend\Asset\StoreController;
+use App\Http\Controllers\Backend\Asset\AssetTypeController;
+use App\Http\Controllers\Backend\SiteSettingsController;
 
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\UsersController;
@@ -23,10 +25,15 @@ Route::middleware([
 ])->group(function () {
     Route::get('/dashboard', [AdminViewController::class, 'dashboard'])->name('dashboard');
 
+    Route::get('stores/layout-list', [StoreController::class, 'layoutStores'])->name('stores.layout-list');
+    Route::post('stores/{store}/layouts', [StoreController::class, 'uploadLayout'])->name('stores.upload-layout');
+
     Route::resources([
         'brands' => BrandController::class,
         'categories' => CategoryController::class,
         'stores' => StoreController::class,
+        'asset-types' => AssetTypeController::class,
+        'site-settings' => SiteSettingsController::class,
     ]);
 
     Route::prefix('admin')->middleware('resource.maker','auth.acl')->group(function () {

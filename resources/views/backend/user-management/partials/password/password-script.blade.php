@@ -5,6 +5,12 @@
     const helpBox = document.getElementById("passwordHelp");
     const infoIcon = document.getElementById("passwordInfoIcon");
 
+    if (!passwordInput || !helpBox) {
+        // Required elements are missing on this page.
+        // Exit early to avoid breaking other scripts.
+        console.warn("Password helpers skipped: missing #password or #passwordHelp.");
+    } else {
+
     passwordInput.addEventListener("input", function () {
         if (this.value.length === 0) {
             document.querySelector(".password-toggle-icon").style.top = "45%";
@@ -42,22 +48,25 @@
     });
 
     // MANUAL TOGGLE WITH ICON (kept same)
-    infoIcon.addEventListener("click", function () {
-        if (helpBox.classList.contains("d-none")) {
-            helpBox.innerHTML = message;
-            helpBox.classList.remove("d-none");
+    if (infoIcon) {
+        infoIcon.addEventListener("click", function () {
+            if (helpBox.classList.contains("d-none")) {
+                helpBox.innerHTML = message;
+                helpBox.classList.remove("d-none");
 
-            this.classList.remove("text-primary");
-            this.classList.add("text-danger");
+                this.classList.remove("text-primary");
+                this.classList.add("text-danger");
 
-        } else {
-            helpBox.innerHTML = "";
-            helpBox.classList.add("d-none");
+            } else {
+                helpBox.innerHTML = "";
+                helpBox.classList.add("d-none");
 
-            this.classList.add("text-primary");
-            this.classList.remove("text-danger");
-        }
-    });
+                this.classList.add("text-primary");
+                this.classList.remove("text-danger");
+            }
+        });
+    }
+    }
 
 
 </script>
@@ -68,9 +77,10 @@
     const confirmHelp = document.getElementById("confirmHelp");
 
     // CONFIRM PASSWORD MATCH CHECK
-    confirmInput.addEventListener("input", function () {
-        const pass = passwordInput.value;
-        const confirmPass = this.value;
+    if (confirmInput && confirmHelp && passwordInput) {
+        confirmInput.addEventListener("input", function () {
+            const pass = passwordInput.value;
+            const confirmPass = this.value;
 
         if (confirmPass.length === 0) {
             confirmHelp.classList.add("d-none");
@@ -78,14 +88,15 @@
             return;
         }
 
-        if (pass !== confirmPass) {
-            confirmHelp.innerHTML = "Password and Confirm Password does not match.";
-            confirmHelp.classList.remove("d-none");
-        } else {
-            confirmHelp.classList.add("d-none");
-            confirmHelp.innerHTML = "";
-        }
-    });
+            if (pass !== confirmPass) {
+                confirmHelp.innerHTML = "Password and Confirm Password does not match.";
+                confirmHelp.classList.remove("d-none");
+            } else {
+                confirmHelp.classList.add("d-none");
+                confirmHelp.innerHTML = "";
+            }
+        });
+    }
 
 </script>
 

@@ -13,6 +13,8 @@ class District extends Model
 
     protected $fillable = ['division_id', 'name', 'boundary_polygon'];
 
+    protected $hidden = ['boundary_polygon'];
+
     protected $searchableFields = ['*'];
 
     public function division()

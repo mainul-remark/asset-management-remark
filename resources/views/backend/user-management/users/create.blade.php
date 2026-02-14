@@ -147,12 +147,20 @@
 
     <script>
         $(document).ready(function (){
-
+            const selectElements = [
+                '.select_account_type',
+                '.select_status'
+            ];
+            selectElements.forEach(selector=>{
+                $(selector).select2({
+                    theme: 'bootstrap-5',
+                    allowClear: false
+                });
+            });
             $('.select_role').select2({
                 theme: 'bootstrap-5',
                 allowClear: false,
             });
-
         });
     </script>
 

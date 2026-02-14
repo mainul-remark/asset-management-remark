@@ -129,7 +129,11 @@
                             <div class="row mb-3">
                                 <label class="col-lg-2 col-form-label" for="profile_image">Profile Image</label>
                                 <div class="col-lg-10">
-                                    <input type="file" id="profile_image" class="profile_image upload_file" name="profile_image" data-default-file="{{asset($user->profile_image??'')}}" accept=".jpg, .jpeg, .webp, .png" data-max-file-size="1M" data-height="100">
+                                    <input type="file" id="profile_image" class="profile_image upload_file" name="profile_image"
+                                           @if(!empty($user->profile_image))
+                                               data-default-file="{{ asset($user->profile_image) }}"
+                                           @endif
+                                           accept=".jpg, .jpeg, .webp, .png" data-max-file-size="1M" data-height="100">
                                     <code>[Only upload file jpeg,jpg, png(max-size:1MB)]</code>
                                 </div>
                             </div>
@@ -189,27 +193,4 @@
 
     </script>
 
-    <script>
-        $(document).ready(function () {
-
-            function toggleFields() {
-                var type = $("#account_type").val();
-
-                if (type === "backend") {
-                    $(".roleField").removeClass("d-none");
-                    $('.role_select').prop("disabled", false);
-                    $('.role_select').prop("required", true);
-
-                } else {
-                    $(".roleField").addClass("d-none");
-                    $('.role_select').val(null).trigger("change");
-                    $('.role_select').prop("required", false);
-
-                }
-            }
-            // On change event
-            $("#account_type").on("change", toggleFields);
-            toggleFields();
-        });
-    </script>
 @endpush

@@ -31,7 +31,7 @@
             </div>
             <div class="page-header-actions d-flex gap-2">
                 <button class="btn btn-outline-secondary btn-sm"><i class="bi bi-download me-1"></i>Export Data</button>
-                <button class="btn btn-warning btn-sm text-white" id="btn-add-store"><i class="bi bi-plus me-1"></i>Add Store</button>
+                <button class="btn btn-primary btn-sm" id="btn-add-store"><i class="bi bi-plus me-1"></i>Add Store</button>
             </div>
         </div>
 
@@ -203,14 +203,14 @@
 
                 <!-- Search & Filter Bar -->
                 <div class="d-flex flex-wrap gap-2 align-items-center mb-3">
-                    <input type="text" class="form-control form-control-sm" placeholder="Search stores..." style="max-width:280px;">
-                    <select class="form-select form-select-sm" style="max-width:200px;">
-                        <option>All Locations</option>
+                    <input type="text" class="form-control form-control-sm" id="layout-search" placeholder="Search stores..." style="max-width:280px;">
+                    <select class="form-select form-select-sm" id="layout-division-filter" style="max-width:200px;">
+                        <option value="">All Locations</option>
                         @foreach($divisions as $division)
-                            <option value="{{ $division->id }}">{{ $division->name }}</option>
+                            <option value="{{ $division->name }}">{{ $division->name }}</option>
                         @endforeach
                     </select>
-                    <span class="ms-auto text-muted" style="font-size:0.85rem;">{{ $totalStores }} stores found</span>
+                    <span class="ms-auto text-muted" style="font-size:0.85rem;" id="layout-store-count"></span>
                 </div>
 
                 <div class="row g-3">
@@ -221,23 +221,12 @@
                                 <h6 class="fw-bold mb-1">Store Layouts</h6>
                                 <small class="text-muted">Select a store to view and manage its layouts</small>
                             </div>
-                            <div class="store-list">
-                                @foreach($stores as $store)
-                                    <div class="store-list-item {{ $loop->first ? 'active' : '' }}" data-store-id="{{ $store->id }}">
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <div>
-                                                <div class="store-list-name">{{ $store->title }}</div>
-                                                <div class="store-list-meta">{{ $store->division?->name ?? 'N/A' }} &bull; {{ $store->code }}</div>
-                                                @if($store->storeLayouts && $store->storeLayouts->count() > 0)
-                                                    <div class="version-badge"><i class="bi bi-check-circle me-1"></i>Has Layout</div>
-                                                @else
-                                                    <div class="no-layout-badge"><i class="bi bi-clock me-1"></i>No layout uploaded</div>
-                                                @endif
-                                            </div>
-                                            <i class="bi bi-chevron-right text-muted"></i>
-                                        </div>
-                                    </div>
-                                @endforeach
+                            <div class="store-list" id="layout-store-list" style="max-height:520px; overflow-y:auto;">
+                                {{-- Loaded via AJAX --}}
+                            </div>
+                            <div class="text-center py-2 d-none" id="layout-load-spinner">
+                                <div class="spinner-border spinner-border-sm text-muted" role="status"></div>
+                                <small class="text-muted ms-1">Loading...</small>
                             </div>
                         </div>
                     </div>
@@ -248,10 +237,10 @@
                             <!-- Header -->
                             <div class="d-flex flex-wrap justify-content-between align-items-start mb-3">
                                 <div class="layout-detail-header">
-                                    <h5 class="mb-1" id="layout-store-name">{{ $stores->first()?->title ?? 'No Store Selected' }}</h5>
-                                    <p class="text-muted mb-0" style="font-size:0.85rem;" id="layout-store-address">{{ $stores->first()?->division?->name ?? '' }} &bull; {{ $stores->first()?->address ?? '' }}</p>
+                                    <h5 class="mb-1" id="layout-store-name">No Store Selected</h5>
+                                    <p class="text-muted mb-0" style="font-size:0.85rem;" id="layout-store-address">Select a store from the sidebar</p>
                                 </div>
-                                <button class="btn btn-warning btn-sm text-white mt-2 mt-md-0">
+                                <button class="btn btn-primary btn-sm <!--text-white--> mt-2 mt-md-0" data-bs-toggle="modal" data-bs-target="#newVersionModal">
                                     <i class="bi bi-upload me-1"></i>Upload New Version
                                 </button>
                             </div>
@@ -275,20 +264,23 @@
                                 <div class="tab-pane fade show active" id="currentLayoutPane">
                                     <div class="d-flex justify-content-between align-items-center mb-3">
                                         <h6 class="fw-bold mb-0">Current Layout</h6>
-                                        <button class="btn btn-outline-secondary btn-sm"><i class="bi bi-download me-1"></i>Download</button>
+                                        <a href="#" target="_blank" class="btn btn-outline-secondary btn-sm d-none" id="layout-download-btn"><i class="bi bi-download me-1"></i>Download</a>
                                     </div>
 
-                                    <!-- Preview placeholder -->
-                                    <div class="layout-preview-placeholder">
+                                    <!-- Preview placeholder / PDF embed -->
+                                    <div class="layout-preview-placeholder" id="layout-placeholder">
                                         <i class="bi bi-image d-block mb-2"></i>
                                         <div class="fw-semibold" style="font-size:0.9rem;">Layout Preview</div>
                                         <small>Select a store to view its layout</small>
                                     </div>
+                                    <iframe id="layout-pdf-viewer" class="d-none" style="width:100%; height:600px; border:1px solid #e9ecef; border-radius:6px;"></iframe>
                                 </div>
 
                                 <!-- Version History -->
                                 <div class="tab-pane fade" id="versionHistoryPane">
-                                    <p class="text-muted">Version history will appear here.</p>
+                                    <div id="version-history-list">
+                                        <p class="text-muted">Select a store to view version history.</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -303,8 +295,8 @@
 
 @section('modal')
     {{-- Create / Edit Modal --}}
-    <div class="modal fade" id="storeModal" tabindex="-1" aria-labelledby="storeModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+    <div class="modal fade" id="storeModal" >
+        <div class="modal-dialog modal-dialog-centered modal-lg ">
             <div class="modal-content">
                 <div class="modal-header">
                     <div class="d-flex align-items-center gap-2">
@@ -363,7 +355,7 @@
                             </div>
                             <div class="col-6 col-md-3">
                                 <label class="form-label fw-semibold" style="font-size:0.85rem;">Rent per Sq Ft (৳)</label>
-                                <input type="number" step="0.01" class="form-control form-control-sm" id="per_sqr_feet_rent" name="per_sqr_feet_rent" placeholder="0.00">
+                                <input type="number" readonly step="0.01" class="form-control form-control-sm" id="per_sqr_feet_rent" name="per_sqr_feet_rent" placeholder="0.00">
                                 <div class="invalid-feedback" id="error-per_sqr_feet_rent"></div>
                             </div>
                             <div class="col-6 col-md-3">
@@ -449,40 +441,40 @@
                         <div class="form-section-title">Contact Information</div>
                         <div class="row g-3 mb-3">
                             <div class="col-12 col-md-4">
-                                <label class="form-label fw-semibold" style="font-size:0.85rem;">Contact Person</label>
-                                <input type="text" class="form-control form-control-sm" id="contact_persion" name="contact_persion" placeholder="Contact person name">
+                                <label class="form-label fw-semibold" style="font-size:0.85rem;">Contact Person <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control form-control-sm" required id="contact_persion" name="contact_person" placeholder="Contact person name">
                                 <div class="invalid-feedback" id="error-contact_persion"></div>
                             </div>
                             <div class="col-12 col-md-4">
-                                <label class="form-label fw-semibold" style="font-size:0.85rem;">Phone Number</label>
-                                <input type="text" class="form-control form-control-sm" id="shop_official_mobile" name="shop_official_mobile" placeholder="Mobile number">
+                                <label class="form-label fw-semibold" style="font-size:0.85rem;">Phone Number <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control form-control-sm" required minlength="11" maxlength="11" id="shop_official_mobile" name="shop_official_mobile" placeholder="Mobile number">
                                 <div class="invalid-feedback" id="error-shop_official_mobile"></div>
                             </div>
                             <div class="col-12 col-md-4">
-                                <label class="form-label fw-semibold" style="font-size:0.85rem;">Email Address</label>
-                                <input type="email" class="form-control form-control-sm" id="shop_official_email" name="shop_official_email" placeholder="Email address">
+                                <label class="form-label fw-semibold" style="font-size:0.85rem;">Email Address <span class="text-danger">*</span></label>
+                                <input type="email" class="form-control form-control-sm" required id="shop_official_email" name="shop_official_email" placeholder="Email address">
                                 <div class="invalid-feedback" id="error-shop_official_email"></div>
                             </div>
                         </div>
 
                         <!-- Store Manager -->
-                        <div class="form-section-title">Management</div>
-                        <div class="row g-3">
-                            <div class="col-12 col-md-6">
-                                <label class="form-label fw-semibold" style="font-size:0.85rem;">Store Manager</label>
-                                <select class="form-select form-select-sm" id="store_manager_id" name="store_manager_id">
-                                    <option value="">— Select Manager —</option>
-                                    @foreach($users as $user)
-                                        <option value="{{ $user->id }}">{{ $user->name }}</option>
-                                    @endforeach
-                                </select>
-                                <div class="invalid-feedback" id="error-store_manager_id"></div>
-                            </div>
-                        </div>
+{{--                        <div class="form-section-title">Management</div>--}}
+{{--                        <div class="row g-3">--}}
+{{--                            <div class="col-12 col-md-6">--}}
+{{--                                <label class="form-label fw-semibold" style="font-size:0.85rem;">Store Manager</label>--}}
+{{--                                <select class="form-select form-select-sm" id="store_manager_id" name="store_manager_id">--}}
+{{--                                    <option value="">— Select Manager —</option>--}}
+{{--                                    @foreach($users as $user)--}}
+{{--                                        <option value="{{ $user->id }}">{{ $user->name }}</option>--}}
+{{--                                    @endforeach--}}
+{{--                                </select>--}}
+{{--                                <div class="invalid-feedback" id="error-store_manager_id"></div>--}}
+{{--                            </div>--}}
+{{--                        </div>--}}
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-warning btn-sm text-white" id="btn-save">
+                        <button type="submit" class="btn btn-primary btn-sm" id="btn-save">
                             <span class="btn-text"><i class="bi bi-save me-1"></i>Save Store</span>
                             <span class="spinner-border spinner-border-sm d-none" id="btn-spinner"></span>
                         </button>
@@ -582,12 +574,75 @@
             </div>
         </div>
     </div>
+
+    {{-- Upload New Layout Version Modal --}}
+    <div class="modal fade" id="newVersionModal">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-bottom">
+                    <div>
+                        <h5 class="modal-title mb-0 fw-bold" style="font-size:1.05rem;">Upload New Version</h5>
+                        <small class="text-muted" id="newVersionStoreName">Select a store first</small>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="newVersionForm" enctype="multipart/form-data">
+                    <input type="hidden" id="new_version_store_id" value="">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold" style="font-size:0.85rem;">Store Layout File <span class="text-danger">*</span></label>
+                            <div class="upload-drop-zone" id="layoutDropZone">
+                                <input type="file" class="d-none" id="new_version_file" name="store_layout_pdf" accept="application/pdf">
+                                <div class="text-center py-3" id="layoutDropContent">
+                                    <i class="bi bi-cloud-arrow-up d-block mb-1" style="font-size:1.6rem; color:#6c757d;"></i>
+                                    <div style="font-size:0.85rem;">Click to upload or drag and drop</div>
+                                    <small class="text-muted">PDF (Max 10MB)</small>
+                                </div>
+                                <div class="d-none px-3 py-2" id="layoutFileSelected">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="bi bi-file-earmark-pdf text-danger" style="font-size:1.2rem;"></i>
+                                            <span class="text-truncate" style="font-size:0.85rem; max-width:280px;" id="layoutFileName"></span>
+                                        </div>
+                                        <button type="button" class="btn btn-sm p-0 text-muted" id="layoutFileRemove"><i class="bi bi-x-lg"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="invalid-feedback d-block" id="error-new_version_file" style="display:none !important;"></div>
+                        </div>
+                        <div class="mb-0">
+                            <label class="form-label fw-semibold" style="font-size:0.85rem;">Changelog <span class="text-muted fw-normal">(Optional)</span></label>
+                            <textarea class="form-control form-control-sm" id="new_version_changelog" name="changelog" rows="3" placeholder="Describe what changed in this version..."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary btn-sm" id="btn-upload-layout">
+                            <span class="btn-text"><i class="bi bi-cloud-arrow-up me-1"></i>Upload Layout</span>
+                            <span class="spinner-border spinner-border-sm d-none" id="btn-upload-spinner"></span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('backend/build/assets/libs/filepond/filepond.min.css') }}">
 <style>
     .filepond--root { margin-bottom: 0; }
+    .upload-drop-zone {
+        border: 2px dashed #dee2e6;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: border-color .2s, background .2s;
+    }
+    .upload-drop-zone:hover,
+    .upload-drop-zone.dragover {
+        border-color: var(--primary-color, #0162E8);
+        background: rgba(var(--primary-rgb, 1,98,232), 0.04);
+    }
     .calculated-rent {
         background: #fff8e1;
         border: 1px solid #ffe082;
@@ -731,6 +786,7 @@
             if (area > 0 && rent > 0) {
                 const perSqft = (rent / area).toFixed(2);
                 $('#calc-rent-value').text(perSqft + '৳');
+                $('#per_sqr_feet_rent').val(perSqft);
                 $('#calculated-rent-display').show();
             } else {
                 $('#calculated-rent-display').hide();
@@ -794,13 +850,13 @@
                 $('#monthly_rent').val(data.monthly_rent);
                 $('#per_sqr_feet_rent').val(data.per_sqr_feet_rent);
                 $('#opened_date').val(data.opened_date);
-                $('#store_manager_id').val(data.store_manager_id || '');
+                // $('#store_manager_id').val(data.store_manager_id || '');
                 $('#address').val(data.address);
                 $('#area').val(data.area);
                 $('#postal_code').val(data.postal_code);
                 $('#latitude').val(data.latitude);
                 $('#longitude').val(data.longitude);
-                $('#contact_persion').val(data.contact_persion);
+                $('#contact_persion').val(data.contact_person);
                 $('#shop_official_mobile').val(data.shop_official_mobile);
                 $('#shop_official_email').val(data.shop_official_email);
                 $('#status').val(data.status);
@@ -856,7 +912,7 @@
                 $('#view-division').text(data.division ? data.division.name : '—');
                 $('#view-postal').text(data.postal_code || '—');
                 $('#view-coords').text(data.latitude && data.longitude ? data.latitude + ', ' + data.longitude : '—');
-                $('#view-contact').text(data.contact_persion || '—');
+                $('#view-contact').text(data.contact_person || '—');
                 $('#view-mobile').text(data.shop_official_mobile || '—');
                 $('#view-email').text(data.shop_official_email || '—');
 
@@ -977,6 +1033,313 @@
             $('.is-invalid').removeClass('is-invalid');
             $('.invalid-feedback').text('').css('display', '');
         }
+
+        // ===== LAYOUTS TAB - AJAX Infinite Scroll =====
+        (function () {
+            let page = 1, lastPage = 1, loading = false;
+            let searchTerm = '', division = '';
+            let debounceTimer = null;
+
+            const $list = $('#layout-store-list');
+            const $spinner = $('#layout-load-spinner');
+            const $count = $('#layout-store-count');
+
+            function renderItem(store) {
+                const divName = store.division ? store.division.name : 'N/A';
+                const badge = store.store_layouts_count > 0
+                    ? '<div class="version-badge"><i class="bi bi-check-circle me-1"></i>Has Layout</div>'
+                    : '<div class="no-layout-badge"><i class="bi bi-clock me-1"></i>No layout uploaded</div>';
+
+                return `<div class="store-list-item" data-store-id="${store.id}">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="store-list-name">${store.title}</div>
+                            <div class="store-list-meta">${divName} &bull; ${store.code}</div>
+                            ${badge}
+                        </div>
+                        <i class="bi bi-chevron-right text-muted"></i>
+                    </div>
+                </div>`;
+            }
+
+            function loadStores(reset) {
+                if (loading) return;
+                if (!reset && page > lastPage) return;
+
+                if (reset) {
+                    page = 1;
+                    $list.empty();
+                }
+
+                loading = true;
+                $spinner.removeClass('d-none');
+
+                $.get(base_url + 'stores/layout-list', { page: page, search: searchTerm, division: division }, function (res) {
+                    res.data.forEach(function (store) {
+                        $list.append(renderItem(store));
+                    });
+
+                    lastPage = res.last_page;
+                    $count.text(res.total + ' stores found');
+                    page++;
+
+                    if (reset && res.data.length > 0) {
+                        $list.find('.store-list-item').first().addClass('active').trigger('click');
+                    }
+
+                    if (reset && res.data.length === 0) {
+                        $list.html('<div class="text-center text-muted py-4"><i class="bi bi-search d-block mb-2" style="font-size:1.5rem;"></i>No stores found</div>');
+                    }
+                }).fail(function () {
+                    toastr.error('Failed to load stores.');
+                }).always(function () {
+                    loading = false;
+                    $spinner.addClass('d-none');
+                });
+            }
+
+            // Infinite scroll
+            $list.on('scroll', function () {
+                if (this.scrollTop + this.clientHeight >= this.scrollHeight - 50) {
+                    loadStores(false);
+                }
+            });
+
+            // Search with debounce
+            $('#layout-search').on('input', function () {
+                clearTimeout(debounceTimer);
+                const val = $(this).val().trim();
+                debounceTimer = setTimeout(function () {
+                    searchTerm = val;
+                    loadStores(true);
+                }, 300);
+            });
+
+            // Division filter
+            $('#layout-division-filter').on('change', function () {
+                division = $(this).val();
+                loadStores(true);
+            });
+
+            // Click store item - load detail + PDF preview
+            $list.on('click', '.store-list-item', function () {
+                $list.find('.store-list-item').removeClass('active');
+                $(this).addClass('active');
+
+                $.get(base_url + 'stores/' + $(this).data('store-id'), function (data) {
+                    $('#layout-store-name').text(data.title);
+                    $('#layout-store-address').text(
+                        (data.division ? data.division.name : '') + ' \u2022 ' + (data.address || '')
+                    );
+
+                    // Find active layout PDF
+                    var pdfPath = null;
+                    if (data.store_layouts && data.store_layouts.length) {
+                        var active = data.store_layouts.find(function (l) { return l.is_currently_active == 1; });
+                        if (active && active.layout_pdf) {
+                            pdfPath = active.layout_pdf;
+                        } else if (data.store_layouts[0].layout_pdf) {
+                            pdfPath = data.store_layouts[0].layout_pdf;
+                        }
+                    }
+
+                    if (pdfPath) {
+                        var fullUrl = base_url + pdfPath;
+                        $('#layout-pdf-viewer').attr('src', fullUrl).removeClass('d-none');
+                        $('#layout-placeholder').addClass('d-none');
+                        $('#layout-download-btn').attr('href', fullUrl).removeClass('d-none');
+                    } else {
+                        $('#layout-pdf-viewer').attr('src', '').addClass('d-none');
+                        $('#layout-placeholder').removeClass('d-none')
+                            .html('<i class="bi bi-file-earmark-pdf d-block mb-2"></i><div class="fw-semibold" style="font-size:0.9rem;">No Layout Available</div><small>This store has no layout uploaded yet</small>');
+                        $('#layout-download-btn').addClass('d-none');
+                    }
+
+                    // Render version history
+                    renderVersionHistory(data.store_layouts || []);
+                });
+            });
+
+            // Lazy init on first tab show
+            let initialized = false;
+            $('button[data-bs-target="#layoutsPane"]').on('shown.bs.tab', function () {
+                if (!initialized) {
+                    loadStores(true);
+                    initialized = true;
+                }
+            });
+
+            if ($('#layoutsPane').hasClass('show')) {
+                loadStores(true);
+                initialized = true;
+            }
+
+            // Render version history
+            function renderVersionHistory(layouts) {
+                var $container = $('#version-history-list');
+                if (!layouts.length) {
+                    $container.html('<p class="text-muted">No layout versions uploaded yet.</p>');
+                    return;
+                }
+
+                // Sort by newest first
+                layouts.sort(function (a, b) { return b.id - a.id; });
+
+                var html = '<div class="table-responsive"><table class="table table-sm table-bordered mb-0">' +
+                    '<thead><tr><th style="width:60px;">#</th><th>Date</th><th>Changelog</th><th>PDF</th><th style="width:70px;">Status</th></tr></thead><tbody>';
+
+                layouts.forEach(function (layout, i) {
+                    var version = 'v' + (layouts.length - i) + '.0';
+                    var badge = layout.is_currently_active == 1
+                        ? '<span class="badge bg-success-transparent">Active</span>'
+                        : '<span class="text-muted">—</span>';
+                    var pdfLink = layout.layout_pdf
+                        ? '<a href="' + base_url + layout.layout_pdf + '" target="_blank" class="btn btn-xs btn-outline-primary"><i class="bi bi-download me-1"></i>Download</a>'
+                        : '—';
+                    var changelog = layout.change_log || '<span class="text-muted">—</span>';
+
+                    html += '<tr>' +
+                        '<td><span class="fw-semibold">' + version + '</span></td>' +
+                        '<td>' + (layout.changed_at || '—') + '</td>' +
+                        '<td style="font-size:0.85rem;">' + changelog + '</td>' +
+                        '<td>' + pdfLink + '</td>' +
+                        '<td>' + badge + '</td>' +
+                        '</tr>';
+                });
+
+                html += '</tbody></table></div>';
+                $container.html(html);
+            }
+        })();
+
+        // ===== Upload New Version Modal =====
+        (function () {
+            const $dropZone = $('#layoutDropZone');
+            const $fileInput = $('#new_version_file');
+            const $dropContent = $('#layoutDropContent');
+            const $fileSelected = $('#layoutFileSelected');
+            const $fileName = $('#layoutFileName');
+
+            // Set store info when modal opens
+            $('#newVersionModal').on('show.bs.modal', function () {
+                const $active = $('#layout-store-list .store-list-item.active');
+                if ($active.length) {
+                    const storeId = $active.data('store-id');
+                    const storeName = $active.find('.store-list-name').text();
+                    const storeMeta = $active.find('.store-list-meta').text();
+                    $('#new_version_store_id').val(storeId);
+                    $('#newVersionStoreName').text(storeName + ' - ' + storeMeta);
+                } else {
+                    $('#new_version_store_id').val('');
+                    $('#newVersionStoreName').text('No store selected');
+                }
+                // Reset form
+                $fileInput.val('');
+                $('#new_version_changelog').val('');
+                $dropContent.removeClass('d-none');
+                $fileSelected.addClass('d-none');
+                $('#error-new_version_file').css('display', 'none').text('');
+            });
+
+            // Click to upload
+            $dropZone.on('click', function (e) {
+                if (!$(e.target).closest('#layoutFileRemove').length && e.target !== $fileInput[0]) {
+                    $fileInput.trigger('click');
+                }
+            });
+
+            // Prevent click on file input from bubbling back to drop zone
+            $fileInput.on('click', function (e) {
+                e.stopPropagation();
+            });
+
+            // File selected
+            $fileInput.on('change', function () {
+                if (this.files && this.files[0]) {
+                    showFile(this.files[0]);
+                }
+            });
+
+            // Drag & drop
+            $dropZone.on('dragover', function (e) {
+                e.preventDefault();
+                $(this).addClass('dragover');
+            }).on('dragleave drop', function (e) {
+                e.preventDefault();
+                $(this).removeClass('dragover');
+            }).on('drop', function (e) {
+                const files = e.originalEvent.dataTransfer.files;
+                if (files.length) {
+                    $fileInput[0].files = files;
+                    showFile(files[0]);
+                }
+            });
+
+            // Remove file
+            $('#layoutFileRemove').on('click', function () {
+                $fileInput.val('');
+                $dropContent.removeClass('d-none');
+                $fileSelected.addClass('d-none');
+            });
+
+            function showFile(file) {
+                if (file.type !== 'application/pdf') {
+                    toastr.error('Only PDF files are allowed.');
+                    $fileInput.val('');
+                    return;
+                }
+                $fileName.text(file.name);
+                $dropContent.addClass('d-none');
+                $fileSelected.removeClass('d-none');
+            }
+
+            // Submit
+            $('#newVersionForm').on('submit', function (e) {
+                e.preventDefault();
+                const storeId = $('#new_version_store_id').val();
+                if (!storeId) {
+                    toastr.error('Please select a store first.');
+                    return;
+                }
+                if (!$fileInput[0].files.length) {
+                    $('#error-new_version_file').text('Please select a layout file.').css('display', 'block');
+                    return;
+                }
+
+                const formData = new FormData(this);
+
+                $('#btn-upload-layout').prop('disabled', true);
+                $('#btn-upload-spinner').removeClass('d-none');
+
+                $.ajax({
+                    url: base_url + 'stores/' + storeId + '/layouts',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function (res) {
+                        $('#newVersionModal').modal('hide');
+                        toastr.success(res.message || 'Layout uploaded successfully.');
+                        // Refresh the active store detail
+                        $('#layout-store-list .store-list-item.active').trigger('click');
+                    },
+                    error: function (xhr) {
+                        if (xhr.status === 422) {
+                            const errors = xhr.responseJSON.errors;
+                            if (errors.store_layout_pdf) {
+                                $('#error-new_version_file').text(errors.store_layout_pdf[0]).css('display', 'block');
+                            }
+                        } else {
+                            toastr.error('Failed to upload layout.');
+                        }
+                    },
+                    complete: function () {
+                        $('#btn-upload-layout').prop('disabled', false);
+                        $('#btn-upload-spinner').addClass('d-none');
+                    }
+                });
+            });
+        })();
     });
     </script>
 @endpush

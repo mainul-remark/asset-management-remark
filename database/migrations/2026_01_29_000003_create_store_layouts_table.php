@@ -17,6 +17,7 @@ return new class extends Migration {
             $table->text('layout_pdf');
             $table->string('changed_at')->nullable();
             $table->tinyInteger('is_currently_active')->default(0);
+            $table->text('change_log')->nullable();
 
             $table->timestamps();
             $table->softDeletes();

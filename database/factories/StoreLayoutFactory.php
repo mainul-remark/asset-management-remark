@@ -25,6 +25,7 @@ class StoreLayoutFactory extends Factory
         return [
             'layout_img' => $this->faker->text(),
             'layout_pdf' => $this->faker->text(),
+            'change_log' => $this->faker->text(),
             'changed_at' => $this->faker->text(255),
             'is_currently_active' => $this->faker->numberBetween(0, 127),
             'store_id' => \App\Models\Store::factory(),

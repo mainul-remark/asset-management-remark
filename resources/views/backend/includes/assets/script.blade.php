@@ -1,5 +1,5 @@
-<!-- Jquery -->
-<script src="{{ asset('/backend/build/assets/libs/jquery/jquery-4.0.0.min.js') }}"></script>
+<!-- jQuery (Select2 compatible) -->
+<script src="{{ asset('/backend/template/valex/code.jquery.com/jquery-3.6.1.min.js') }}"></script>
 
 <script>
     const base_url = "{!! url('/') !!}/";
@@ -8,6 +8,16 @@
             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
         }
     });
+    $(function () {
+        // show arrow down icon on horizontal menu view
+        // var dataLayout = $('html').attr('data-nav-layout');
+        // if (dataLayout == 'horizontal')
+        // {
+        //     $('.has-sub .fe-chevron-right').each(function () {
+        //         $(this).removeClass('fe-chevron-right').addClass('fe-chevron-down');
+        //     })
+        // }
+    })
 </script>
 
 <!-- Popper JS -->
@@ -46,5 +56,4 @@
 <script type="module" src="{{ asset('/backend/build/assets/app-ClKBXEo6.js') }}"></script>
 <!-- Center horizontal menu - JS files have been modified to use removeProperty instead of setting margin to 0 -->
 <!-- END SCRIPTS -->
-
 

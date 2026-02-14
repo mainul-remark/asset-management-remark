@@ -6,8 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Models\District;
 use App\Models\Division;
 use App\Models\Store;
+use App\Models\StoreLayout;
 use App\Models\Thana;
 use App\Models\User;
+use Mainul\CustomHelperFunctions\Helpers\CustomHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -39,6 +41,62 @@ class StoreController extends Controller
             ->orderBy('name')
             ->get();
         return response()->json($thanas);
+    }
+
+    public function layoutStores(Request $request)
+    {
+        $query = Store::query()
+            ->select('id', 'title', 'code', 'division_id')
+            ->with('division:id,name')
+            ->withCount('storeLayouts')
+            ->latest();
+
+        if ($search = $request->input('search')) {
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhere('code', 'like', "%{$search}%")
+                  ->orWhere('store_code', 'like', "%{$search}%");
+            });
+        }
+
+        if ($divisionName = $request->input('division')) {
+            $query->whereHas('division', fn ($q) => $q->where('name', $divisionName));
+        }
+
+        return response()->json($query->paginate(15));
+    }
+
+    public function uploadLayout(Request $request, Store $store)
+    {
+        $request->validate([
+            'store_layout_pdf' => 'required|mimes:pdf|max:10240',
+            'changelog'        => 'nullable|string|max:1000',
+        ], [
+            'store_layout_pdf.required' => 'Please select a PDF file.',
+            'store_layout_pdf.mimes'    => 'The file must be a PDF.',
+            'store_layout_pdf.max'      => 'The PDF must not exceed 10MB.',
+        ]);
+
+        try {
+            DB::transaction(function () use ($request, $store) {
+                $pdfPath = CustomHelper::fileUpload($request->file('store_layout_pdf'), 'stores', 'store_layout', null, null, null);
+
+                $store->update(['store_layout_pdf' => $pdfPath]);
+                $store->storeLayouts()->update(['is_currently_active' => 0]);
+
+                StoreLayout::create([
+                    'store_id'            => $store->id,
+                    'layout_pdf'          => $pdfPath,
+                    'changed_at'          => now()->toDateString(),
+                    'is_currently_active' => 1,
+                    'change_log'          => $request->changelog,
+                ]);
+            });
+
+            return response()->json(['success' => true, 'message' => 'Layout uploaded successfully.']);
+        } catch (\Exception $exception) {
+            return response()->json(['success' => false, 'message' => $exception->getMessage()], 500);
+        }
     }
 
     public function store(Request $request)
@@ -96,7 +154,7 @@ class StoreController extends Controller
     {
         return [
             'title'               => ['required', 'string', 'max:255', Rule::unique('stores', 'title')->ignore($ignoreId)],
-            'code'                => ['required', 'string', 'min:2', 'max:3', 'alpha', Rule::unique('stores', 'code')->ignore($ignoreId)],
+            'code'                => ['required', 'string', 'min:2', Rule::unique('stores', 'code')->ignore($ignoreId)],
             'store_code'          => 'nullable|string|max:50',
             'total_area_sqft'     => 'nullable|numeric|min:0',
             'address'             => 'nullable|string|max:1000',
@@ -110,11 +168,11 @@ class StoreController extends Controller
             'monthly_rent'        => 'nullable|numeric|min:0',
             'per_sqr_feet_rent'   => 'nullable|numeric|min:0',
             'store_layout_pdf'    => 'nullable|mimes:pdf|max:10240',
-            'contact_persion'     => 'nullable|string|max:255',
-            'shop_official_mobile'=> 'nullable|string|max:20',
-            'shop_official_email' => 'nullable|email|max:255',
+            'contact_persion'     => 'required|string|max:255',
+            'shop_official_mobile'=> ['required', 'string', 'size:11', 'regex:/^01[3-9]\d{8}$/'],
+            'shop_official_email' => 'required|email|max:255',
             'status'              => 'required|in:0,1',
-            'store_manager_id'    => 'nullable|exists:users,id',
+//            'store_manager_id'    => 'nullable|exists:users,id',
             'opened_date'         => 'nullable|date',
         ];
     }
@@ -122,14 +180,42 @@ class StoreController extends Controller
     private function validationMessages(): array
     {
         return [
-            'title.required' => 'The store title is required.',
-            'title.unique'   => 'This store title is already taken.',
-            'code.required'  => 'The store code is required.',
-            'code.unique'    => 'This store code is already in use.',
+            'title.required'    => 'The store title is required.',
+            'title.string'      => 'The store title must be a valid text.',
+            'title.max'         => 'The store title must not exceed 255 characters.',
+            'title.unique'      => 'This store title is already taken.',
+            'code.required'     => 'The store code is required.',
+            'code.string'       => 'The store code must be a valid text.',
+            'code.min'          => 'The store code must be at least 2 characters.',
+            'code.alpha'        => 'The store code must contain only letters.',
+            'code.unique'       => 'This store code is already in use.',
+            'total_area_sqft.numeric' => 'Store size must be a valid number.',
+            'total_area_sqft.min'     => 'Store size cannot be negative.',
+            'address.max'       => 'The address must not exceed 1000 characters.',
+            'latitude.numeric'  => 'Latitude must be a valid number.',
             'latitude.between'  => 'Latitude must be between -90 and 90.',
+            'longitude.numeric' => 'Longitude must be a valid number.',
             'longitude.between' => 'Longitude must be between -180 and 180.',
-            'store_layout_pdf.max' => 'The layout PDF must not exceed 10MB.',
-            'shop_official_email.email' => 'Please enter a valid email address.',
+            'monthly_rent.numeric'      => 'Monthly rent must be a valid number.',
+            'monthly_rent.min'          => 'Monthly rent cannot be negative.',
+            'per_sqr_feet_rent.numeric' => 'Rent per sq ft must be a valid number.',
+            'per_sqr_feet_rent.min'     => 'Rent per sq ft cannot be negative.',
+            'store_layout_pdf.mimes'    => 'The layout file must be a PDF.',
+            'store_layout_pdf.max'      => 'The layout PDF must not exceed 10MB.',
+            'contact_persion.required'  => 'The contact person name is required.',
+            'contact_persion.max'       => 'The contact person name must not exceed 255 characters.',
+            'shop_official_mobile.required' => 'The phone number is required.',
+            'shop_official_mobile.size'     => 'The phone number must be exactly 11 digits.',
+            'shop_official_mobile.regex'    => 'Please enter a valid Bangladeshi mobile number (e.g. 01XXXXXXXXX).',
+            'shop_official_email.required'  => 'The email address is required.',
+            'shop_official_email.email'     => 'Please enter a valid email address.',
+            'shop_official_email.max'       => 'The email address must not exceed 255 characters.',
+            'status.required'   => 'The status is required.',
+            'status.in'         => 'The status must be either Active or Inactive.',
+            'opened_date.date'  => 'Please enter a valid date.',
+            'division_id.exists'  => 'The selected division is invalid.',
+            'district_id.exists'  => 'The selected district is invalid.',
+            'thana_id.exists'     => 'The selected thana is invalid.',
         ];
     }
 }
