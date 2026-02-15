@@ -76,6 +76,23 @@ class SiteSettingsController extends Controller
         return response()->json(['success' => true, 'message' => 'Site settings updated successfully.']);
     }
 
+    public function saveTheme(Request $request)
+    {
+        $validated = $this->validateThemeData($request);
+
+        $siteSetting = SiteSetting::first();
+        if ($siteSetting) {
+            $siteSetting->update($validated);
+        } else {
+            $siteSetting = SiteSetting::create($validated);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Theme settings saved successfully.',
+        ]);
+    }
+
     /**
      * Remove the specified resource from storage.
      */
@@ -90,6 +107,12 @@ class SiteSettingsController extends Controller
 
     private function validateData(Request $request): array
     {
+        if ($request->filled('office_mobile')) {
+            $request->merge([
+                'office_mobile' => preg_replace('/[\s-]+/', '', (string) $request->input('office_mobile')),
+            ]);
+        }
+
         return $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'meta_title' => ['nullable', 'string', 'max:2000'],
@@ -102,11 +125,46 @@ class SiteSettingsController extends Controller
             'site_info' => ['nullable', 'string'],
             'header_custom_code' => ['nullable', 'string'],
             'footer_custom_code' => ['nullable', 'string'],
-            'office_mobile' => ['nullable', 'string', 'max:255'],
+            'office_mobile' => ['nullable', 'string', 'max:14', 'regex:/^(?:\+?880|0)1[3-9]\d{8}$/'],
             'office_email' => ['nullable', 'email', 'max:255'],
             'office_address' => ['nullable', 'string', 'max:255'],
             'banner' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp,svg', 'max:8192'],
         ], $this->validationMessages());
+    }
+
+    private function validateThemeData(Request $request): array
+    {
+        foreach (['menu_color_code', 'header_color_code', 'theme_primary_code', 'theme_bg_color_code'] as $rgbField) {
+            if ($request->filled($rgbField)) {
+                $request->merge([$rgbField => $this->normalizeRgb((string) $request->input($rgbField))]);
+            }
+        }
+
+        return $request->validate([
+            'theme_style' => ['nullable', 'in:light,dark'],
+            'direction' => ['nullable', 'in:ltr,rtl'],
+            'navigation_style' => ['nullable', 'in:horizontal,vertical'],
+            'navigation_menu_styles' => ['nullable', 'in:menu-click,menu-hover,icon-click,icon-hover,default,closed,icontext,overlay,detached,doublemenu'],
+            'page_styles' => ['nullable', 'in:regular,classic,modern'],
+            'layout_width' => ['nullable', 'in:fullwidth,boxed'],
+            'menu_positions' => ['nullable', 'in:fixed,scrollable'],
+            'header_positions' => ['nullable', 'in:fixed,scrollable'],
+            'page_loader' => ['nullable', 'in:enable,disable'],
+            'menu_colors' => ['nullable', 'in:light,dark,color,gradient,transparent'],
+            'menu_color_code' => ['nullable', 'string', 'max:20', 'regex:/^(25[0-5]|2[0-4]\d|1?\d?\d),(25[0-5]|2[0-4]\d|1?\d?\d),(25[0-5]|2[0-4]\d|1?\d?\d)$/'],
+            'header_colors' => ['nullable', 'in:light,dark,color,gradient,transparent'],
+            'header_color_code' => ['nullable', 'string', 'max:20', 'regex:/^(25[0-5]|2[0-4]\d|1?\d?\d),(25[0-5]|2[0-4]\d|1?\d?\d),(25[0-5]|2[0-4]\d|1?\d?\d)$/'],
+            'theme_primary' => ['nullable', 'string', 'max:50'],
+            'theme_primary_code' => ['nullable', 'string', 'max:20', 'regex:/^(25[0-5]|2[0-4]\d|1?\d?\d),(25[0-5]|2[0-4]\d|1?\d?\d),(25[0-5]|2[0-4]\d|1?\d?\d)$/'],
+            'theme_bg_color' => ['nullable', 'string', 'max:50'],
+            'theme_bg_color_code' => ['nullable', 'string', 'max:20', 'regex:/^(25[0-5]|2[0-4]\d|1?\d?\d),(25[0-5]|2[0-4]\d|1?\d?\d),(25[0-5]|2[0-4]\d|1?\d?\d)$/'],
+            'menu_bg_img' => ['nullable', 'in:bgimg1,bgimg2,bgimg3,bgimg4,bgimg5'],
+        ]);
+    }
+
+    private function normalizeRgb(string $value): string
+    {
+        return preg_replace('/\s+/', '', trim($value));
     }
 
     private function validationMessages(): array
@@ -126,7 +184,8 @@ class SiteSettingsController extends Controller
             'banner.max' => 'The banner must not be larger than 8MB.',
             'office_email.email' => 'Please enter a valid office email address.',
             'office_email.max' => 'The office email cannot exceed 255 characters.',
-            'office_mobile.max' => 'The office mobile number cannot exceed 255 characters.',
+            'office_mobile.max' => 'The office mobile number cannot exceed 14 characters.',
+            'office_mobile.regex' => 'Please enter a valid Bangladeshi mobile number (e.g., 01712345678 or +8801712345678).',
             'office_address.max' => 'The office address cannot exceed 255 characters.',
         ];
     }

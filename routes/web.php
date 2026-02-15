@@ -35,6 +35,7 @@ Route::middleware([
         'asset-types' => AssetTypeController::class,
         'site-settings' => SiteSettingsController::class,
     ]);
+    Route::post('site-settings/theme', [SiteSettingsController::class, 'saveTheme'])->name('site-settings.theme');
 
     Route::prefix('admin')->middleware('resource.maker','auth.acl')->group(function () {
         Route::resource('/roles',RoleController::class);

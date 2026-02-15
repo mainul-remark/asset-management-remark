@@ -30,6 +30,26 @@ class SiteSetting extends Model
         'office_email',
         'office_address',
         'banner',
+
+//        valex theme settings columns
+        'theme_style',
+        'direction',
+        'navigation_style',
+        'navigation_menu_styles',
+        'page_styles',
+        'layout_width',
+        'menu_positions',
+        'header_positions',
+        'page_loader',
+        'menu_colors',
+        'menu_color_code',
+        'header_colors',
+        'header_color_code',
+        'theme_primary',
+        'theme_primary_code',
+        'theme_bg_color',
+        'theme_bg_color_code',
+        'menu_bg_img',
     ];
 
     protected $searchableFields = ['*'];

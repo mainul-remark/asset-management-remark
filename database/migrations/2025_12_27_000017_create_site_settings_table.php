@@ -32,21 +32,24 @@ return new class extends Migration {
 
 
 //            valex theme settings
-            $table->string('theme_style')->default('light')->comment('light or dark');
-            $table->string('direction')->default('ltr')->comment('ltr or rtl');
-            $table->string('navigation_style')->default('horizontal')->comment('horizontal or vertical');
-            $table->string('navigation_menu_styles')->default('menu-hover')->comment('menu-hover / menu-click / icon-click / icon-hover');
-            $table->string('page_styles')->default('regular')->comment('regular / classic / modern');
-            $table->string('layout_width')->default('fullwidth')->comment('fullwidth / boxed');
-            $table->string('menu_positions')->default('fixed')->comment('fixed / scrollable');
-            $table->string('header_positions')->default('fixed')->comment('fixed / scrollable');
-            $table->string('page_loader')->default('disable')->comment('disable / enable');
-            $table->string('menu_colors')->default('light')->comment('light / dark / color / gradient / transparent');
+            $table->string('theme_style')->nullable()->default('light')->comment('light or dark');
+            $table->string('direction')->nullable()->default('ltr')->comment('ltr or rtl');
+            $table->string('navigation_style')->nullable()->default('horizontal')->comment('horizontal or vertical');
+            $table->string('navigation_menu_styles')->nullable()->default('menu-hover')->comment('menu-hover / menu-click / icon-click / icon-hover');
+            $table->string('page_styles')->nullable()->default('regular')->comment('regular / classic / modern');
+            $table->string('layout_width')->nullable()->default('fullwidth')->comment('fullwidth / boxed');
+            $table->string('menu_positions')->nullable()->default('fixed')->comment('fixed / scrollable');
+            $table->string('header_positions')->nullable()->default('fixed')->comment('fixed / scrollable');
+            $table->string('page_loader')->nullable()->default('disable')->comment('disable / enable');
+            $table->string('menu_colors')->nullable()->default('light')->comment('light / dark / color / gradient / transparent');
             $table->string('menu_color_code')->nullable();
-            $table->string('header_colors')->default('light')->comment('light / dark / color / gradient / transparent');
+            $table->string('header_colors')->nullable()->default('light')->comment('light / dark / color / gradient / transparent');
             $table->string('header_color_code')->nullable();
-            $table->string('theme_primary')->default('light')->comment('light / dark / color / gradient / transparent');
+            $table->string('theme_primary')->nullable()->default('light')->comment('light / dark / color / gradient / transparent');
             $table->string('theme_primary_code')->nullable();
+            $table->string('theme_bg_color')->nullable()->comment('preset-1 to preset-5 or custom');
+            $table->string('theme_bg_color_code')->nullable()->comment('RGB format: R,G,B for body bg');
+            $table->string('menu_bg_img')->nullable()->comment('bgimg1 to bgimg5');
 
             $table->timestamps();
             $table->softDeletes();
