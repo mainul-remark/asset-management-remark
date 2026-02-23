@@ -49,6 +49,7 @@ return new class extends Migration {
             $table->string('store_code')->nullable();
             $table->unsignedBigInteger('district_id')->nullable();
             $table->unsignedBigInteger('thana_id')->nullable();
+            $table->string('slug')->nullable();
 
             $table->timestamps();
             $table->softDeletes();

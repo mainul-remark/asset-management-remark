@@ -10,6 +10,18 @@
         $avgRentPerSqft = $stores->where('total_area_sqft', '>', 0)->avg(fn($s) => $s->monthly_rent / $s->total_area_sqft);
         $totalLocations = $stores->whereNotNull('division_id')->pluck('division_id')->unique()->count();
         $activeStores = $stores->where('status', 1)->count();
+        $storeLocatorData = $stores->map(function ($store) {
+            return [
+                'id' => $store->id,
+                'title' => $store->title,
+                'code' => $store->code,
+                'address' => $store->address,
+                'division' => optional($store->division)->name,
+                'status' => (int) $store->status,
+                'latitude' => $store->latitude,
+                'longitude' => $store->longitude,
+            ];
+        })->values();
     @endphp
 
     <!-- Main Content -->
@@ -30,6 +42,7 @@
                 <p class="page-subtitle mb-0">Manage store information, layouts, and calculate branding costs across all locations</p>
             </div>
             <div class="page-header-actions d-flex gap-2">
+                <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#storeLocator"><i class="bi bi-map me-1"></i>View Stores</button>
                 <button class="btn btn-outline-secondary btn-sm"><i class="bi bi-download me-1"></i>Export Data</button>
                 <button class="btn btn-primary btn-sm" id="btn-add-store"><i class="bi bi-plus me-1"></i>Add Store</button>
             </div>
@@ -626,9 +639,76 @@
             </div>
         </div>
     </div>
+
+    {{-- Store Locator Map --}}
+    <div class="modal fade" id="storeLocator" tabindex="-1" aria-labelledby="storeLocatorLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header border-bottom">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="modal-title-icon"><i class="bi bi-geo-alt-fill"></i></span>
+                        <div>
+                            <h5 class="modal-title mb-0 fw-bold" id="storeLocatorLabel" style="font-size:1.05rem;">Store Locator</h5>
+                            <small class="text-muted">All stores from latitude/longitude coordinates</small>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-2 mb-3">
+                        <div class="col-4">
+                            <div class="locator-stat">
+                                <span class="locator-stat-label">Total Stores</span>
+                                <span class="locator-stat-value" id="locator-total-stores">{{ $stores->count() }}</span>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="locator-stat">
+                                <span class="locator-stat-label">Mapped</span>
+                                <span class="locator-stat-value text-success" id="locator-mapped-stores">0</span>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="locator-stat">
+                                <span class="locator-stat-label">Missing Coords</span>
+                                <span class="locator-stat-value text-warning" id="locator-missing-stores">0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-12 col-lg-4">
+                            <div class="locator-list-wrap">
+                                <div class="locator-list-head d-flex align-items-center justify-content-between">
+                                    <span class="fw-semibold" style="font-size:0.9rem;">Mapped Stores</span>
+                                    <span class="badge bg-light text-dark" id="locator-list-count">0</span>
+                                </div>
+                                <div id="storeLocatorList" class="list-group list-group-flush locator-list-body">
+                                    <div class="text-muted text-center py-4" style="font-size:0.85rem;">
+                                        Open map to load store points.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-lg-8">
+                            <div id="storeLocatorMap" class="store-locator-map" aria-label="Store location map"></div>
+                            <div class="alert alert-warning py-2 px-3 mt-2 mb-0 d-none" id="storeLocatorEmpty" style="font-size:0.85rem;">
+                                <i class="bi bi-exclamation-triangle me-1"></i>No valid latitude/longitude found for stores.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <small class="text-muted me-auto">Click a store from list to focus marker on map.</small>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @push('styles')
+<link rel="stylesheet" href="{{ asset('backend/build/assets/libs/leaflet/leaflet.css') }}">
 <link rel="stylesheet" href="{{ asset('backend/build/assets/libs/filepond/filepond.min.css') }}">
 <style>
     .filepond--root { margin-bottom: 0; }
@@ -651,12 +731,99 @@
         font-size: 0.85rem;
         color: #f57c00;
     }
+    .store-locator-map {
+        width: 100%;
+        min-height: 430px;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        background: #f8fafc;
+    }
+    .locator-stat {
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        padding: 10px 12px;
+        background: #f8fafc;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+    .locator-stat-label {
+        font-size: 0.75rem;
+        color: #64748b;
+        line-height: 1.2;
+    }
+    .locator-stat-value {
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: #0f172a;
+        line-height: 1.1;
+    }
+    .locator-list-wrap {
+        border: 1px solid #e9ecef;
+        border-radius: 10px;
+        overflow: hidden;
+        height: 100%;
+        min-height: 430px;
+        background: #fff;
+    }
+    .locator-list-head {
+        padding: 10px 12px;
+        border-bottom: 1px solid #eef2f7;
+        background: #f8fafc;
+    }
+    .locator-list-body {
+        max-height: 378px;
+        overflow-y: auto;
+    }
+    .locator-store-item {
+        border: 0;
+        border-bottom: 1px solid #f1f5f9;
+        cursor: pointer;
+        padding: 10px 12px;
+    }
+    .locator-store-item:last-child {
+        border-bottom: 0;
+    }
+    .locator-store-item .store-name {
+        font-size: 0.86rem;
+        font-weight: 600;
+        color: #0f172a;
+    }
+    .locator-store-item .store-meta {
+        font-size: 0.78rem;
+        color: #64748b;
+    }
+    .leaflet-popup-content-wrapper {
+        border-radius: 8px;
+    }
+    .store-popup-title {
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: #0f172a;
+        margin-bottom: 3px;
+    }
+    .store-popup-meta {
+        font-size: 0.78rem;
+        color: #475569;
+    }
+    @media (max-width: 991.98px) {
+        .store-locator-map {
+            min-height: 320px;
+        }
+        .locator-list-wrap {
+            min-height: auto;
+        }
+        .locator-list-body {
+            max-height: 220px;
+        }
+    }
 </style>
 @endpush
 
 @push('scripts')
     @include('backend.includes.plugins.toastr')
     @include('backend.includes.plugins.datatable')
+    <script src="{{ asset('backend/build/assets/libs/leaflet/leaflet.js') }}"></script>
     <script src="{{ asset('backend/build/assets/libs/filepond/filepond.min.js') }}"></script>
     <script src="{{ asset('backend/build/assets/libs/filepond-plugin-file-validate-type/filepond-plugin-file-validate-type.min.js') }}"></script>
     <script src="{{ asset('backend/build/assets/libs/filepond-plugin-file-validate-size/filepond-plugin-file-validate-size.min.js') }}"></script>
@@ -665,6 +832,166 @@
         const storeModal = new bootstrap.Modal(document.getElementById('storeModal'));
         const viewModalEl = new bootstrap.Modal(document.getElementById('viewModal'));
         const deleteModalEl = new bootstrap.Modal(document.getElementById('deleteModal'));
+        const storeLocatorModal = document.getElementById('storeLocator');
+
+        const storeLocatorData = @json($storeLocatorData);
+        const defaultMapCenter = [23.685, 90.3563];
+        let locatorMap = null;
+        let locatorLayer = null;
+        let locatorMarkersById = {};
+
+        function escapeHtml(value) {
+            if (value === null || value === undefined) return '';
+            return String(value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function normalizeStoreCoordinates() {
+            return storeLocatorData
+                .map(function (store) {
+                    const lat = parseFloat(store.latitude);
+                    const lng = parseFloat(store.longitude);
+                    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+                    if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return null;
+
+                    return {
+                        id: store.id,
+                        title: store.title,
+                        code: store.code,
+                        address: store.address,
+                        division: store.division,
+                        status: store.status,
+                        latitude: lat,
+                        longitude: lng
+                    };
+                })
+                .filter(Boolean);
+        }
+
+        function storePopupHtml(store) {
+            const statusBadge = store.status === 1
+                ? '<span class="badge bg-success-transparent">Active</span>'
+                : '<span class="badge bg-light text-muted">Inactive</span>';
+
+            return `
+                <div style="min-width:180px;">
+                    <div class="store-popup-title">${escapeHtml(store.title || 'Store')}</div>
+                    <div class="store-popup-meta mb-1">${escapeHtml(store.code || '')}</div>
+                    <div class="store-popup-meta mb-2">${escapeHtml(store.division || store.address || 'Location unavailable')}</div>
+                    <div class="store-popup-meta mb-2">${store.latitude.toFixed(6)}, ${store.longitude.toFixed(6)}</div>
+                    ${statusBadge}
+                </div>
+            `;
+        }
+
+        function renderStoreLocatorList(validStores) {
+            const $list = $('#storeLocatorList');
+            $('#locator-list-count').text(validStores.length);
+
+            if (!validStores.length) {
+                $list.html('<div class="text-muted text-center py-4" style="font-size:0.85rem;">No mapped stores available.</div>');
+                return;
+            }
+
+            let html = '';
+            validStores.forEach(function (store) {
+                html += `
+                    <button type="button" class="list-group-item list-group-item-action locator-store-item" data-store-id="${store.id}">
+                        <div class="store-name">${escapeHtml(store.title)}</div>
+                        <div class="store-meta">${escapeHtml(store.division || store.address || 'N/A')}</div>
+                        <div class="store-meta">${store.latitude.toFixed(5)}, ${store.longitude.toFixed(5)}</div>
+                    </button>
+                `;
+            });
+            $list.html(html);
+        }
+
+        function updateStoreLocatorStats(mappedCount) {
+            const total = storeLocatorData.length;
+            const missing = total - mappedCount;
+            $('#locator-total-stores').text(total);
+            $('#locator-mapped-stores').text(mappedCount);
+            $('#locator-missing-stores').text(missing < 0 ? 0 : missing);
+        }
+
+        function initializeStoreLocatorMap(validStores) {
+            if (!locatorMap) {
+                locatorMap = L.map('storeLocatorMap', {
+                    center: defaultMapCenter,
+                    zoom: 7,
+                    zoomControl: true,
+                    attributionControl: true
+                });
+
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 19,
+                    attribution: '&copy; OpenStreetMap contributors'
+                }).addTo(locatorMap);
+
+                locatorLayer = L.layerGroup().addTo(locatorMap);
+            }
+
+            locatorMarkersById = {};
+            locatorLayer.clearLayers();
+
+            if (!validStores.length) {
+                $('#storeLocatorEmpty').removeClass('d-none');
+                locatorMap.setView(defaultMapCenter, 7);
+                setTimeout(function () { locatorMap.invalidateSize(); }, 150);
+                return;
+            }
+
+            $('#storeLocatorEmpty').addClass('d-none');
+
+            const bounds = [];
+            validStores.forEach(function (store) {
+                const marker = L.marker([store.latitude, store.longitude], {
+                    title: store.title
+                }).bindPopup(storePopupHtml(store));
+
+                marker.addTo(locatorLayer);
+                locatorMarkersById[String(store.id)] = marker;
+                bounds.push([store.latitude, store.longitude]);
+            });
+
+            if (bounds.length === 1) {
+                locatorMap.setView(bounds[0], 14);
+            } else {
+                locatorMap.fitBounds(bounds, { padding: [24, 24] });
+            }
+
+            setTimeout(function () { locatorMap.invalidateSize(); }, 150);
+        }
+
+        if (storeLocatorModal) {
+            storeLocatorModal.addEventListener('shown.bs.modal', function () {
+                if (typeof L === 'undefined') {
+                    $('#storeLocatorEmpty')
+                        .removeClass('d-none')
+                        .html('<i class="bi bi-exclamation-triangle me-1"></i>Leaflet failed to load. Please check map assets.');
+                    return;
+                }
+
+                const validStores = normalizeStoreCoordinates();
+                updateStoreLocatorStats(validStores.length);
+                renderStoreLocatorList(validStores);
+                initializeStoreLocatorMap(validStores);
+            });
+        }
+
+        $(document).on('click', '.locator-store-item', function () {
+            const storeId = String($(this).data('store-id'));
+            const marker = locatorMarkersById[storeId];
+            if (!locatorMap || !marker) return;
+
+            const position = marker.getLatLng();
+            locatorMap.setView(position, Math.max(locatorMap.getZoom(), 15), { animate: true });
+            marker.openPopup();
+        });
 
         // --- Initialize DataTable ---
         const storesTable = $('#stores-table').DataTable({

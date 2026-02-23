@@ -1,5 +1,6 @@
 <!-- Favicon -->
-<link rel="shortcut icon" href="{{ asset('/') }}backend/build/assets/images/brand-logos/favicon.ico">
+{{--<link rel="shortcut icon" href="{{ asset('/') }}backend/build/assets/images/brand-logos/favicon.ico">--}}
+<link rel="shortcut icon" href="{{ asset('/favicon.ico') }}">
 
 <!-- Main Theme Js -->
 <script src="{{ asset('/') }}backend/build/assets/main.js"></script>

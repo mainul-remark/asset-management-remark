@@ -3,13 +3,13 @@
 
     $themeStyle = $siteSetting?->theme_style === 'dark' ? 'dark' : 'light';
     $direction = $siteSetting?->direction === 'rtl' ? 'rtl' : 'ltr';
-    $navigationStyle = $siteSetting?->navigation_style === 'vertical' ? 'vertical' : 'horizontal';
+    $navigationStyle = $siteSetting?->navigation_style === 'horizontal' ? 'horizontal' : 'vertical';
 
     $navStyleChoices = ['menu-click', 'menu-hover', 'icon-click', 'icon-hover'];
     $verticalStyleChoices = ['default', 'closed', 'icontext', 'overlay', 'detached', 'doublemenu'];
     $navigationMenuStyles = $siteSetting?->navigation_menu_styles;
-    $navStyleAttr = in_array($navigationMenuStyles, $navStyleChoices, true) ? $navigationMenuStyles : 'menu-hover';
-    $verticalStyleAttr = in_array($navigationMenuStyles, $verticalStyleChoices, true) ? $navigationMenuStyles : null;
+    $navStyleAttr = in_array($navigationMenuStyles, $navStyleChoices, true) ? $navigationMenuStyles : 'menu-click';
+    $verticalStyleAttr = in_array($navigationMenuStyles, $verticalStyleChoices, true) ? $navigationMenuStyles : 'overlay';
 
     $pageStyles = in_array($siteSetting?->page_styles, ['regular', 'classic', 'modern'], true) ? $siteSetting->page_styles : 'regular';
     $layoutWidth = $siteSetting?->layout_width === 'boxed' ? 'boxed' : 'fullwidth';
@@ -40,7 +40,7 @@
 @endphp
 
 <!DOCTYPE html>
-<html lang="en" dir="{{ $direction }}" data-nav-layout="{{ $navigationStyle }}" data-nav-style="{{ $navStyleAttr }}" @if($verticalStyleAttr) data-vertical-style="{{ $verticalStyleAttr }}" @endif data-page-style="{{ $pageStyles }}" data-width="{{ $layoutWidth }}" data-menu-position="{{ $menuPositions }}" data-header-position="{{ $headerPositions }}" data-theme-mode="{{ $themeStyle }}" data-header-styles="{{ $headerColors }}" data-menu-styles="{{ $menuColors }}" data-toggled="close" @if($menuBgImg) data-bg-img="{{ $menuBgImg }}" @endif loader="{{ $pageLoader }}">
+<html lang="en" dir="{{ $direction }}" data-nav-layout="{{ $navigationStyle }}" @if($navigationStyle === 'horizontal') data-nav-style="{{ $navStyleAttr }}" @else data-vertical-style="{{ $verticalStyleAttr }}" @endif data-page-style="{{ $pageStyles }}" data-width="{{ $layoutWidth }}" data-menu-position="{{ $menuPositions }}" data-header-position="{{ $headerPositions }}" data-theme-mode="{{ $themeStyle }}" data-header-styles="{{ $headerColors }}" data-menu-styles="{{ $menuColors }}" data-toggled="close" @if($menuBgImg) data-bg-img="{{ $menuBgImg }}" @endif loader="{{ $pageLoader }}">
 
 
 <!-- Mirrored from laravelui.spruko.com/valex/index by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 31 Jan 2026 01:10:49 GMT -->
@@ -57,7 +57,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}" />
 
     <!-- TITLE -->
-    <title> Valex - @yield('title') </title>
+    <title> Remark HB - @yield('title') </title>
 
     @if($siteSetting)
         <script>
@@ -93,11 +93,11 @@
                 if (navStyleValues.includes(theme.navigation_menu_styles)) {
                     localStorage.setItem('valexnavstyles', theme.navigation_menu_styles);
                     localStorage.removeItem('valexverticalstyles');
-                } else if (verticalStyleValues.includes(theme.navigation_menu_styles)) {
+                } else if (verticalStyleValues.includes(theme.navigation_menu_styles) && theme.navigation_menu_styles !== 'default') {
                     localStorage.setItem('valexverticalstyles', theme.navigation_menu_styles);
                     localStorage.removeItem('valexnavstyles');
                 } else {
-                    localStorage.removeItem('valexnavstyles');
+                    localStorage.setItem('valexnavstyles', 'menu-click');
                     localStorage.removeItem('valexverticalstyles');
                 }
 
@@ -165,6 +165,14 @@
                 --light-rgb: {{ $bgLightParts[0] }}, {{ $bgLightParts[1] }}, {{ $bgLightParts[2] }};
                 --form-control-bg: rgb({{ $bgLightParts[0] }}, {{ $bgLightParts[1] }}, {{ $bgLightParts[2] }});
                 --input-border: rgba(255,255,255,0.1);
+            }
+        </style>
+    @endif
+
+    @if($siteSetting?->theme_primary_code)
+        <style>
+            html {
+                --primary-rgb: {{ $siteSetting->theme_primary_code }};
             }
         </style>
     @endif
@@ -312,9 +320,9 @@
             const primaryCode = normalizeRgb(localStorage.getItem('primaryRGB'));
             const bgCode = normalizeRgb(localStorage.getItem('bodyBgRGB'));
 
-            let navigationMenuStyles = verticalStyle || navStyle || 'menu-hover';
+            let navigationMenuStyles = (verticalStyle && verticalStyle !== 'default') ? verticalStyle : (navStyle || 'menu-click');
             if (!allowed.navigation_menu_styles.includes(navigationMenuStyles)) {
-                navigationMenuStyles = navigationStyle === 'vertical' ? 'default' : 'menu-hover';
+                navigationMenuStyles = navigationStyle === 'vertical' ? 'overlay' : 'menu-click';
             }
 
             const pageStyleAttr = html.getAttribute('data-page-style');
@@ -373,6 +381,9 @@
             $.ajax({
                 url: saveUrl,
                 type: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
                 data: payload
             }).fail(function (xhr) {
                 console.error('Theme settings save failed.', xhr?.responseJSON || xhr?.statusText || xhr);

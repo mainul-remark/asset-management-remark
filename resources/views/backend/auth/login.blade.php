@@ -500,10 +500,11 @@
                         <div class="col-md-10 col-lg-10 col-xl-9 mx-auto">
                             <div class="card-sigin">
                                 <div class="mb-5 d-flex">
-                                    <a href="index.html" class="header-logo"><img src="{{ asset('/') }}backend/build/assets/images/brand-logos/desktop-logo.png"
-                                                                                  class="desktop-logo ht-40" alt="logo">
-                                        <img src="{{ asset('/') }}backend/build/assets/images/brand-logos/desktop-white.png"
-                                             class="desktop-white ht-40" alt="logo">
+                                    <a href="{{ route('/') }}" class="header-logo">
+{{--                                        <img src="{{ asset('/') }}backend/build/assets/images/brand-logos/desktop-logo.png" class="desktop-logo ht-40" alt="logo">--}}
+                                        <img src="{{ asset('/backend/remark.png') }}" class="desktop-logo ht-40" alt="logo">
+{{--                                        <img src="{{ asset('/') }}backend/build/assets/images/brand-logos/desktop-white.png" class="desktop-white ht-40" alt="logo">--}}
+                                        <img src="{{ asset('/backend/remark.png') }}" class="desktop-white ht-40" alt="logo">
                                     </a>
                                 </div>
                                 <div class="card-sigin">
@@ -521,18 +522,18 @@
                                                                                                   placeholder="Enter your password" type="password" name="password" value="123">
                                             </div>
                                             <button type="submit"  class="btn btn-primary btn-block w-100">Sign In</button>
-                                            <div class="row mt-3">
-                                                <div class="col-sm-6">
-                                                    <button class="btn btn-block w-100 btn-facebook"><i
-                                                            class="fab fa-facebook-f me-2"></i> Signup with
-                                                        Facebook</button>
-                                                </div>
-                                                <div class="col-sm-6 mt-2 mt-sm-0">
-                                                    <button class="btn btn-info btn-block w-100"><i
-                                                            class="ri-twitter-x-fill me-2"></i> Signup with
-                                                        Twitter</button>
-                                                </div>
-                                            </div>
+{{--                                            <div class="row mt-3">--}}
+{{--                                                <div class="col-sm-6">--}}
+{{--                                                    <button class="btn btn-block w-100 btn-facebook"><i--}}
+{{--                                                            class="fab fa-facebook-f me-2"></i> Signup with--}}
+{{--                                                        Facebook</button>--}}
+{{--                                                </div>--}}
+{{--                                                <div class="col-sm-6 mt-2 mt-sm-0">--}}
+{{--                                                    <button class="btn btn-info btn-block w-100"><i--}}
+{{--                                                            class="ri-twitter-x-fill me-2"></i> Signup with--}}
+{{--                                                        Twitter</button>--}}
+{{--                                                </div>--}}
+{{--                                            </div>--}}
                                         </form>
                                         <div class="main-signin-footer mt-5">
                                             <p class="mb-1"><a href="forgot.html">Forgot password?</a></p>

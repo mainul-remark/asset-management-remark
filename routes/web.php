@@ -8,13 +8,14 @@ use App\Http\Controllers\Backend\KV\CategoryController;
 use App\Http\Controllers\Backend\Asset\StoreController;
 use App\Http\Controllers\Backend\Asset\AssetTypeController;
 use App\Http\Controllers\Backend\SiteSettingsController;
+use App\Http\Controllers\Backend\Asset\AssetController;
 
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\UsersController;
 
 Route::get('/', function () {
     return view('welcome');
-});
+})->name('/');
 
 Route::middleware([
     'auth:sanctum',
@@ -34,6 +35,7 @@ Route::middleware([
         'stores' => StoreController::class,
         'asset-types' => AssetTypeController::class,
         'site-settings' => SiteSettingsController::class,
+        'assets' => AssetController::class,
     ]);
     Route::post('site-settings/theme', [SiteSettingsController::class, 'saveTheme'])->name('site-settings.theme');
 
@@ -110,6 +112,7 @@ Route::get('/store-sync', function (){
                     'store_code' => $locationDbStore->store_code,
                     'district_id' => $locationDbStore->district_id,
                     'thana_id' => $locationDbStore->thana_id,
+                    'slug' => str()->slug($locationDbStore->title.'-'.$locationDbStore->code),
                 ]);
 
                 $desiredCode = 'STR' . str_pad((string) $store->id, 3, '0', STR_PAD_LEFT);

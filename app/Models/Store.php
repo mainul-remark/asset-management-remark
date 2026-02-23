@@ -37,6 +37,7 @@ class Store extends Model
         'store_code',
         'district_id',
         'thana_id',
+        'slug',
     ];
 
     protected $searchableFields = ['*'];
@@ -73,6 +74,7 @@ class Store extends Model
             'division_id'         => $request->division_id,
             'district_id'         => $request->district_id,
             'thana_id'         => $request->thana_id,
+            'slug'              => str()->slug($request->title.'-'.$request->code),
             'store_layout_pdf'      => CustomHelper::fileUpload($request->file('store_layout_pdf'), "stores", 'store_layout', null, null, $store->store_layout_pdf ?? null),
         ]);
 
