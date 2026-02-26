@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Backend\Asset;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Backend\Asset\StoreRequest;
 use App\Models\District;
 use App\Models\Division;
 use App\Models\Store;
@@ -99,9 +100,9 @@ class StoreController extends Controller
         }
     }
 
-    public function store(Request $request)
+    public function store(StoreRequest $request)
     {
-        $request->validate($this->validationRules(), $this->validationMessages());
+//        $request->validate($this->validationRules(), $this->validationMessages());
 
         try {
             DB::transaction(function () use ($request) {
@@ -125,13 +126,13 @@ class StoreController extends Controller
         return response()->json($store);
     }
 
-    public function update(Request $request, string $id)
+    public function update(StoreRequest $request, string $id)
     {
         $store = Store::findOrFail($id);
 
-        $rules = $this->validationRules($store->id);
+//        $rules = $this->validationRules($store->id);
 
-        $request->validate($rules, $this->validationMessages());
+//        $request->validate($rules, $this->validationMessages());
 
         try {
             DB::transaction(function () use ($request, $store) {

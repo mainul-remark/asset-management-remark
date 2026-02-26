@@ -147,7 +147,7 @@
                         </div>
 
                         <div class="row d-none" id="asset-code-row">
-                            <div class="col-md-12 mb-3">
+                            <div class="col-md-6 mb-3">
                                 <label for="asset_code_display" class="form-label">Asset Code</label>
                                 <input type="text" class="form-control" id="asset_code_display" value="" readonly>
                             </div>
@@ -155,8 +155,8 @@
 
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="store_id" class="form-label">Store</label>
-                                <select class="form-select select-ele" id="store_id" name="store_id">
+                                <label for="store_id" class="form-label">Store <span class="text-danger">*</span></label>
+                                <select class="form-select select-ele" required id="store_id" name="store_id">
                                     <option value="">-- Select Store --</option>
                                     @foreach($stores as $store)
                                         <option value="{{ $store->id }}">{{ $store->title }} ({{ $store->code }})</option>
@@ -170,7 +170,7 @@
                                 <div class="invalid-feedback" id="error-asset_price"></div>
                             </div>
                             <div class="col-md-3 mb-3">
-                                <label for="minimum_fee" class="form-label">Minimum Fee</label>
+                                <label for="minimum_fee" class="form-label">Minimum Charge</label>
                                 <input type="number" step="0.01" min="0" class="form-control" id="minimum_fee" name="minimum_fee" placeholder="0.00">
                                 <div class="invalid-feedback" id="error-minimum_fee"></div>
                             </div>
@@ -404,7 +404,7 @@
                         .removeClass('d-none');
                 }
 
-                toggleStoreField();
+                // toggleStoreField();
                 if (selectedStoreId && !$('#is_common_asset').is(':checked')) {
                     $('#store_id').val(selectedStoreId).trigger('change');
                 }
@@ -552,7 +552,7 @@
         });
 
         $('#is_common_asset').on('change', function () {
-            toggleStoreField();
+            // toggleStoreField();
         });
 
         $('#store_id').on('select2:opening', function (e) {
