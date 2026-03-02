@@ -5,11 +5,14 @@ namespace App\Models;
 use App\Models\Scopes\Searchable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\File;
+use Mainul\CustomHelperFunctions\Helpers\CustomHelper;
 
 class Asset extends Model
 {
     use HasFactory;
-    use Searchable;
+    use Searchable, softDeletes;
 
     protected $fillable = [
         'asset_type_id',
@@ -36,12 +39,67 @@ class Asset extends Model
                 $asset->asset_code = self::generateUniqueAssetCode();
             }
         });
+
+        static::forceDeleted(function (self $asset): void {
+            if ($asset->default_image && file_exists(public_path($asset->default_image))) {
+                File::delete(public_path($asset->default_image));
+            }
+            if ($asset->planogram_pdf && file_exists(public_path($asset->planogram_pdf))) {
+                File::delete(public_path($asset->planogram_pdf));
+            }
+        });
+    }
+
+    public static function updateOrCreateAsset($request, $asset = null): self
+    {
+        $data = $request->validated();
+
+        $data['has_kv_slot']     = $request->boolean('has_kv_slot') ? 1 : 0;
+        $data['is_common_asset'] = $request->boolean('is_common_asset') ? 1 : 0;
+        $data['status']          = $request->boolean('status') ? 1 : 0;
+        $data['has_self']        = $request->boolean('has_self') ? 1 : 0;
+
+        if ($data['is_common_asset']) {
+            $data['store_id'] = null;
+        }
+
+        if (!$data['has_self']) {
+            $data['total_self'] = null;
+        }
+
+        if ($request->hasFile('default_image')) {
+            $data['default_image'] = CustomHelper::fileUpload(
+                $request->file('default_image'),
+                'asset-image',
+                'asset-image',
+                null,
+                null,
+                $asset->default_image ?? null
+            );
+        } else {
+            unset($data['default_image']);
+        }
+
+        if ($request->hasFile('planogram_pdf')) {
+            $data['planogram_pdf'] = CustomHelper::fileUpload(
+                $request->file('planogram_pdf'),
+                'asset-planogram',
+                'asset-planogram',
+                null,
+                null,
+                $asset->planogram_pdf ?? null
+            );
+        } else {
+            unset($data['planogram_pdf']);
+        }
+
+        return static::updateOrCreate(['id' => $asset?->id], $data);
     }
 
     public static function generateUniqueAssetCode(): string
     {
         $baseCode = 50000000;
-        $nextId = ((int) self::max('id')) + 1;
+        $nextId   = ((int) self::max('id')) + 1;
         $nextCode = $baseCode + max(1, $nextId);
 
         while (self::where('asset_code', (string) $nextCode)->exists()) {

@@ -3,14 +3,14 @@
 @section('title', 'Asset Types')
 
 @section('body')
-    <div class="container m-t-50">
+    <div class="container-fluid mt-4">
         <div class="row">
-            <div class="col-xl-12">
+            <div class="col-xl-9 col-lg-10 col-md-11 col-sm-12 mx-auto">
                 <div class="card custom-card">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <div class="card-title">Asset Type Management</div>
                         <button type="button" class="btn btn-sm btn-primary btn-wave" id="btn-add-asset-type">
-                            <i class="ri-add-line me-1"></i> Add asset type
+                            <i class="ri-add-line me-1"></i> Add Asset Type
                         </button>
                     </div>
                     <div class="card-body">
@@ -21,11 +21,11 @@
                                         <th>#</th>
                                         <th>Image</th>
                                         <th>Name</th>
-                                        <th>Price</th>
-                                        <th>Resolution</th>
-                                        <th>Info</th>
+                                        <th>Default Fee</th>
+                                        <th>Dimensions</th>
+                                        <th>Properties</th>
                                         <th>Status</th>
-                                        <th>Action</th>
+                                        <th width="110">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -34,38 +34,53 @@
                                         <td>{{ $loop->iteration }}</td>
                                         <td>
                                             @if($assetType->default_image)
-                                                <img class="asset-thumb" src="{{ asset($assetType->default_image) }}" alt="{{ $assetType->name ?? '--' }}">
+                                                <img class="asset-thumb" src="{{ asset($assetType->default_image) }}" alt="{{ $assetType->name }}">
+                                            @else
+                                                <div class="asset-thumb-empty"><i class="ri-image-line"></i></div>
                                             @endif
                                         </td>
-                                        <td>{{ $assetType->name }}</td>
-                                        <td>{{ $assetType->default_price ? number_format($assetType->default_price, 2) : '-' }}</td>
+                                        <td class="fw-semibold">{{ $assetType->name }}</td>
+                                        <td>{{ $assetType->default_price ? '৳ '.number_format($assetType->default_price, 2) : '—' }}</td>
                                         <td>
-                                            <span>
-                                                {{ $assetType->height }}x{{ $assetType->width }}@if(!is_null($assetType->depth)){{ 'x'.$assetType->depth }}@endif
-                                                {{ $assetType->dimension_unit_name ?? '' }}
-                                            </span>
+                                            @if($assetType->height || $assetType->width)
+                                                <span class="text-muted fs-11">
+                                                    {{ $assetType->height ?? 0 }} × {{ $assetType->width ?? 0 }}@if($assetType->depth > 0) × {{ $assetType->depth }}@endif
+                                                    {{ $assetType->dimension_unit_name ?? '' }}
+                                                </span>
+                                            @else
+                                                <span class="text-muted">—</span>
+                                            @endif
                                         </td>
                                         <td>
-                                            @if($assetType->is_digital == 1)
-                                                <span class="badge bg-primary-transparent">Digital</span>
+                                            @if($assetType->is_digital)
+                                                <span class="badge bg-info-transparent me-1">Digital</span>
                                             @endif
-                                            @if($assetType->has_kv_space == 1)
-                                                <span class="badge bg-primary-transparent">Has KV</span>
+                                            @if($assetType->has_kv_space)
+                                                <span class="badge bg-warning-transparent me-1">KV Space</span>
                                             @endif
-                                            <span class="badge bg-primary-transparent">Total {{ $assetType->total_self ?? 0 }} Self</span>
+                                            <span class="badge bg-light text-dark border">{{ $assetType->total_self ?? 0 }} Shelf</span>
                                         </td>
                                         <td>
                                             @if($assetType->status == 1)
-                                                <span class="badge bg-outline-success">Active</span>
+                                                <span class="badge bg-success-transparent">Active</span>
                                             @else
-                                                <span class="badge bg-outline-danger">Inactive</span>
+                                                <span class="badge bg-danger-transparent">Inactive</span>
                                             @endif
                                         </td>
                                         <td>
                                             <div class="btn-list">
-                                                <button class="btn btn-icon btn-sm btn-info-light btn-wave btn-view" data-id="{{ $assetType->id }}" title="View"><i class="ri-eye-line"></i></button>
-                                                <button class="btn btn-icon btn-sm btn-primary-light btn-wave btn-edit" data-id="{{ $assetType->id }}" title="Edit"><i class="ri-edit-box-line"></i></button>
-                                                <button class="btn btn-icon btn-sm btn-danger-light btn-wave btn-delete" data-id="{{ $assetType->id }}" data-name="{{ $assetType->name }}" title="Delete"><i class="ri-delete-bin-line"></i></button>
+                                                <button class="btn btn-icon btn-sm btn-info-light btn-wave btn-view"
+                                                    data-id="{{ $assetType->id }}" title="View">
+                                                    <i class="ri-eye-line"></i>
+                                                </button>
+                                                <button class="btn btn-icon btn-sm btn-primary-light btn-wave btn-edit"
+                                                    data-id="{{ $assetType->id }}" title="Edit">
+                                                    <i class="ri-edit-box-line"></i>
+                                                </button>
+                                                <button class="btn btn-icon btn-sm btn-danger-light btn-wave btn-delete"
+                                                    data-id="{{ $assetType->id }}" data-name="{{ $assetType->name }}" title="Delete">
+                                                    <i class="ri-delete-bin-line"></i>
+                                                </button>
                                             </div>
                                         </td>
                                     </tr>
@@ -81,173 +96,331 @@
 @endsection
 
 @section('modal')
-    {{-- Create / Edit Modal --}}
+
+    {{-- ── Create / Edit Modal ──────────────────────────────────────────────── --}}
     <div class="modal fade" id="assetTypeModal" tabindex="-1" aria-labelledby="assetTypeModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h6 class="modal-title" id="assetTypeModalLabel">Add Asset Type</h6>
+                    <h6 class="modal-title fw-semibold" id="assetTypeModalLabel">
+                        <i class="ri-archive-line me-2 text-primary"></i>Add Asset Type
+                    </h6>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
+
                 <form id="assetTypeForm" enctype="multipart/form-data">
                     @csrf
+                    <input type="hidden" id="asset_type_id" value="">
+
                     <div class="modal-body">
-                        <input type="hidden" id="asset_type_id" value="">
 
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="name" class="form-label">Name <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" id="name" name="name" placeholder="Enter asset type name">
-                                <div class="invalid-feedback" id="error-name"></div>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="default_price" class="form-label">Default Price</label>
-                                <input type="number" step="0.01" class="form-control" id="default_price" name="default_price" placeholder="0.00">
-                                <div class="invalid-feedback" id="error-default_price"></div>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-4 mb-3">
-                                <label for="height" class="form-label">Height</label>
-                                <input type="number" step="0.01" class="form-control" id="height" name="height" placeholder="0">
-                                <div class="invalid-feedback" id="error-height"></div>
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <label for="width" class="form-label">Width</label>
-                                <input type="number" step="0.01" class="form-control" id="width" name="width" placeholder="0">
-                                <div class="invalid-feedback" id="error-width"></div>
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <label for="depth" class="form-label">Depth</label>
-                                <input type="number" step="0.01" class="form-control" id="depth" name="depth" placeholder="0">
-                                <div class="invalid-feedback" id="error-depth"></div>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-4 mb-3">
-                                <label for="dimension_unit_name" class="form-label">Dimension Unit</label>
-                                <select class="form-select" id="dimension_unit_name" name="dimension_unit_name">
-                                    <option value="">� Select Unit �</option>
-                                    <option value="px">px</option>
-                                    <option value="in">in</option>
-                                    <option value="ft">ft</option>
-                                    <option value="cm">cm</option>
-                                    <option value="mm">mm</option>
-                                    <option value="m">m</option>
-                                    <option value="yd">yd</option>
-                                </select>
-                                <div class="invalid-feedback" id="error-dimension_unit_name"></div>
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <label for="total_self" class="form-label">Total Self</label>
-                                <input type="number" class="form-control" id="total_self" name="total_self" placeholder="0">
-                                <div class="invalid-feedback" id="error-total_self"></div>
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <label for="default_image" class="form-label">Default Image</label>
-                                <input type="file" class="form-control" id="default_image" name="default_image" accept=".jpg,.jpeg,.png,.webp">
-                                <div class="invalid-feedback" id="error-default_image"></div>
-                            </div>
-                        </div>
-
-                        <div class="row mb-3">
-                            <div class="col-md-12">
-                                <img id="default-image-preview" class="asset-preview d-none" src="" alt="Preview">
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-4 mb-3">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="status" checked>
-                                    <label class="form-check-label" for="status">Active</label>
+                        {{-- ── Section: Basic Information ── --}}
+                        <div class="form-section mb-4">
+                            <p class="form-section-label"><i class="ri-information-line me-1"></i>Basic Information</p>
+                            <div class="row g-3">
+                                <div class="col-md-8">
+                                    <label for="name" class="form-label">
+                                        Asset Type Name <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="text" class="form-control" id="name" name="name"
+                                        placeholder="e.g. Billboard, LED Screen, Banner">
+                                    <div class="invalid-feedback" id="error-name"></div>
                                 </div>
-                                <div class="invalid-feedback" id="error-status"></div>
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="is_digital">
-                                    <label class="form-check-label" for="is_digital">Digital Asset</label>
+                                <div class="col-md-4">
+                                    <label for="default_price" class="form-label">Default Price</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">৳</span>
+                                        <input type="number" step="0.01" min="0" class="form-control"
+                                            id="default_price" name="default_price" placeholder="0.00">
+                                    </div>
+                                    <div class="invalid-feedback d-block" id="error-default_price"></div>
                                 </div>
-                                <div class="invalid-feedback" id="error-is_digital"></div>
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="has_kv_space" checked>
-                                    <label class="form-check-label" for="has_kv_space">Has KV Space</label>
-                                </div>
-                                <div class="invalid-feedback" id="error-has_kv_space"></div>
                             </div>
                         </div>
-                    </div>
+
+                        {{-- ── Section: Dimensions ── --}}
+                        <div class="form-section mb-4">
+                            <p class="form-section-label"><i class="ri-ruler-line me-1"></i>Dimensions</p>
+                            <div class="row g-3">
+                                <div class="col-6 col-md-3">
+                                    <label for="height" class="form-label">Height</label>
+                                    <input type="number" step="0.01" min="0" class="form-control"
+                                        id="height" name="height" placeholder="0">
+                                    <div class="invalid-feedback" id="error-height"></div>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <label for="width" class="form-label">Width</label>
+                                    <input type="number" step="0.01" min="0" class="form-control"
+                                        id="width" name="width" placeholder="0">
+                                    <div class="invalid-feedback" id="error-width"></div>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <label for="depth" class="form-label">Depth</label>
+                                    <input type="number" step="0.01" min="0" class="form-control"
+                                        id="depth" name="depth" placeholder="0">
+                                    <div class="invalid-feedback" id="error-depth"></div>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <label for="dimension_unit_name" class="form-label">Unit</label>
+                                    <select class="form-select" id="dimension_unit_name" name="dimension_unit_name">
+                                        <option value="">— Select —</option>
+                                        <option value="px">px</option>
+                                        <option value="in">in (inch)</option>
+                                        <option value="ft">ft (feet)</option>
+                                        <option value="cm">cm</option>
+                                        <option value="mm">mm</option>
+                                        <option value="m">m (meter)</option>
+                                        <option value="yd">yd (yard)</option>
+                                    </select>
+                                    <div class="invalid-feedback" id="error-dimension_unit_name"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- ── Section: Storage & Image ── --}}
+                        <div class="form-section mb-4">
+                            <p class="form-section-label"><i class="ri-image-line me-1"></i>Storage & Image</p>
+                            <div class="row g-3 align-items-start">
+                                <div class="col-md-4">
+                                    <label for="total_self" class="form-label">Total Shelf</label>
+                                    <input type="number" min="0" class="form-control"
+                                        id="total_self" name="total_self" placeholder="0">
+                                    <div class="invalid-feedback" id="error-total_self"></div>
+                                    <div class="form-text">Number of available shelf units</div>
+                                </div>
+                                <div class="col-md-8">
+                                    <label class="form-label">Default Image</label>
+                                    <div class="image-upload-zone" id="imageUploadZone">
+                                        <div id="upload-placeholder" class="upload-placeholder-inner">
+                                            <i class="ri-upload-cloud-2-line fs-2 text-muted"></i>
+                                            <p class="mb-1 text-muted fs-12 mt-1">Click or drag image here</p>
+                                            <p class="mb-0 fs-11" style="color:#adb5bd">JPG, JPEG, PNG, WEBP &mdash; Max 2 MB</p>
+                                        </div>
+                                        <img id="default-image-preview" class="d-none" src="" alt="Preview">
+                                        <input type="file" class="d-none" id="default_image" name="default_image"
+                                            accept=".jpg,.jpeg,.png,.webp">
+                                    </div>
+                                    <div class="invalid-feedback d-block" id="error-default_image"></div>
+                                    <div id="remove-image-wrap" class="d-none mt-1">
+                                        <button type="button" class="btn btn-sm btn-danger-light" id="btn-remove-image">
+                                            <i class="ri-delete-bin-line me-1"></i>Remove Image
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- ── Section: Options ── --}}
+                        <div class="form-section">
+                            <p class="form-section-label"><i class="ri-settings-3-line me-1"></i>Options</p>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <div class="switch-option-card">
+                                        <div class="form-check form-switch mb-0">
+                                            <input class="form-check-input form-checked-success" type="checkbox"
+                                                role="switch" id="status" checked>
+                                            <label class="form-check-label fw-medium" for="status">Active Status</label>
+                                        </div>
+                                        <small class="text-muted d-block mt-1">Enable this asset type in the system</small>
+                                        <div class="invalid-feedback" id="error-status"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="switch-option-card">
+                                        <div class="form-check form-switch mb-0">
+                                            <input class="form-check-input form-checked-info" type="checkbox"
+                                                role="switch" id="is_digital">
+                                            <label class="form-check-label fw-medium" for="is_digital">Digital Asset</label>
+                                        </div>
+                                        <small class="text-muted d-block mt-1">Mark as a non-physical digital type</small>
+                                        <div class="invalid-feedback" id="error-is_digital"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="switch-option-card">
+                                        <div class="form-check form-switch mb-0">
+                                            <input class="form-check-input form-checked-warning" type="checkbox"
+                                                role="switch" id="has_kv_space" checked>
+                                            <label class="form-check-label fw-medium" for="has_kv_space">Has KV Space</label>
+                                        </div>
+                                        <small class="text-muted d-block mt-1">Supports key-value metadata storage</small>
+                                        <div class="invalid-feedback" id="error-has_kv_space"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>{{-- /modal-body --}}
+
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">
+                            <i class="ri-close-line me-1"></i>Cancel
+                        </button>
                         <button type="submit" class="btn btn-primary" id="btn-save">
-                            <span class="btn-text">Save</span>
+                            <span class="btn-text"><i class="ri-save-line me-1"></i>Save</span>
                             <span class="spinner-border spinner-border-sm d-none" id="btn-spinner"></span>
                         </button>
                     </div>
                 </form>
+
             </div>
         </div>
     </div>
 
-    {{-- View Modal --}}
+    {{-- ── View Modal ───────────────────────────────────────────────────────── --}}
     <div class="modal fade" id="viewModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h6 class="modal-title">Asset Type Details</h6>
+                    <h6 class="modal-title fw-semibold">
+                        <i class="ri-eye-line me-2 text-info"></i>Asset Type Details
+                    </h6>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="row">
+                    <div class="row g-3">
                         <div class="col-md-4">
-                            <img id="view-image" class="asset-preview" src="" alt="" style="display:none;">
+                            <div class="view-image-box">
+                                <img id="view-image" class="d-none" src="" alt="">
+                                <div id="view-image-placeholder">
+                                    <i class="ri-image-line"></i>
+                                </div>
+                            </div>
                         </div>
                         <div class="col-md-8">
-                            <table class="table table-bordered table-sm">
-                                <tr><th width="40%">Name</th><td id="view-name"></td></tr>
-                                <tr><th>Default Price</th><td id="view-price"></td></tr>
-                                <tr><th>Dimension</th><td id="view-dimension"></td></tr>
-                                <tr><th>Status</th><td id="view-status"></td></tr>
-                                <tr><th>Digital</th><td id="view-digital"></td></tr>
-                                <tr><th>KV Space</th><td id="view-kv"></td></tr>
-                                <tr><th>Total Self</th><td id="view-total-self"></td></tr>
+                            <table class="table table-bordered table-sm align-middle mb-0">
+                                <tr>
+                                    <th width="38%" class="text-muted fw-medium fs-12">Name</th>
+                                    <td id="view-name" class="fw-semibold"></td>
+                                </tr>
+                                <tr>
+                                    <th class="text-muted fw-medium fs-12">Default Price</th>
+                                    <td id="view-price"></td>
+                                </tr>
+                                <tr>
+                                    <th class="text-muted fw-medium fs-12">Dimensions</th>
+                                    <td id="view-dimension"></td>
+                                </tr>
+                                <tr>
+                                    <th class="text-muted fw-medium fs-12">Total Shelf</th>
+                                    <td id="view-total-self"></td>
+                                </tr>
+                                <tr>
+                                    <th class="text-muted fw-medium fs-12">Status</th>
+                                    <td id="view-status"></td>
+                                </tr>
+                                <tr>
+                                    <th class="text-muted fw-medium fs-12">Digital Asset</th>
+                                    <td id="view-digital"></td>
+                                </tr>
+                                <tr>
+                                    <th class="text-muted fw-medium fs-12">KV Space</th>
+                                    <td id="view-kv"></td>
+                                </tr>
                             </table>
                         </div>
                     </div>
                 </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-sm btn-light" data-bs-dismiss="modal">Close</button>
+                </div>
             </div>
         </div>
     </div>
 
-    {{-- Delete Confirmation Modal --}}
+    {{-- ── Delete Confirmation Modal ────────────────────────────────────────── --}}
     <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-sm">
             <div class="modal-content text-center">
-                <div class="modal-body p-4">
-                    <div class="mb-3"><i class="ri-delete-bin-line text-danger" style="font-size: 3rem;"></i></div>
-                    <h6>Delete Asset Type</h6>
-                    <p class="text-muted mb-0">Are you sure you want to delete <strong id="delete-asset-type-name"></strong>?</p>
+                <div class="modal-body p-4 pb-2">
+                    <div class="mb-3">
+                        <span class="avatar avatar-lg bg-danger-transparent rounded-circle">
+                            <i class="ri-delete-bin-line text-danger fs-24"></i>
+                        </span>
+                    </div>
+                    <h6 class="fw-semibold mb-1">Delete Asset Type?</h6>
+                    <p class="text-muted fs-13 mb-0">
+                        You are about to delete<br>
+                        <strong id="delete-asset-type-name" class="text-dark"></strong>
+                    </p>
+                    <p class="text-danger fs-11 mt-1 mb-0">This action cannot be undone.</p>
                     <input type="hidden" id="delete-asset-type-id">
                 </div>
-                <div class="modal-footer justify-content-center border-0 pt-0">
-                    <button type="button" class="btn btn-sm btn-light" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-sm btn-danger" id="btn-confirm-delete">Yes, Delete</button>
+                <div class="modal-footer justify-content-center border-0 pb-4">
+                    <button type="button" class="btn btn-sm btn-light px-4" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-sm btn-danger px-4" id="btn-confirm-delete">
+                        <span class="btn-text">Delete</span>
+                        <span class="spinner-border spinner-border-sm d-none"></span>
+                    </button>
                 </div>
             </div>
         </div>
     </div>
+
 @endsection
 
 @push('styles')
 <style>
+    /* ── Table ── */
     .btn-list { display: flex; gap: 4px; }
-    .asset-thumb { width: 42px; height: 42px; object-fit: cover; border-radius: 6px; border: 1px solid #e6e8f0; }
-    .asset-preview { width: 100%; max-height: 200px; object-fit: cover; border-radius: 8px; border: 1px solid #e6e8f0; }
+    .asset-thumb { width: 40px; height: 40px; object-fit: cover; border-radius: 6px; border: 1px solid var(--default-border); }
+    .asset-thumb-empty { width: 40px; height: 40px; border-radius: 6px; border: 1px dashed var(--default-border); display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 1rem; }
+
+    /* ── Form Sections ── */
+    .form-section-label {
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--primary-color);
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid var(--default-border);
+        margin-bottom: 1rem;
+    }
+
+    /* ── Image Upload Zone ── */
+    .image-upload-zone {
+        border: 2px dashed var(--default-border);
+        border-radius: 8px;
+        padding: 1rem;
+        text-align: center;
+        cursor: pointer;
+        transition: border-color 0.2s ease, background 0.2s ease;
+        min-height: 90px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+    }
+    .image-upload-zone:hover,
+    .image-upload-zone.drag-over { border-color: var(--primary-color); background: rgba(var(--primary-rgb), 0.04); }
+    .upload-placeholder-inner { pointer-events: none; }
+    .image-upload-zone #default-image-preview { max-height: 120px; max-width: 100%; border-radius: 6px; object-fit: cover; }
+
+    /* ── Switch Option Cards ── */
+    .switch-option-card {
+        background: var(--custom-white);
+        border: 1px solid var(--default-border);
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+        height: 100%;
+    }
+
+    /* ── View Image Box ── */
+    .view-image-box { border-radius: 8px; overflow: hidden; }
+    .view-image-box img { width: 100%; border-radius: 8px; object-fit: cover; }
+    #view-image-placeholder {
+        width: 100%;
+        aspect-ratio: 1 / 1;
+        background: var(--light);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3rem;
+        color: var(--text-muted);
+        border: 1px dashed var(--default-border);
+    }
 </style>
 @endpush
 
@@ -255,168 +428,30 @@
     @include('backend.includes.plugins.datatable')
     <script>
     $(document).ready(function () {
+
+        // ── Bootstrap modals & global AJAX setup ──────────────────────────────
         const assetTypeModal = new bootstrap.Modal(document.getElementById('assetTypeModal'));
-        const viewModalEl = new bootstrap.Modal(document.getElementById('viewModal'));
-        const deleteModalEl = new bootstrap.Modal(document.getElementById('deleteModal'));
+        const viewModalEl    = new bootstrap.Modal(document.getElementById('viewModal'));
+        const deleteModalEl  = new bootstrap.Modal(document.getElementById('deleteModal'));
 
-        $('#btn-add-asset-type').on('click', function () {
-            resetForm();
-            $('#assetTypeModalLabel').text('Add Asset Type');
-            $('#btn-save .btn-text').text('Save');
-            assetTypeModal.show();
-        });
+        $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
 
-        $(document).on('click', '.btn-edit', function () {
-            resetForm();
-            const id = $(this).data('id');
-            $('#assetTypeModalLabel').text('Edit Asset Type');
-            $('#btn-save .btn-text').text('Update');
+        // ── Utility helpers ───────────────────────────────────────────────────
+        const apiUrl = id => base_url + 'asset-types' + (id ? '/' + id : '');
 
-            $.get(base_url + 'asset-types/' + id + '/edit', function (data) {
-                $('#asset_type_id').val(data.id);
-                $('#name').val(data.name);
-                $('#default_price').val(data.default_price);
-                $('#height').val(data.height);
-                $('#width').val(data.width);
-                $('#depth').val(data.depth);
-                $('#dimension_unit_name').val(data.dimension_unit_name || '');
-                $('#total_self').val(data.total_self);
-                $('#status').prop('checked', data.status == 1);
-                $('#is_digital').prop('checked', data.is_digital == 1);
-                $('#has_kv_space').prop('checked', data.has_kv_space == 1);
+        const badge = (cond, trueColor, trueLabel, falseColor, falseLabel) =>
+            cond ? `<span class="badge bg-${trueColor}-transparent">${trueLabel}</span>`
+                 : (falseColor ? `<span class="badge bg-${falseColor}-transparent">${falseLabel}</span>`
+                               : `<span class="text-muted">${falseLabel}</span>`);
 
-                if (data.default_image) {
-                    $('#default-image-preview').attr('src', base_url + data.default_image).removeClass('d-none');
-                }
-
-                assetTypeModal.show();
-            });
-        });
-
-        $(document).on('click', '.btn-view', function () {
-            const id = $(this).data('id');
-            $.get(base_url + 'asset-types/' + id, function (data) {
-                $('#view-name').text(data.name);
-                $('#view-price').text(data.default_price ? Number(data.default_price).toFixed(2) : '�');
-                $('#view-dimension').text((data.height ?? 0) + 'x' + (data.width ?? 0) + (data.depth !== null ? 'x' + data.depth : '') + ' ' + (data.dimension_unit_name || ''));
-                $('#view-status').html(data.status == 1 ? '<span class="badge bg-success-transparent">Active</span>' : '<span class="badge bg-danger-transparent">Inactive</span>');
-                $('#view-digital').text(data.is_digital == 1 ? 'Yes' : 'No');
-                $('#view-kv').text(data.has_kv_space == 1 ? 'Yes' : 'No');
-                $('#view-total-self').text(data.total_self ?? 0);
-
-                if (data.default_image) {
-                    $('#view-image').attr('src', base_url + data.default_image).show();
-                } else {
-                    $('#view-image').hide();
-                }
-
-                viewModalEl.show();
-            });
-        });
-
-        $(document).on('click', '.btn-delete', function () {
-            $('#delete-asset-type-id').val($(this).data('id'));
-            $('#delete-asset-type-name').text($(this).data('name'));
-            deleteModalEl.show();
-        });
-
-        $('#btn-confirm-delete').on('click', function () {
-            const id = $('#delete-asset-type-id').val();
-            const btn = $(this);
-            btn.prop('disabled', true).text('Deleting...');
-            $.ajax({
-                url: base_url + 'asset-types/' + id,
-                type: 'DELETE',
-                success: function (res) {
-                    deleteModalEl.hide();
-                    showToast(res.message, 'success');
-                    setTimeout(() => location.reload(), 800);
-                },
-                error: function () {
-                    showToast('Failed to delete asset type.', 'danger');
-                },
-                complete: function () {
-                    btn.prop('disabled', false).text('Yes, Delete');
-                }
-            });
-        });
-
-        $('#assetTypeForm').on('submit', function (e) {
-            e.preventDefault();
-            clearErrors();
-
-            const id = $('#asset_type_id').val();
-            const url = id ? base_url + 'asset-types/' + id : base_url + 'asset-types';
-            const formData = new FormData(this);
-
-            formData.set('status', $('#status').is(':checked') ? 1 : 0);
-            formData.set('is_digital', $('#is_digital').is(':checked') ? 1 : 0);
-            formData.set('has_kv_space', $('#has_kv_space').is(':checked') ? 1 : 0);
-
-            if (id) formData.append('_method', 'PUT');
-
-            $('#btn-save').prop('disabled', true);
-            $('#btn-spinner').removeClass('d-none');
-
-            $.ajax({
-                url: url,
-                type: 'POST',
-                data: formData,
-                processData: false,
-                contentType: false,
-                success: function (res) {
-                    assetTypeModal.hide();
-                    showToast(res.message, 'success');
-                    setTimeout(() => location.reload(), 800);
-                },
-                error: function (xhr) {
-                    if (xhr.status === 422) {
-                        const errors = xhr.responseJSON.errors;
-                        $.each(errors, function (field, messages) {
-                            $('#' + field).addClass('is-invalid');
-                            $('#error-' + field).text(messages[0]);
-                        });
-                    } else {
-                        showToast('Something went wrong.', 'danger');
-                    }
-                },
-                complete: function () {
-                    $('#btn-save').prop('disabled', false);
-                    $('#btn-spinner').addClass('d-none');
-                }
-            });
-        });
-
-        $('#default_image').on('change', function () {
-            const file = this.files && this.files[0];
-            if (!file) {
-                $('#default-image-preview').addClass('d-none').attr('src', '');
-                return;
-            }
-            const reader = new FileReader();
-            reader.onload = function (e) {
-                $('#default-image-preview').attr('src', e.target.result).removeClass('d-none');
-            };
-            reader.readAsDataURL(file);
-        });
-
-        function resetForm() {
-            $('#assetTypeForm')[0].reset();
-            $('#asset_type_id').val('');
-            $('#default-image-preview').addClass('d-none').attr('src', '');
-            $('#dimension_unit_name').val('');
-            $('#status').prop('checked', true);
-            $('#has_kv_space').prop('checked', true);
-            clearErrors();
-        }
-
-        function clearErrors() {
-            $('.is-invalid').removeClass('is-invalid');
-            $('.invalid-feedback').text('');
+        function setBtnLoading($btn, loading, loadingText = '') {
+            $btn.prop('disabled', loading);
+            if (loadingText) $btn.find('.btn-text').text(loadingText);
+            $btn.find('.spinner-border').toggleClass('d-none', !loading);
         }
 
         function showToast(message, type) {
-            const toast = $(`
+            const $toast = $(`
                 <div class="toast align-items-center text-bg-${type} border-0 show position-fixed top-0 end-0 m-3" style="z-index:9999" role="alert">
                     <div class="d-flex">
                         <div class="toast-body">${message}</div>
@@ -424,8 +459,195 @@
                     </div>
                 </div>
             `).appendTo('body');
-            setTimeout(() => toast.remove(), 3000);
+            setTimeout(() => $toast.remove(), 3000);
         }
+
+        function clearErrors() {
+            $('.is-invalid').removeClass('is-invalid');
+            $('.invalid-feedback').text('');
+        }
+
+        // ── Image upload zone ──────────────────────────────────────────────────
+        const uploadZone = document.getElementById('imageUploadZone');
+        const fileInput  = document.getElementById('default_image');
+
+        uploadZone.addEventListener('click',     e  => { if (!e.target.closest('#btn-remove-image')) fileInput.click(); });
+        uploadZone.addEventListener('dragover',  e  => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
+        uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
+        uploadZone.addEventListener('drop', e => {
+            e.preventDefault();
+            uploadZone.classList.remove('drag-over');
+            if (e.dataTransfer.files[0]) setImagePreview(e.dataTransfer.files[0]);
+        });
+
+        $('#default_image').on('change', function () {
+            if (this.files[0]) setImagePreview(this.files[0]);
+        });
+
+        function setImagePreview(file) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                $('#upload-placeholder').hide();
+                $('#default-image-preview').attr('src', e.target.result).removeClass('d-none');
+                $('#remove-image-wrap').removeClass('d-none');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function clearImagePreview() {
+            $('#upload-placeholder').show();
+            $('#default-image-preview').addClass('d-none').attr('src', '');
+            $('#remove-image-wrap').addClass('d-none');
+            fileInput.value = '';
+        }
+
+        $('#btn-remove-image').on('click', e => { e.stopPropagation(); clearImagePreview(); });
+
+        // ── Form: open / populate / reset ─────────────────────────────────────
+        function openFormModal(mode) {
+            resetForm();
+            const isEdit = mode === 'edit';
+            $('#assetTypeModalLabel').html(
+                `<i class="ri-${isEdit ? 'edit-box' : 'archive'}-line me-2 text-primary"></i>${isEdit ? 'Edit' : 'Add'} Asset Type`
+            );
+            $('#btn-save .btn-text').html(`<i class="ri-save-line me-1"></i>${isEdit ? 'Update' : 'Save'}`);
+        }
+
+        function populateForm(data) {
+            ['name', 'default_price', 'height', 'width', 'depth', 'total_self']
+                .forEach(f => $('#' + f).val(data[f] ?? ''));
+
+            $('#dimension_unit_name').val(data.dimension_unit_name || '');
+            $('#status').prop('checked',     data.status == 1);
+            $('#is_digital').prop('checked',  data.is_digital == 1);
+            $('#has_kv_space').prop('checked', data.has_kv_space == 1);
+
+            if (data.default_image) {
+                $('#upload-placeholder').hide();
+                $('#default-image-preview').attr('src', base_url + data.default_image).removeClass('d-none');
+                $('#remove-image-wrap').removeClass('d-none');
+            }
+        }
+
+        function resetForm() {
+            $('#assetTypeForm')[0].reset();
+            $('#asset_type_id').val('');
+            clearImagePreview();
+            $('#dimension_unit_name').val('');
+            $('#status').prop('checked', true);
+            $('#is_digital').prop('checked', false);
+            $('#has_kv_space').prop('checked', true);
+            clearErrors();
+        }
+
+        // ── Add ───────────────────────────────────────────────────────────────
+        $('#btn-add-asset-type').on('click', () => {
+            openFormModal('add');
+            assetTypeModal.show();
+        });
+
+        // ── Edit ──────────────────────────────────────────────────────────────
+        $(document).on('click', '.btn-edit', function () {
+            openFormModal('edit');
+            $.get(apiUrl($(this).data('id')) + '/edit', data => {
+                $('#asset_type_id').val(data.id);
+                populateForm(data);
+                assetTypeModal.show();
+            });
+        });
+
+        // ── View ──────────────────────────────────────────────────────────────
+        $(document).on('click', '.btn-view', function () {
+            $.get(apiUrl($(this).data('id')), data => {
+                const depth  = data.depth > 0 ? ` × ${data.depth}` : '';
+                const unit   = data.dimension_unit_name ? ` ${data.dimension_unit_name}` : '';
+                const hasDim = data.height || data.width;
+
+                $('#view-name').text(data.name);
+                $('#view-price').text(data.default_price ? `৳ ${Number(data.default_price).toFixed(2)}` : '—');
+                $('#view-dimension').text(hasDim ? `${data.height ?? 0} × ${data.width ?? 0}${depth}${unit}` : '—');
+                $('#view-total-self').text(`${data.total_self ?? 0} unit(s)`);
+                $('#view-status').html(badge(data.status == 1,     'success', 'Active',  'danger',  'Inactive'));
+                $('#view-digital').html(badge(data.is_digital == 1, 'info',   'Yes',     null,      'No'));
+                $('#view-kv').html(badge(data.has_kv_space == 1,   'warning', 'Yes',     null,      'No'));
+
+                $('#view-image')
+                    .toggleClass('d-none', !data.default_image)
+                    .attr('src', data.default_image ? base_url + data.default_image : '');
+                $('#view-image-placeholder').toggle(!data.default_image);
+
+                viewModalEl.show();
+            });
+        });
+
+        // ── Delete ────────────────────────────────────────────────────────────
+        $(document).on('click', '.btn-delete', function () {
+            $('#delete-asset-type-id').val($(this).data('id'));
+            $('#delete-asset-type-name').text($(this).data('name'));
+            deleteModalEl.show();
+        });
+
+        $('#btn-confirm-delete').on('click', function () {
+            const $btn = $(this);
+            setBtnLoading($btn, true, 'Deleting...');
+
+            $.ajax({
+                url:  apiUrl($('#delete-asset-type-id').val()),
+                type: 'DELETE',
+                success: res => {
+                    deleteModalEl.hide();
+                    showToast(res.message, 'success');
+                    setTimeout(() => location.reload(), 800);
+                },
+                error:    () => showToast('Failed to delete asset type.', 'danger'),
+                complete: () => { setBtnLoading($btn, false); $btn.find('.btn-text').text('Delete'); }
+            });
+        });
+
+        // ── Form submit (create / update) ─────────────────────────────────────
+        $('#assetTypeForm').on('submit', function (e) {
+            e.preventDefault();
+            clearErrors();
+
+            const id       = $('#asset_type_id').val();
+            const formData = new FormData(this);
+
+            ['status', 'is_digital', 'has_kv_space']
+                .forEach(f => formData.set(f, $(`#${f}`).is(':checked') ? 1 : 0));
+
+            if (id) formData.append('_method', 'PUT');
+
+            const $btn = $('#btn-save').prop('disabled', true);
+            $('#btn-spinner').removeClass('d-none');
+
+            $.ajax({
+                url: apiUrl(id || null),
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: res => {
+                    assetTypeModal.hide();
+                    showToast(res.message, 'success');
+                    setTimeout(() => location.reload(), 800);
+                },
+                error: xhr => {
+                    if (xhr.status === 422) {
+                        $.each(xhr.responseJSON.errors, (field, messages) => {
+                            $(`#${field}`).addClass('is-invalid');
+                            $(`#error-${field}`).text(messages[0]);
+                        });
+                    } else {
+                        showToast('Something went wrong. Please try again.', 'danger');
+                    }
+                },
+                complete: () => {
+                    $btn.prop('disabled', false);
+                    $('#btn-spinner').addClass('d-none');
+                }
+            });
+        });
+
     });
     </script>
 @endpush

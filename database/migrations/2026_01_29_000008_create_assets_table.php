@@ -38,6 +38,7 @@ return new class extends Migration {
             $table->index('asset_code');
 
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

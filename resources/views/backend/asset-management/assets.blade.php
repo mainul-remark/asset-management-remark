@@ -3,32 +3,39 @@
 @section('title', 'Assets')
 
 @section('body')
-    <div class="container m-t-50">
-        <div class="row">
-            <div class="col-md-10 mx-auto">
-                <div class="card card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <label for="shortByStore">Filter by Store</label>
-                            <select name="" id="shortByStore" class="form-control select-ele">
-                                <option value="">All Stores</option>
-                                @foreach($stores as $store)
-                                    <option value="{{ $store->id }}">{{ $store->title }} ({{ $store->code }})</option>
-                                @endforeach
-                            </select>
+    <div class="container-fluid mt-4">
+
+        {{-- ── Filter Bar ─────────────────────────────────────────────────────── --}}
+        <div class="row mb-3">
+            <div class="col-sm-12 col-md-11 col-lg-10 col-xl-9 mx-auto">
+                <div class="card custom-card">
+                    <div class="card-body py-2">
+                        <div class="row g-2 align-items-center">
+                            <div class="col-auto">
+                                <label class="col-form-label fw-medium fs-13">Filter by Store</label>
+                            </div>
+                            <div class="col-md-4">
+                                <select id="shortByStore" class="form-select form-select-sm select-ele">
+                                    <option value="">All Stores</option>
+                                    @foreach($stores as $store)
+                                        <option value="{{ $store->id }}">{{ $store->title }} ({{ $store->code }})</option>
+                                    @endforeach
+                                </select>
+                            </div>
                         </div>
-                        <div class="col-md-6"></div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="row mt-3">
-            <div class="col-xl-12">
+
+        {{-- ── Table Card ─────────────────────────────────────────────────────── --}}
+        <div class="row">
+            <div class="col-sm-12 col-md-11 col-lg-10 col-xl-9 mx-auto">
                 <div class="card custom-card">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <div class="card-title">Asset Management</div>
                         <button type="button" class="btn btn-sm btn-primary btn-wave" id="btn-add-asset">
-                            <i class="ri-add-line me-1"></i> Add asset
+                            <i class="ri-add-line me-1"></i> Add Asset
                         </button>
                     </div>
                     <div class="card-body">
@@ -44,7 +51,7 @@
                                         <th>Store</th>
                                         <th>Price</th>
                                         <th>Status</th>
-                                        <th>Action</th>
+                                        <th width="110">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -54,51 +61,55 @@
                                         <td>
                                             @if($asset->default_image)
                                                 <img class="asset-thumb" src="{{ asset($asset->default_image) }}" alt="{{ $asset->name }}">
+                                            @else
+                                                <div class="asset-thumb-empty"><i class="ri-image-line"></i></div>
                                             @endif
                                         </td>
                                         <td>
-                                            <div>{{ $asset->name }}</div>
+                                            <div class="fw-semibold">{{ $asset->name }}</div>
                                             <div class="mt-1">
                                                 @if((int) $asset->has_kv_slot === 1)
-                                                    <span class="badge bg-primary-transparent">Has KV</span>
+                                                    <span class="badge bg-warning-transparent">KV Slot</span>
                                                 @endif
                                                 @if((int) $asset->has_self === 1)
-                                                    <span class="badge bg-primary-transparent">Has Self</span>
-                                                    <span class="badge bg-primary-transparent">Total Self: {{ $asset->total_self ?? 0 }}</span>
+                                                    <span class="badge bg-info-transparent">{{ $asset->total_self ?? 0 }} Shelf</span>
                                                 @endif
                                             </div>
                                         </td>
-                                        <td>{{ $asset->asset_code }}</td>
-                                        <td>{{ $asset->assetType?->name ?? '-' }}</td>
+                                        <td><code>{{ $asset->asset_code }}</code></td>
+                                        <td>{{ $asset->assetType?->name ?? '—' }}</td>
                                         <td>
                                             @if((int) $asset->is_common_asset === 1)
-                                                <span class="badge bg-info-transparent">Common</span>
+                                                <span class="badge bg-primary-transparent">Common</span>
                                             @else
-                                                {{ $asset->store?->title ?? '-' }}
+                                                {{ $asset->store?->title ?? '—' }}
                                             @endif
                                         </td>
                                         <td>
-                                            {{ !is_null($asset->asset_price) ? number_format($asset->asset_price, 2) : '-' }}
-                                            <small class="d-block text-muted">
-                                                Min fee: {{ !is_null($asset->minimum_fee) ? number_format($asset->minimum_fee, 2) : '-' }}
-                                            </small>
+                                            <div>{{ !is_null($asset->asset_price) ? '৳ '.number_format($asset->asset_price, 2) : '—' }}</div>
+                                            @if(!is_null($asset->minimum_fee))
+                                                <small class="text-muted">Min: ৳ {{ number_format($asset->minimum_fee, 2) }}</small>
+                                            @endif
                                         </td>
                                         <td>
                                             @if((int) $asset->status === 1)
-                                                <span class="badge bg-outline-success">Active</span>
+                                                <span class="badge bg-success-transparent">Active</span>
                                             @else
-                                                <span class="badge bg-outline-danger">Inactive</span>
+                                                <span class="badge bg-danger-transparent">Inactive</span>
                                             @endif
                                         </td>
                                         <td>
                                             <div class="btn-list">
-                                                <button class="btn btn-icon btn-sm btn-info-light btn-wave btn-view" data-id="{{ $asset->id }}" title="View">
+                                                <button class="btn btn-icon btn-sm btn-info-light btn-wave btn-view"
+                                                    data-id="{{ $asset->id }}" title="View">
                                                     <i class="ri-eye-line"></i>
                                                 </button>
-                                                <button class="btn btn-icon btn-sm btn-primary-light btn-wave btn-edit" data-id="{{ $asset->id }}" title="Edit">
+                                                <button class="btn btn-icon btn-sm btn-primary-light btn-wave btn-edit"
+                                                    data-id="{{ $asset->id }}" title="Edit">
                                                     <i class="ri-edit-box-line"></i>
                                                 </button>
-                                                <button class="btn btn-icon btn-sm btn-danger-light btn-wave btn-delete" data-id="{{ $asset->id }}" data-name="{{ $asset->name }}" title="Delete">
+                                                <button class="btn btn-icon btn-sm btn-danger-light btn-wave btn-delete"
+                                                    data-id="{{ $asset->id }}" data-name="{{ $asset->name }}" title="Delete">
                                                     <i class="ri-delete-bin-line"></i>
                                                 </button>
                                             </div>
@@ -112,144 +123,217 @@
                 </div>
             </div>
         </div>
+
     </div>
 @endsection
 
 @section('modal')
+
+    {{-- ── Create / Edit Modal ──────────────────────────────────────────────── --}}
     <div class="modal fade" id="assetModal" >
-        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h6 class="modal-title" id="assetModalLabel">Add Asset</h6>
+                    <h6 class="modal-title fw-semibold" id="assetModalLabel">
+                        <i class="ri-box-3-line me-2 text-primary"></i>Add Asset
+                    </h6>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
+
                 <form id="assetForm" enctype="multipart/form-data">
                     @csrf
+                    <input type="hidden" id="asset_id" value="">
+
                     <div class="modal-body">
-                        <input type="hidden" id="asset_id" value="">
 
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="asset_type_id" class="form-label">Asset Type <span class="text-danger">*</span></label>
-                                <select class="form-select" id="asset_type_id" name="asset_type_id">
-                                    <option value="">-- Select Asset Type --</option>
-                                    @foreach($assetTypes as $assetType)
-                                        <option value="{{ $assetType->id }}">{{ $assetType->name }}</option>
-                                    @endforeach
-                                </select>
-                                <div class="invalid-feedback" id="error-asset_type_id"></div>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="name" class="form-label">Name <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" id="name" name="name" placeholder="Enter asset name">
-                                <div class="invalid-feedback" id="error-name"></div>
-                            </div>
-                        </div>
-
-                        <div class="row d-none" id="asset-code-row">
-                            <div class="col-md-6 mb-3">
-                                <label for="asset_code_display" class="form-label">Asset Code</label>
-                                <input type="text" class="form-control" id="asset_code_display" value="" readonly>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="store_id" class="form-label">Store <span class="text-danger">*</span></label>
-                                <select class="form-select select-ele" required id="store_id" name="store_id">
-                                    <option value="">-- Select Store --</option>
-                                    @foreach($stores as $store)
-                                        <option value="{{ $store->id }}">{{ $store->title }} ({{ $store->code }})</option>
-                                    @endforeach
-                                </select>
-                                <div class="invalid-feedback" id="error-store_id"></div>
-                            </div>
-                            <div class="col-md-3 mb-3">
-                                <label for="asset_price" class="form-label">Asset Price</label>
-                                <input type="number" step="0.01" min="0" class="form-control" id="asset_price" name="asset_price" placeholder="0.00">
-                                <div class="invalid-feedback" id="error-asset_price"></div>
-                            </div>
-                            <div class="col-md-3 mb-3">
-                                <label for="minimum_fee" class="form-label">Minimum Charge</label>
-                                <input type="number" step="0.01" min="0" class="form-control" id="minimum_fee" name="minimum_fee" placeholder="0.00">
-                                <div class="invalid-feedback" id="error-minimum_fee"></div>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="default_image" class="form-label">Default Image <span class="text-danger">*</span></label>
-                                <input type="file" class="form-control" id="default_image" name="default_image" accept=".jpg,.jpeg,.png,.webp">
-                                <div class="invalid-feedback" id="error-default_image"></div>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="planogram_pdf" class="form-label">Planogram PDF</label>
-                                <input type="file" class="form-control" id="planogram_pdf" name="planogram_pdf" accept=".pdf">
-                                <div class="invalid-feedback" id="error-planogram_pdf"></div>
-                                <a href="#" target="_blank" id="existing-planogram-link" class="d-none small mt-2 d-inline-block">View current planogram</a>
-                            </div>
-                        </div>
-
-                        <div class="row mb-3">
-                            <div class="col-md-12">
-                                <img id="default-image-preview" class="asset-preview d-none" src="" alt="Preview">
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-3 mb-3">
-                                <label class="form-label d-block mb-2">Active</label>
-                                <div class="toggle-switch">
-                                    <label class="switch">
-                                        <input type="checkbox" id="status" checked>
-                                        <span class="slider round"></span>
-                                    </label>
+                        {{-- ── Section: Basic Information ── --}}
+                        <div class="form-section mb-4">
+                            <p class="form-section-label"><i class="ri-information-line me-1"></i>Basic Information</p>
+                            <div class="row g-3">
+                                <div class="col-md-5">
+                                    <label for="asset_type_id" class="form-label">Asset Type <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="asset_type_id" name="asset_type_id">
+                                        <option value="">— Select Type —</option>
+                                        @foreach($assetTypes as $assetType)
+                                            <option value="{{ $assetType->id }}">{{ $assetType->name }}</option>
+                                        @endforeach
+                                    </select>
+                                    <div class="invalid-feedback" id="error-asset_type_id"></div>
                                 </div>
-                                <div class="invalid-feedback d-block" id="error-status"></div>
-                            </div>
-                            <div class="col-md-3 mb-3">
-                                <label class="form-label d-block mb-2">Has KV Slot</label>
-                                <div class="toggle-switch">
-                                    <label class="switch">
-                                        <input type="checkbox" id="has_kv_slot">
-                                        <span class="slider round"></span>
-                                    </label>
+                                <div class="col-md-7">
+                                    <label for="name" class="form-label">Asset Name <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="name" name="name"
+                                        placeholder="e.g. Shelf Display Unit A1">
+                                    <div class="invalid-feedback" id="error-name"></div>
                                 </div>
-                                <div class="invalid-feedback d-block" id="error-has_kv_slot"></div>
-                            </div>
-                            <div class="col-md-3 mb-3">
-                                <label class="form-label d-block mb-2">Has Self</label>
-                                <div class="toggle-switch">
-                                    <label class="switch">
-                                        <input type="checkbox" id="has_self">
-                                        <span class="slider round"></span>
-                                    </label>
+                                <div class="col-md-12 d-none" id="asset-code-row">
+                                    <div class="alert alert-primary-transparent d-flex align-items-center gap-2 py-2 mb-0">
+                                        <i class="ri-qr-code-line fs-16"></i>
+                                        <div class="fs-13">
+                                            <span class="text-muted">Asset Code:</span>
+                                            <strong id="asset_code_display" class="ms-1"></strong>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="invalid-feedback d-block" id="error-has_self"></div>
-                            </div>
-                            <div class="col-md-3 mb-3">
-                                <label class="form-label d-block mb-2">Is Common Asset</label>
-                                <div class="toggle-switch">
-                                    <label class="switch">
-                                        <input type="checkbox" id="is_common_asset">
-                                        <span class="slider round"></span>
-                                    </label>
-                                </div>
-                                <div class="invalid-feedback d-block" id="error-is_common_asset"></div>
                             </div>
                         </div>
-                        <div class="row d-none" id="total-self-row">
-                            <div class="col-md-4 mb-3">
-                                <label for="total_self" class="form-label">Total Self</label>
-                                <input type="number" class="form-control" id="total_self" name="total_self" placeholder="0" min="0" max="127">
-                                <div class="invalid-feedback" id="error-total_self"></div>
+
+                        {{-- ── Section: Location & Pricing ── --}}
+                        <div class="form-section mb-4">
+                            <p class="form-section-label"><i class="ri-store-2-line me-1"></i>Location & Pricing</p>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="store_id" class="form-label">Store</label>
+                                    <select class="form-select select-ele" id="store_id" name="store_id">
+                                        <option value="">— Select Store —</option>
+                                        @foreach($stores as $store)
+                                            <option value="{{ $store->id }}">{{ $store->title }} ({{ $store->code }})</option>
+                                        @endforeach
+                                    </select>
+                                    <div class="invalid-feedback" id="error-store_id"></div>
+                                    <div class="form-text" id="store-help-text">Disabled when asset is marked as Common.</div>
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="asset_price" class="form-label">Asset Price</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">৳</span>
+                                        <input type="number" step="0.01" min="0" class="form-control"
+                                            id="asset_price" name="asset_price" placeholder="0.00">
+                                    </div>
+                                    <div class="invalid-feedback d-block" id="error-asset_price"></div>
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="minimum_fee" class="form-label">Minimum Charge</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">৳</span>
+                                        <input type="number" step="0.01" min="0" class="form-control"
+                                            id="minimum_fee" name="minimum_fee" placeholder="0.00">
+                                    </div>
+                                    <div class="invalid-feedback d-block" id="error-minimum_fee"></div>
+                                </div>
                             </div>
                         </div>
-                    </div>
+
+                        {{-- ── Section: Media ── --}}
+                        <div class="form-section mb-4">
+                            <p class="form-section-label"><i class="ri-image-line me-1"></i>Media</p>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Default Image <span class="text-danger" id="image-required-star">*</span></label>
+                                    <div class="image-upload-zone" id="imageUploadZone">
+                                        <div id="upload-placeholder" class="upload-placeholder-inner">
+                                            <i class="ri-upload-cloud-2-line fs-2 text-muted"></i>
+                                            <p class="mb-1 text-muted fs-12 mt-1">Click or drag image here</p>
+                                            <p class="mb-0 fs-11" style="color:#adb5bd">JPG, JPEG, PNG, WEBP &mdash; Max 2 MB</p>
+                                        </div>
+                                        <img id="default-image-preview" class="d-none" src="" alt="Preview">
+                                        <input type="file" class="d-none" id="default_image" name="default_image"
+                                            accept=".jpg,.jpeg,.png,.webp">
+                                    </div>
+                                    <div class="invalid-feedback d-block" id="error-default_image"></div>
+                                    <div id="remove-image-wrap" class="d-none mt-1">
+                                        <button type="button" class="btn btn-sm btn-danger-light" id="btn-remove-image">
+                                            <i class="ri-delete-bin-line me-1"></i>Remove
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="planogram_pdf" class="form-label">Planogram PDF</label>
+                                    <div class="pdf-upload-zone" id="pdfUploadZone">
+                                        <div id="pdf-placeholder" class="upload-placeholder-inner">
+                                            <i class="ri-file-pdf-2-line fs-2 text-muted"></i>
+                                            <p class="mb-1 text-muted fs-12 mt-1">Click to select PDF</p>
+                                            <p class="mb-0 fs-11" style="color:#adb5bd">PDF only &mdash; Max 10 MB</p>
+                                        </div>
+                                        <div id="pdf-selected" class="d-none text-center">
+                                            <i class="ri-file-pdf-2-line fs-2 text-danger"></i>
+                                            <p class="mb-0 fs-12 mt-1 text-truncate px-2" id="pdf-filename"></p>
+                                        </div>
+                                        <input type="file" class="d-none" id="planogram_pdf" name="planogram_pdf" accept=".pdf">
+                                    </div>
+                                    <div class="invalid-feedback d-block" id="error-planogram_pdf"></div>
+                                    <div id="existing-pdf-wrap" class="d-none mt-1">
+                                        <a href="#" target="_blank" id="existing-planogram-link" class="btn btn-sm btn-info-light">
+                                            <i class="ri-external-link-line me-1"></i>View current PDF
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- ── Section: Configuration ── --}}
+                        <div class="form-section mb-4">
+                            <p class="form-section-label"><i class="ri-settings-3-line me-1"></i>Configuration</p>
+                            <div class="row g-3">
+                                <div class="col-md-3">
+                                    <div class="switch-option-card">
+                                        <div class="form-check form-switch mb-0">
+                                            <input class="form-check-input form-checked-success" type="checkbox"
+                                                role="switch" id="status" checked>
+                                            <label class="form-check-label fw-medium" for="status">Active</label>
+                                        </div>
+                                        <small class="text-muted d-block mt-1">Enable this asset in the system</small>
+                                        <div class="invalid-feedback" id="error-status"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="switch-option-card">
+                                        <div class="form-check form-switch mb-0">
+                                            <input class="form-check-input form-checked-warning" type="checkbox"
+                                                role="switch" id="has_kv_slot">
+                                            <label class="form-check-label fw-medium" for="has_kv_slot">Has KV Slot</label>
+                                        </div>
+                                        <small class="text-muted d-block mt-1">Supports key-visual display slot</small>
+                                        <div class="invalid-feedback" id="error-has_kv_slot"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="switch-option-card">
+                                        <div class="form-check form-switch mb-0">
+                                            <input class="form-check-input form-checked-info" type="checkbox"
+                                                role="switch" id="has_self">
+                                            <label class="form-check-label fw-medium" for="has_self">Has Shelf</label>
+                                        </div>
+                                        <small class="text-muted d-block mt-1">Asset contains shelf units</small>
+                                        <div class="invalid-feedback" id="error-has_self"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="switch-option-card">
+                                        <div class="form-check form-switch mb-0">
+                                            <input class="form-check-input form-checked-primary" type="checkbox"
+                                                role="switch" id="is_common_asset">
+                                            <label class="form-check-label fw-medium" for="is_common_asset">Common Asset</label>
+                                        </div>
+                                        <small class="text-muted d-block mt-1">Shared across all stores</small>
+                                        <div class="invalid-feedback" id="error-is_common_asset"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- ── Section: Shelf Settings (conditional) ── --}}
+                        <div class="form-section d-none" id="shelf-settings-section">
+                            <p class="form-section-label"><i class="ri-stack-line me-1"></i>Shelf Settings</p>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label for="total_self" class="form-label">Total Shelf Units</label>
+                                    <input type="number" class="form-control" id="total_self" name="total_self"
+                                        placeholder="0" min="0" max="127">
+                                    <div class="invalid-feedback" id="error-total_self"></div>
+                                    <div class="form-text">Maximum 127 shelf units.</div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>{{-- /modal-body --}}
+
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">
+                            <i class="ri-close-line me-1"></i>Cancel
+                        </button>
                         <button type="submit" class="btn btn-primary" id="btn-save">
-                            <span class="btn-text">Save</span>
+                            <span class="btn-text"><i class="ri-save-line me-1"></i>Save</span>
                             <span class="spinner-border spinner-border-sm d-none" id="btn-spinner"></span>
                         </button>
                     </div>
@@ -258,102 +342,166 @@
         </div>
     </div>
 
+    {{-- ── View Modal ───────────────────────────────────────────────────────── --}}
     <div class="modal fade" id="viewModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h6 class="modal-title">Asset Details</h6>
+                    <h6 class="modal-title fw-semibold">
+                        <i class="ri-eye-line me-2 text-info"></i>Asset Details
+                    </h6>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="row">
+                    <div class="row g-3">
                         <div class="col-md-4">
-                            <img id="view-image" class="asset-preview" src="" alt="" style="display:none;">
+                            <div class="view-image-box">
+                                <img id="view-image" class="d-none" src="" alt="">
+                                <div id="view-image-placeholder">
+                                    <i class="ri-image-line"></i>
+                                </div>
+                            </div>
                         </div>
                         <div class="col-md-8">
-                            <table class="table table-bordered table-sm">
-                                <tr><th width="40%">Name</th><td id="view-name"></td></tr>
-                                <tr><th>Code</th><td id="view-code"></td></tr>
-                                <tr><th>Asset Type</th><td id="view-asset-type"></td></tr>
-                                <tr><th>Store</th><td id="view-store"></td></tr>
-                                <tr><th>Asset Price</th><td id="view-price"></td></tr>
-                                <tr><th>Minimum Fee</th><td id="view-minimum-fee"></td></tr>
-                                <tr><th>Status</th><td id="view-status"></td></tr>
-                                <tr><th>Common Asset</th><td id="view-common"></td></tr>
-                                <tr><th>Has KV Slot</th><td id="view-kv"></td></tr>
-                                <tr><th>Has Self</th><td id="view-self"></td></tr>
-                                <tr><th>Total Self</th><td id="view-total-self"></td></tr>
-                                <tr><th>Planogram</th><td id="view-planogram"></td></tr>
+                            <table class="table table-bordered table-sm align-middle mb-0">
+                                <tr><th width="38%" class="text-muted fw-medium fs-12">Name</th><td id="view-name" class="fw-semibold"></td></tr>
+                                <tr><th class="text-muted fw-medium fs-12">Asset Code</th><td id="view-code"></td></tr>
+                                <tr><th class="text-muted fw-medium fs-12">Asset Type</th><td id="view-asset-type"></td></tr>
+                                <tr><th class="text-muted fw-medium fs-12">Store</th><td id="view-store"></td></tr>
+                                <tr><th class="text-muted fw-medium fs-12">Asset Price</th><td id="view-price"></td></tr>
+                                <tr><th class="text-muted fw-medium fs-12">Minimum Charge</th><td id="view-minimum-fee"></td></tr>
+                                <tr><th class="text-muted fw-medium fs-12">Status</th><td id="view-status"></td></tr>
+                                <tr><th class="text-muted fw-medium fs-12">Common Asset</th><td id="view-common"></td></tr>
+                                <tr><th class="text-muted fw-medium fs-12">Has KV Slot</th><td id="view-kv"></td></tr>
+                                <tr><th class="text-muted fw-medium fs-12">Has Shelf</th><td id="view-self"></td></tr>
+                                <tr><th class="text-muted fw-medium fs-12">Total Shelf</th><td id="view-total-self"></td></tr>
+                                <tr><th class="text-muted fw-medium fs-12">Planogram</th><td id="view-planogram"></td></tr>
                             </table>
                         </div>
                     </div>
                 </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-sm btn-light" data-bs-dismiss="modal">Close</button>
+                </div>
             </div>
         </div>
     </div>
 
+    {{-- ── Delete Confirmation Modal ────────────────────────────────────────── --}}
     <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-sm">
             <div class="modal-content text-center">
-                <div class="modal-body p-4">
-                    <div class="mb-3"><i class="ri-delete-bin-line text-danger" style="font-size: 3rem;"></i></div>
-                    <h6>Delete Asset</h6>
-                    <p class="text-muted mb-0">Are you sure you want to delete <strong id="delete-asset-name"></strong>?</p>
+                <div class="modal-body p-4 pb-2">
+                    <div class="mb-3">
+                        <span class="avatar avatar-lg bg-danger-transparent rounded-circle">
+                            <i class="ri-delete-bin-line text-danger fs-24"></i>
+                        </span>
+                    </div>
+                    <h6 class="fw-semibold mb-1">Delete Asset?</h6>
+                    <p class="text-muted fs-13 mb-0">
+                        You are about to delete<br>
+                        <strong id="delete-asset-name" class="text-dark"></strong>
+                    </p>
+                    <p class="text-danger fs-11 mt-1 mb-0">This action cannot be undone.</p>
                     <input type="hidden" id="delete-asset-id">
                 </div>
-                <div class="modal-footer justify-content-center border-0 pt-0">
-                    <button type="button" class="btn btn-sm btn-light" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-sm btn-danger" id="btn-confirm-delete">Yes, Delete</button>
+                <div class="modal-footer justify-content-center border-0 pb-4">
+                    <button type="button" class="btn btn-sm btn-light px-4" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-sm btn-danger px-4" id="btn-confirm-delete">
+                        <span class="btn-text">Delete</span>
+                        <span class="spinner-border spinner-border-sm d-none"></span>
+                    </button>
                 </div>
             </div>
         </div>
     </div>
+
 @endsection
 
 @push('styles')
 <style>
+    /* ── Table ── */
     .btn-list { display: flex; gap: 4px; }
-    .asset-thumb { width: 42px; height: 42px; object-fit: cover; border-radius: 6px; border: 1px solid #e6e8f0; }
-    .asset-preview { width: 100%; max-height: 200px; object-fit: cover; border-radius: 8px; border: 1px solid #e6e8f0; }
-    .toggle-switch { display: flex; align-items: center; }
-    .toggle-switch .switch { position: relative; display: inline-block; width: 44px; height: 24px; margin-bottom: 0; }
-    .toggle-switch .switch input { opacity: 0; width: 0; height: 0; }
-    .toggle-switch .slider { position: absolute; cursor: pointer; inset: 0; background-color: #ccc; transition: .3s; }
-    .toggle-switch .slider.round { border-radius: 24px; }
-    .toggle-switch .slider.round:before { border-radius: 50%; }
-    .toggle-switch .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: #fff; transition: .3s; border-radius: 50%; }
-    .toggle-switch .switch input:checked + .slider { background-color: #5b6edf; }
-    .toggle-switch .switch input:checked + .slider:before { transform: translateX(20px); }
+    .asset-thumb { width: 40px; height: 40px; object-fit: cover; border-radius: 6px; border: 1px solid var(--default-border); }
+    .asset-thumb-empty { width: 40px; height: 40px; border-radius: 6px; border: 1px dashed var(--default-border); display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 1rem; }
+
+    /* ── Form Sections ── */
+    .form-section-label {
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--primary-color);
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid var(--default-border);
+        margin-bottom: 1rem;
+    }
+
+    /* ── Image Upload Zone ── */
+    .image-upload-zone,
+    .pdf-upload-zone {
+        border: 2px dashed var(--default-border);
+        border-radius: 8px;
+        padding: 1rem;
+        text-align: center;
+        cursor: pointer;
+        transition: border-color 0.2s ease, background 0.2s ease;
+        min-height: 90px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+    }
+    .image-upload-zone:hover,
+    .image-upload-zone.drag-over,
+    .pdf-upload-zone:hover { border-color: var(--primary-color); background: rgba(var(--primary-rgb), 0.04); }
+    .upload-placeholder-inner { pointer-events: none; }
+    .image-upload-zone #default-image-preview { max-height: 120px; max-width: 100%; border-radius: 6px; object-fit: cover; }
+
+    /* ── Switch Option Cards ── */
+    .switch-option-card {
+        background: var(--custom-white);
+        border: 1px solid var(--default-border);
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+        height: 100%;
+    }
+    .switch-option-card.is-disabled { opacity: 0.55; pointer-events: none; }
+
+    /* ── View Image Box ── */
+    .view-image-box { border-radius: 8px; overflow: hidden; }
+    .view-image-box img { width: 100%; border-radius: 8px; object-fit: cover; }
+    #view-image-placeholder {
+        width: 100%; aspect-ratio: 1 / 1;
+        background: var(--light); border-radius: 8px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 3rem; color: var(--text-muted);
+        border: 1px dashed var(--default-border);
+    }
 </style>
 @endpush
 
 @push('scripts')
     @include('backend.includes.plugins.datatable')
-{{--    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">--}}
-{{--    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />--}}
-{{--    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>--}}
     @include('backend.includes.plugins.select2')
     <script>
     $(document).ready(function () {
 
-        const dataTable = $('#data-table').DataTable();
-        const assetModal = new bootstrap.Modal(document.getElementById('assetModal'));
-        const viewModalEl = new bootstrap.Modal(document.getElementById('viewModal'));
+        // ── Bootstrap modals & AJAX setup ─────────────────────────────────────
+        const assetModal    = new bootstrap.Modal(document.getElementById('assetModal'));
+        const viewModalEl   = new bootstrap.Modal(document.getElementById('viewModal'));
         const deleteModalEl = new bootstrap.Modal(document.getElementById('deleteModal'));
+        $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
+
+        const apiUrl = id => base_url + 'assets' + (id ? '/' + id : '');
+
+        // ── DataTable store filter ─────────────────────────────────────────────
+        const dataTable = $('#data-table').DataTable();
         let selectedStoreFilter = '';
 
         $.fn.dataTable.ext.search.push(function (settings, data, dataIndex) {
-            if (settings.nTable !== $('#data-table')[0]) {
-                return true;
-            }
-
-            if (!selectedStoreFilter) {
-                return true;
-            }
-
-            const rowNode = dataTable.row(dataIndex).node();
-            const rowStoreId = String($(rowNode).attr('data-store-id') || '');
-
+            if (settings.nTable !== $('#data-table')[0] || !selectedStoreFilter) return true;
+            const rowStoreId = String($(dataTable.row(dataIndex).node()).attr('data-store-id') || '');
             return rowStoreId === selectedStoreFilter;
         });
 
@@ -362,256 +510,25 @@
             dataTable.draw();
         });
 
-        $('#btn-add-asset').on('click', function () {
-            resetForm();
-            $('#assetModalLabel').text('Add Asset');
-            $('#btn-save .btn-text').text('Save');
-            $('#default_image').prop('required', true);
-            assetModal.show();
-        });
+        // ── Utility helpers ───────────────────────────────────────────────────
+        const badge = (cond, trueColor, trueLabel, falseColor, falseLabel) =>
+            cond ? `<span class="badge bg-${trueColor}-transparent">${trueLabel}</span>`
+                 : (falseColor ? `<span class="badge bg-${falseColor}-transparent">${falseLabel}</span>`
+                               : `<span class="text-muted">${falseLabel}</span>`);
 
-        $(document).on('click', '.btn-edit', function () {
-            resetForm();
-            const id = $(this).data('id');
-            $('#assetModalLabel').text('Edit Asset');
-            $('#btn-save .btn-text').text('Update');
-            $('#default_image').prop('required', false);
-
-            $.get(base_url + 'assets/' + id + '/edit', function (data) {
-                const selectedStoreId = data.store_id ? String(data.store_id) : '';
-
-                $('#asset_id').val(data.id);
-                $('#asset_type_id').val(data.asset_type_id);
-                $('#name').val(data.name);
-                $('#asset-code-row').removeClass('d-none');
-                $('#asset_code_display').val(data.asset_code || '-');
-                $('#store_id').val(selectedStoreId).trigger('change');
-                $('#asset_price').val(data.asset_price);
-                $('#minimum_fee').val(data.minimum_fee);
-                $('#total_self').val(data.total_self);
-                $('#status').prop('checked', parseInt(data.status, 10) === 1);
-                $('#has_kv_slot').prop('checked', parseInt(data.has_kv_slot, 10) === 1);
-                $('#has_self').prop('checked', parseInt(data.has_self, 10) === 1);
-                $('#is_common_asset').prop('checked', parseInt(data.is_common_asset, 10) === 1);
-
-                if (data.default_image) {
-                    $('#default-image-preview').attr('src', base_url + data.default_image).removeClass('d-none');
-                }
-
-                if (data.planogram_pdf) {
-                    $('#existing-planogram-link')
-                        .attr('href', base_url + data.planogram_pdf)
-                        .removeClass('d-none');
-                }
-
-                // toggleStoreField();
-                if (selectedStoreId && !$('#is_common_asset').is(':checked')) {
-                    $('#store_id').val(selectedStoreId).trigger('change');
-                }
-                toggleTotalSelfField();
-                assetModal.show();
-            });
-        });
-
-        $(document).on('click', '.btn-view', function () {
-            const id = $(this).data('id');
-            $.get(base_url + 'assets/' + id, function (data) {
-                $('#view-name').text(data.name || '-');
-                $('#view-code').text(data.asset_code || '-');
-                $('#view-asset-type').text(data.asset_type ? data.asset_type.name : '-');
-                if (parseInt(data.is_common_asset, 10) === 1) {
-                    $('#view-store').html('<span class="badge bg-info-transparent">Common</span>');
-                } else {
-                    $('#view-store').text(data.store ? data.store.title : '-');
-                }
-                $('#view-price').text(data.asset_price ? Number(data.asset_price).toFixed(2) : '-');
-                $('#view-minimum-fee').text(data.minimum_fee ? Number(data.minimum_fee).toFixed(2) : '-');
-                $('#view-status').html(parseInt(data.status, 10) === 1
-                    ? '<span class="badge bg-success-transparent">Active</span>'
-                    : '<span class="badge bg-danger-transparent">Inactive</span>');
-                $('#view-common').text(parseInt(data.is_common_asset, 10) === 1 ? 'Yes' : 'No');
-                $('#view-kv').text(parseInt(data.has_kv_slot, 10) === 1 ? 'Yes' : 'No');
-                $('#view-self').text(parseInt(data.has_self, 10) === 1 ? 'Yes' : 'No');
-                $('#view-total-self').text(parseInt(data.has_self, 10) === 1 ? (data.total_self ?? 0) : '-');
-                $('#view-planogram').html(data.planogram_pdf
-                    ? '<a href="' + (base_url + data.planogram_pdf) + '" target="_blank" class="btn btn-sm btn-info-light btn-wave">View PDF</a>'
-                    : '-');
-
-                if (data.default_image) {
-                    $('#view-image').attr('src', base_url + data.default_image).show();
-                } else {
-                    $('#view-image').hide();
-                }
-
-                viewModalEl.show();
-            });
-        });
-
-        $(document).on('click', '.btn-delete', function () {
-            $('#delete-asset-id').val($(this).data('id'));
-            $('#delete-asset-name').text($(this).data('name'));
-            deleteModalEl.show();
-        });
-
-        $('#btn-confirm-delete').on('click', function () {
-            const id = $('#delete-asset-id').val();
-            const btn = $(this);
-            btn.prop('disabled', true).text('Deleting...');
-            $.ajax({
-                url: base_url + 'assets/' + id,
-                type: 'DELETE',
-                success: function (res) {
-                    deleteModalEl.hide();
-                    showToast(res.message, 'success');
-                    setTimeout(() => location.reload(), 800);
-                },
-                error: function () {
-                    showToast('Failed to delete asset.', 'danger');
-                },
-                complete: function () {
-                    btn.prop('disabled', false).text('Yes, Delete');
-                }
-            });
-        });
-
-        $('#assetForm').on('submit', function (e) {
-            e.preventDefault();
-            clearErrors();
-
-            const id = $('#asset_id').val();
-            const url = id ? base_url + 'assets/' + id : base_url + 'assets';
-            const formData = new FormData(this);
-
-            formData.set('status', $('#status').is(':checked') ? 1 : 0);
-            formData.set('has_kv_slot', $('#has_kv_slot').is(':checked') ? 1 : 0);
-            formData.set('has_self', $('#has_self').is(':checked') ? 1 : 0);
-            formData.set('is_common_asset', $('#is_common_asset').is(':checked') ? 1 : 0);
-
-            if ($('#is_common_asset').is(':checked')) {
-                formData.set('store_id', '');
-            }
-
-            if (!$('#has_self').is(':checked')) {
-                formData.set('total_self', '');
-            }
-
-            if (id) {
-                formData.append('_method', 'PUT');
-            }
-
-            $('#btn-save').prop('disabled', true);
-            $('#btn-spinner').removeClass('d-none');
-
-            $.ajax({
-                url: url,
-                type: 'POST',
-                data: formData,
-                processData: false,
-                contentType: false,
-                success: function (res) {
-                    assetModal.hide();
-                    showToast(res.message, 'success');
-                    setTimeout(() => location.reload(), 800);
-                },
-                error: function (xhr) {
-                    if (xhr.status === 422) {
-                        const errors = xhr.responseJSON.errors || {};
-                        $.each(errors, function (field, messages) {
-                            const input = $('#' + field);
-                            const errorBox = $('#error-' + field);
-
-                            if (input.length) {
-                                input.addClass('is-invalid');
-                            }
-                            if (errorBox.length) {
-                                errorBox.text(messages[0]);
-                            }
-                        });
-                    } else {
-                        showToast('Something went wrong.', 'danger');
-                    }
-                },
-                complete: function () {
-                    $('#btn-save').prop('disabled', false);
-                    $('#btn-spinner').addClass('d-none');
-                }
-            });
-        });
-
-        $('#default_image').on('change', function () {
-            const file = this.files && this.files[0];
-            if (!file) {
-                $('#default-image-preview').addClass('d-none').attr('src', '');
-                return;
-            }
-            const reader = new FileReader();
-            reader.onload = function (e) {
-                $('#default-image-preview').attr('src', e.target.result).removeClass('d-none');
-            };
-            reader.readAsDataURL(file);
-        });
-
-        $('#is_common_asset').on('change', function () {
-            // toggleStoreField();
-        });
-
-        $('#store_id').on('select2:opening', function (e) {
-            if ($('#is_common_asset').is(':checked')) {
-                e.preventDefault();
-            }
-        });
-
-        $('#has_self').on('change', function () {
-            toggleTotalSelfField();
-        });
-
-        function toggleStoreField() {
-            const $store = $('#store_id');
-            const $select2Container = $store.next('.select2-container');
-            const isCommon = $('#is_common_asset').is(':checked');
-
-            if (isCommon) {
-                $store.val('').prop('disabled', true).trigger('change');
-                $select2Container.addClass('select2-container--disabled');
-                $select2Container.find('.select2-selection')
-                    .attr('aria-disabled', 'true')
-                    .css('pointer-events', 'none')
-                    .css('opacity', '0.65');
-            } else {
-                $store.prop('disabled', false).trigger('change');
-                $select2Container.removeClass('select2-container--disabled');
-                $select2Container.find('.select2-selection')
-                    .attr('aria-disabled', 'false')
-                    .css('pointer-events', '')
-                    .css('opacity', '');
-            }
+        function setBtnLoading($btn, loading, loadingText = '') {
+            $btn.prop('disabled', loading);
+            if (loadingText) $btn.find('.btn-text').text(loadingText);
+            $btn.find('.spinner-border').toggleClass('d-none', !loading);
         }
 
-        function toggleTotalSelfField() {
-            const hasSelf = $('#has_self').is(':checked');
-            if (hasSelf) {
-                $('#total-self-row').removeClass('d-none');
-            } else {
-                $('#total-self-row').addClass('d-none');
-                $('#total_self').val('').removeClass('is-invalid');
-                $('#error-total_self').text('');
-            }
-        }
-
-        function resetForm() {
-            $('#assetForm')[0].reset();
-            $('#asset_id').val('');
-            $('#asset-code-row').addClass('d-none');
-            $('#asset_code_display').val('');
-            $('#default-image-preview').addClass('d-none').attr('src', '');
-            $('#existing-planogram-link').addClass('d-none').attr('href', '#');
-            $('#status').prop('checked', true);
-            $('#has_kv_slot').prop('checked', false);
-            $('#has_self').prop('checked', false);
-            $('#is_common_asset').prop('checked', false);
-            $('#store_id').val('').prop('disabled', false).trigger('change.select2');
-            toggleTotalSelfField();
-            clearErrors();
+        function showToast(message, type) {
+            $(`<div class="toast align-items-center text-bg-${type} border-0 show position-fixed top-0 end-0 m-3" style="z-index:9999" role="alert">
+                <div class="d-flex">
+                    <div class="toast-body">${message}</div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                </div>
+            </div>`).appendTo('body').delay(3000).queue(function () { $(this).remove(); });
         }
 
         function clearErrors() {
@@ -619,17 +536,267 @@
             $('.invalid-feedback').text('');
         }
 
-        function showToast(message, type) {
-            const toast = $(`
-                <div class="toast align-items-center text-bg-${type} border-0 show position-fixed top-0 end-0 m-3" style="z-index:9999" role="alert">
-                    <div class="d-flex">
-                        <div class="toast-body">${message}</div>
-                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-                    </div>
-                </div>
-            `).appendTo('body');
-            setTimeout(() => toast.remove(), 3000);
+        // ── Image Upload Zone ──────────────────────────────────────────────────
+        const uploadZone = document.getElementById('imageUploadZone');
+        const fileInput  = document.getElementById('default_image');
+
+        uploadZone.addEventListener('click',     e  => { if (!e.target.closest('#btn-remove-image')) fileInput.click(); });
+        uploadZone.addEventListener('dragover',  e  => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
+        uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
+        uploadZone.addEventListener('drop', e => {
+            e.preventDefault();
+            uploadZone.classList.remove('drag-over');
+            if (e.dataTransfer.files[0]) setImagePreview(e.dataTransfer.files[0]);
+        });
+
+        $('#default_image').on('change', function () {
+            if (this.files[0]) setImagePreview(this.files[0]);
+        });
+
+        function setImagePreview(file) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                $('#upload-placeholder').hide();
+                $('#default-image-preview').attr('src', e.target.result).removeClass('d-none');
+                $('#remove-image-wrap').removeClass('d-none');
+            };
+            reader.readAsDataURL(file);
         }
+
+        function clearImagePreview() {
+            $('#upload-placeholder').show();
+            $('#default-image-preview').addClass('d-none').attr('src', '');
+            $('#remove-image-wrap').addClass('d-none');
+            fileInput.value = '';
+        }
+
+        $('#btn-remove-image').on('click', e => { e.stopPropagation(); clearImagePreview(); });
+
+        // ── PDF Upload Zone ────────────────────────────────────────────────────
+        const pdfZone  = document.getElementById('pdfUploadZone');
+        const pdfInput = document.getElementById('planogram_pdf');
+
+        pdfZone.addEventListener('click', () => pdfInput.click());
+        $('#planogram_pdf').on('change', function () {
+            if (this.files[0]) {
+                $('#pdf-placeholder').hide();
+                $('#pdf-filename').text(this.files[0].name);
+                $('#pdf-selected').removeClass('d-none');
+            }
+        });
+
+        function clearPdfPreview() {
+            $('#pdf-placeholder').show();
+            $('#pdf-selected').addClass('d-none').find('#pdf-filename').text('');
+            pdfInput.value = '';
+        }
+
+        // ── Is Common Asset toggle (disables store select) ─────────────────────
+        $('#is_common_asset').on('change', function () {
+            toggleCommonAsset();
+        });
+
+        function toggleCommonAsset() {
+            const isCommon = $('#is_common_asset').is(':checked');
+            if (isCommon) {
+                $('#store_id').val('').trigger('change');
+                $('#store_id').prop('disabled', true);
+                $('#store_id').closest('.col-md-6').find('.switch-option-card, .select2-container').addClass('is-disabled');
+            } else {
+                $('#store_id').prop('disabled', false);
+                $('#store_id').closest('.col-md-6').find('.switch-option-card, .select2-container').removeClass('is-disabled');
+            }
+            $('#store_id').next('.select2-container').find('.select2-selection').css('opacity', isCommon ? '0.65' : '');
+        }
+
+        // ── Has Shelf toggle ───────────────────────────────────────────────────
+        $('#has_self').on('change', function () {
+            toggleShelfSection();
+        });
+
+        function toggleShelfSection() {
+            const hasSelf = $('#has_self').is(':checked');
+            $('#shelf-settings-section').toggleClass('d-none', !hasSelf);
+            if (!hasSelf) {
+                $('#total_self').val('').removeClass('is-invalid');
+                $('#error-total_self').text('');
+            }
+        }
+
+        // ── Form: open / reset ─────────────────────────────────────────────────
+        function openFormModal(mode) {
+            resetForm();
+            const isEdit = mode === 'edit';
+            $('#assetModalLabel').html(
+                `<i class="ri-${isEdit ? 'edit-box' : 'box-3'}-line me-2 text-primary"></i>${isEdit ? 'Edit' : 'Add'} Asset`
+            );
+            $('#btn-save .btn-text').html(`<i class="ri-save-line me-1"></i>${isEdit ? 'Update' : 'Save'}`);
+            $('#image-required-star').toggleClass('d-none', isEdit);
+        }
+
+        function resetForm() {
+            $('#assetForm')[0].reset();
+            $('#asset_id').val('');
+            $('#asset-code-row').addClass('d-none');
+            $('#asset_code_display').text('');
+            clearImagePreview();
+            clearPdfPreview();
+            $('#existing-pdf-wrap').addClass('d-none');
+            $('#existing-planogram-link').attr('href', '#');
+            $('#status').prop('checked', true);
+            $('#has_kv_slot').prop('checked', false);
+            $('#has_self').prop('checked', false);
+            $('#is_common_asset').prop('checked', false);
+            $('#store_id').val('').prop('disabled', false).trigger('change');
+            toggleShelfSection();
+            clearErrors();
+        }
+
+        // ── Add ───────────────────────────────────────────────────────────────
+        $('#btn-add-asset').on('click', () => {
+            openFormModal('add');
+            assetModal.show();
+        });
+
+        // ── Edit ──────────────────────────────────────────────────────────────
+        $(document).on('click', '.btn-edit', function () {
+            openFormModal('edit');
+            $.get(apiUrl($(this).data('id')) + '/edit', function (data) {
+                $('#asset_id').val(data.id);
+                $('#asset_type_id').val(data.asset_type_id);
+                $('#name').val(data.name);
+                $('#asset-code-row').removeClass('d-none');
+                $('#asset_code_display').text(data.asset_code || '—');
+                $('#asset_price').val(data.asset_price);
+                $('#minimum_fee').val(data.minimum_fee);
+                $('#total_self').val(data.total_self);
+
+                $('#status').prop('checked',         parseInt(data.status, 10) === 1);
+                $('#has_kv_slot').prop('checked',    parseInt(data.has_kv_slot, 10) === 1);
+                $('#has_self').prop('checked',       parseInt(data.has_self, 10) === 1);
+                $('#is_common_asset').prop('checked',parseInt(data.is_common_asset, 10) === 1);
+
+                toggleCommonAsset();
+                if (!$('#is_common_asset').is(':checked') && data.store_id) {
+                    $('#store_id').val(data.store_id).trigger('change');
+                }
+                toggleShelfSection();
+
+                if (data.default_image) {
+                    $('#upload-placeholder').hide();
+                    $('#default-image-preview').attr('src', base_url + data.default_image).removeClass('d-none');
+                    $('#remove-image-wrap').removeClass('d-none');
+                }
+
+                if (data.planogram_pdf) {
+                    $('#existing-pdf-wrap').removeClass('d-none');
+                    $('#existing-planogram-link').attr('href', base_url + data.planogram_pdf);
+                }
+
+                assetModal.show();
+            });
+        });
+
+        // ── View ──────────────────────────────────────────────────────────────
+        $(document).on('click', '.btn-view', function () {
+            $.get(apiUrl($(this).data('id')), function (data) {
+                $('#view-name').text(data.name || '—');
+                $('#view-code').html(`<code>${data.asset_code || '—'}</code>`);
+                $('#view-asset-type').text(data.asset_type ? data.asset_type.name : '—');
+                $('#view-store').html(
+                    parseInt(data.is_common_asset, 10) === 1
+                        ? '<span class="badge bg-primary-transparent">Common Asset</span>'
+                        : (data.store ? data.store.title : '—')
+                );
+                $('#view-price').text(data.asset_price ? '৳ ' + Number(data.asset_price).toFixed(2) : '—');
+                $('#view-minimum-fee').text(data.minimum_fee ? '৳ ' + Number(data.minimum_fee).toFixed(2) : '—');
+                $('#view-status').html(badge(data.status == 1,          'success', 'Active',  'danger',  'Inactive'));
+                $('#view-common').html(badge(data.is_common_asset == 1, 'primary', 'Yes',     null,      'No'));
+                $('#view-kv').html(badge(data.has_kv_slot == 1,         'warning', 'Yes',     null,      'No'));
+                $('#view-self').html(badge(data.has_self == 1,          'info',    'Yes',     null,      'No'));
+                $('#view-total-self').text(parseInt(data.has_self, 10) === 1 ? (data.total_self ?? 0) + ' units' : '—');
+                $('#view-planogram').html(data.planogram_pdf
+                    ? `<a href="${base_url + data.planogram_pdf}" target="_blank" class="btn btn-sm btn-info-light btn-wave"><i class="ri-file-pdf-2-line me-1"></i>View PDF</a>`
+                    : '—');
+
+                $('#view-image').toggleClass('d-none', !data.default_image).attr('src', data.default_image ? base_url + data.default_image : '');
+                $('#view-image-placeholder').toggle(!data.default_image);
+
+                viewModalEl.show();
+            });
+        });
+
+        // ── Delete ────────────────────────────────────────────────────────────
+        $(document).on('click', '.btn-delete', function () {
+            $('#delete-asset-id').val($(this).data('id'));
+            $('#delete-asset-name').text($(this).data('name'));
+            deleteModalEl.show();
+        });
+
+        $('#btn-confirm-delete').on('click', function () {
+            const $btn = $(this);
+            setBtnLoading($btn, true, 'Deleting...');
+            $.ajax({
+                url:  apiUrl($('#delete-asset-id').val()),
+                type: 'DELETE',
+                success: res => {
+                    deleteModalEl.hide();
+                    showToast(res.message, 'success');
+                    setTimeout(() => location.reload(), 800);
+                },
+                error:    () => showToast('Failed to delete asset.', 'danger'),
+                complete: () => { setBtnLoading($btn, false); $btn.find('.btn-text').text('Delete'); }
+            });
+        });
+
+        // ── Form submit (create / update) ──────────────────────────────────────
+        $('#assetForm').on('submit', function (e) {
+            e.preventDefault();
+            clearErrors();
+
+            const id       = $('#asset_id').val();
+            const formData = new FormData(this);
+
+            ['status', 'has_kv_slot', 'has_self', 'is_common_asset']
+                .forEach(f => formData.set(f, $(`#${f}`).is(':checked') ? 1 : 0));
+
+            if ($('#is_common_asset').is(':checked')) formData.set('store_id', '');
+            if (!$('#has_self').is(':checked'))        formData.delete('total_self');
+            if (id) formData.append('_method', 'PUT');
+
+            const $btn = $('#btn-save');
+            setBtnLoading($btn, true);
+            $('#btn-spinner').removeClass('d-none');
+
+            $.ajax({
+                url:  apiUrl(id || null),
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: res => {
+                    assetModal.hide();
+                    showToast(res.message, 'success');
+                    setTimeout(() => location.reload(), 800);
+                },
+                error: xhr => {
+                    if (xhr.status === 422) {
+                        $.each(xhr.responseJSON.errors || {}, (field, messages) => {
+                            $(`#${field}`).addClass('is-invalid');
+                            $(`#error-${field}`).text(messages[0]);
+                        });
+                    } else {
+                        showToast('Something went wrong. Please try again.', 'danger');
+                    }
+                },
+                complete: () => {
+                    setBtnLoading($btn, false);
+                    $('#btn-spinner').addClass('d-none');
+                    $btn.find('.btn-text').html(`<i class="ri-save-line me-1"></i>${id ? 'Update' : 'Save'}`);
+                }
+            });
+        });
+
     });
     </script>
 @endpush
