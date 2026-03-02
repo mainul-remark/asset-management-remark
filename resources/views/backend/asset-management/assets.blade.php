@@ -140,7 +140,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
 
-                <form id="assetForm" enctype="multipart/form-data">
+                <form id="assetForm" enctype="multipart/form-data" style="display:flex;flex-direction:column;flex:1;overflow:hidden;min-height:0;">
                     @csrf
                     <input type="hidden" id="asset_id" value="">
 
@@ -593,7 +593,7 @@
 
         // ── Is Common Asset toggle (disables store select) ─────────────────────
         $('#is_common_asset').on('change', function () {
-            toggleCommonAsset();
+            // toggleCommonAsset();
         });
 
         function toggleCommonAsset() {
@@ -676,7 +676,7 @@
                 $('#has_self').prop('checked',       parseInt(data.has_self, 10) === 1);
                 $('#is_common_asset').prop('checked',parseInt(data.is_common_asset, 10) === 1);
 
-                toggleCommonAsset();
+                // toggleCommonAsset();
                 if (!$('#is_common_asset').is(':checked') && data.store_id) {
                     $('#store_id').val(data.store_id).trigger('change');
                 }

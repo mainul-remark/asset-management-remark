@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Backend\Asset\AssetRequest;
 use App\Models\Asset;
 use App\Models\AssetType;
+use App\Models\AssignAssetToStore;
 use App\Models\Store;
+use Illuminate\Support\Facades\DB;
 
 class AssetController extends Controller
 {
@@ -26,7 +28,13 @@ class AssetController extends Controller
 
     public function store(AssetRequest $request)
     {
-        $asset = Asset::updateOrCreateAsset($request);
+        $asset = DB::transaction(function () use ($request) {
+            $asset = Asset::updateOrCreateAsset($request);
+            if ($asset->store_id) {
+                AssignAssetToStore::assignAssetsToStoreLog($asset);
+            }
+            return $asset;
+        });
 
         return response()->json([
             'message' => 'Asset created successfully.',
@@ -49,7 +57,15 @@ class AssetController extends Controller
     public function update(AssetRequest $request, string $id)
     {
         $asset = Asset::findOrFail($id);
-        $asset = Asset::updateOrCreateAsset($request, $asset);
+        $oldStoreId = $asset->store_id;
+
+        $asset = DB::transaction(function () use ($request, $asset, $oldStoreId) {
+            $asset = Asset::updateOrCreateAsset($request, $asset);
+            if ($asset->store_id && $asset->store_id != $oldStoreId) {
+                AssignAssetToStore::assignAssetsToStoreLog($asset);
+            }
+            return $asset;
+        });
 
         return response()->json([
             'message' => 'Asset updated successfully.',
