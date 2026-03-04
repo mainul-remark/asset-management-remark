@@ -27,6 +27,7 @@ class AssignAssetToStoreFactory extends Factory
             'asset_charge' => $this->faker->randomNumber(1),
             'asset_id' => \App\Models\Asset::factory(),
             'store_id' => \App\Models\Store::factory(),
+            'assigned_by_user_id' => \App\Models\User::factory(),
         ];
     }
 }

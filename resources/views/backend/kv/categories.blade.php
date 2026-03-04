@@ -53,7 +53,7 @@
                                         <th>#</th>
                                         <th>Name</th>
                                         <th>Code</th>
-                                        <th>Subcategories</th>
+{{--                                        <th>Subcategories</th>--}}
                                         <th>Description</th>
                                         <th>Status</th>
                                         <th>Action</th>
@@ -73,15 +73,15 @@
                                             @endif
                                         </td>
                                         <td><span class="badge bg-primary-transparent">{{ $category->code }}</span></td>
-                                        <td>
-                                            @if($category->children_count > 0)
-                                                <a href="{{ route('categories.index', ['category' => $category->id]) }}" class="badge bg-info-transparent">
-                                                    {{ $category->children_count }} {{ Str::plural('subcategory', $category->children_count) }}
-                                                </a>
-                                            @else
-                                                <span class="text-muted">—</span>
-                                            @endif
-                                        </td>
+{{--                                        <td>--}}
+{{--                                            @if($category->children_count > 0)--}}
+{{--                                                <a href="{{ route('categories.index', ['category' => $category->id]) }}" class="badge bg-info-transparent">--}}
+{{--                                                    {{ $category->children_count }} {{ Str::plural('subcategory', $category->children_count) }}--}}
+{{--                                                </a>--}}
+{{--                                            @else--}}
+{{--                                                <span class="text-muted">—</span>--}}
+{{--                                            @endif--}}
+{{--                                        </td>--}}
                                         <td class="text-wrap">{{ \Str::limit($category->description, 50) }}</td>
                                         <td>
                                             @if($category->status == 1)
@@ -121,16 +121,16 @@
                 <form id="categoryForm">
                     <div class="modal-body">
                         <input type="hidden" id="category_id" value="">
-                        <div class="mb-3">
-                            <label for="category_id_parent" class="form-label">Parent Category</label>
-                            <select class="form-select" id="category_id_parent" name="category_id">
-                                <option value="">— None (Root Category) —</option>
-                                @foreach($allCategories as $cat)
-                                    <option value="{{ $cat->id }}">{{ $cat->name }}</option>
-                                @endforeach
-                            </select>
-                            <div class="invalid-feedback" id="error-category_id"></div>
-                        </div>
+{{--                        <div class="mb-3">--}}
+{{--                            <label for="category_id_parent" class="form-label">Parent Category</label>--}}
+{{--                            <select class="form-select" id="category_id_parent" name="category_id">--}}
+{{--                                <option value="">— None (Root Category) —</option>--}}
+{{--                                @foreach($allCategories as $cat)--}}
+{{--                                    <option value="{{ $cat->id }}">{{ $cat->name }}</option>--}}
+{{--                                @endforeach--}}
+{{--                            </select>--}}
+{{--                            <div class="invalid-feedback" id="error-category_id"></div>--}}
+{{--                        </div>--}}
                         <div class="mb-3">
                             <label for="name" class="form-label">Category Name <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" id="name" name="name" placeholder="Enter category name">
@@ -184,7 +184,7 @@
                     <table class="table table-bordered">
                         <tr><th width="30%">Name</th><td id="view-name"></td></tr>
                         <tr><th>Code</th><td id="view-code"></td></tr>
-                        <tr><th>Parent</th><td id="view-parent"></td></tr>
+{{--                        <tr><th>Parent</th><td id="view-parent"></td></tr>--}}
                         <tr><th>Description</th><td id="view-description"></td></tr>
                         <tr><th>Status</th><td id="view-status"></td></tr>
                         <tr><th>Created</th><td id="view-created"></td></tr>
@@ -274,9 +274,9 @@
             resetForm();
             $('#categoryModalLabel').text('Add {{ $parent ? "Subcategory" : "Category" }}');
             $('#btn-save .btn-text').text('Save');
-            if (currentParentId) {
-                $('#category_id_parent').val(currentParentId);
-            }
+            // if (currentParentId) {
+            //     $('#category_id_parent').val(currentParentId);
+            // }
             categoryModal.show();
         });
 
@@ -288,10 +288,10 @@
             $('#btn-save .btn-text').text('Update');
             $.get(base_url + 'categories/' + id + '/edit', function (data) {
                 $('#category_id').val(data.id);
-                $('#category_id_parent').val(data.category_id || '');
+                // $('#category_id_parent').val(data.category_id || '');
                 // Hide self from parent dropdown
-                $('#category_id_parent option').show();
-                $('#category_id_parent option[value="' + data.id + '"]').hide();
+                // $('#category_id_parent option').show();
+                // $('#category_id_parent option[value="' + data.id + '"]').hide();
                 $('#name').val(data.name);
                 $('#code').val(data.code);
                 $('#description').val(data.description);
@@ -307,7 +307,7 @@
             $.get(base_url + 'categories/' + id, function (data) {
                 $('#view-name').text(data.name);
                 $('#view-code').text(data.code);
-                $('#view-parent').text(data.parent ? data.parent.name : '— Root —');
+                // $('#view-parent').text(data.parent ? data.parent.name : '— Root —');
                 $('#view-description').text(data.description || '—');
                 $('#view-status').html(data.status == 1
                     ? '<span class="badge bg-success-transparent">Published</span>'
@@ -397,8 +397,8 @@
         function resetForm() {
             $('#categoryForm')[0].reset();
             $('#category_id').val('');
-            $('#category_id_parent').val('');
-            $('#category_id_parent option').show();
+            // $('#category_id_parent').val('');
+            // $('#category_id_parent option').show();
             $('#status-switch').prop('checked', true).trigger('change');
             clearErrors();
         }

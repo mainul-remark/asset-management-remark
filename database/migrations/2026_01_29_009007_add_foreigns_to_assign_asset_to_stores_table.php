@@ -24,6 +24,13 @@ return new class extends Migration {
                 ->on('stores')
                 ->onUpdate('CASCADE')
                 ->onDelete('CASCADE');
+
+            $table
+                ->foreign('assigned_by_user_id')
+                ->references('id')
+                ->on('users')
+                ->onUpdate('CASCADE')
+                ->onDelete('CASCADE');
         });
     }
 
@@ -35,6 +42,7 @@ return new class extends Migration {
         Schema::table('assign_asset_to_stores', function (Blueprint $table) {
             $table->dropForeign(['asset_id']);
             $table->dropForeign(['store_id']);
+            $table->dropForeign(['assigned_by_user_id']);
         });
     }
 };

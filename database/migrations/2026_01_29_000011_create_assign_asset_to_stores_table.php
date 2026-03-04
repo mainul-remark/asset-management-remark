@@ -14,8 +14,12 @@ return new class extends Migration {
             $table->bigIncrements('id');
             $table->unsignedBigInteger('asset_id');
             $table->unsignedBigInteger('store_id');
+            $table->unsignedBigInteger('assigned_by_user_id');
             $table->string('assign_date');
-            $table->decimal('asset_charge', 10, 2)->default(0);
+            $table
+                ->decimal('asset_charge', 10, 2)
+                ->default(0)
+                ->nullable();
 
             $table->timestamps();
             $table->softDeletes();

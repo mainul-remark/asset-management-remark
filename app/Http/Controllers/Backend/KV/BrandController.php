@@ -19,10 +19,19 @@ class BrandController extends Controller
     public function store(BrandRequest $request)
     {
         try {
-            DB::transaction(function () use ($request) {
-                Brand::updateOrCreateBrand($request);
+            $brand = DB::transaction(function () use ($request) {
+                return Brand::updateOrCreateBrand($request);
             });
-            return response()->json(['success' => true, 'message' => 'Brand created successfully.']);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Brand created successfully.',
+                'data' => [
+                    'id' => $brand->id,
+                    'name' => $brand->name,
+                    'code' => $brand->code,
+                ],
+            ]);
         } catch (\Exception $exception) {
             return response()->json(['success' => false, 'message' => $exception->getMessage()]);
         }

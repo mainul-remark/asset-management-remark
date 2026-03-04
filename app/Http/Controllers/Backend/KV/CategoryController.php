@@ -47,10 +47,20 @@ class CategoryController extends Controller
         ], $this->validationMessages());
 
         try {
-            DB::transaction(function () use ($request) {
-                Category::updateOrCreateCategory($request);
+            $category = DB::transaction(function () use ($request) {
+                return Category::updateOrCreateCategory($request);
             });
-            return response()->json(['success' => true, 'message' => 'Category created successfully.']);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Category created successfully.',
+                'data' => [
+                    'id' => $category->id,
+                    'name' => $category->name,
+                    'code' => $category->code,
+                    'category_id' => $category->category_id,
+                ],
+            ]);
         } catch (\Exception $exception) {
             return response()->json(['success' => false, 'message' => $exception->getMessage()]);
         }
