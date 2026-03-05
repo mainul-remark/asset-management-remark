@@ -77,7 +77,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div id="createAppendCodehere">
-                    <form id="brandForm" enctype="multipart/form-data">
+                    <form id="brandForm" enctype="multipart/form-data" style="display:flex;flex-direction:column;flex:1;overflow:hidden;min-height:0;">
                         <div class="modal-body">
                             <input type="hidden" id="brand_id" value="">
                             <div class="mb-3">

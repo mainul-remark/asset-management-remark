@@ -18,6 +18,8 @@ Route::get('/', function () {
     return view('welcome');
 })->name('/');
 
+
+
 Route::middleware([
     'auth:sanctum',
     config('jetstream.auth_session'),
@@ -40,6 +42,8 @@ Route::middleware([
         'assets'            => AssetController::class,
         'key-visuals'       => KeyVisualController::class,
     ]);
+
+    Route::get('key-visualsx', [KeyVisualController::class, 'old']);
     Route::post('site-settings/theme', [SiteSettingsController::class, 'saveTheme'])->name('site-settings.theme');
 
     Route::prefix('admin')->middleware('resource.maker','auth.acl')->group(function () {

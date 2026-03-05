@@ -118,7 +118,7 @@
                     <h6 class="modal-title" id="categoryModalLabel">Add Category</h6>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form id="categoryForm">
+                <form id="categoryForm" style="display:flex;flex-direction:column;flex:1;overflow:hidden;min-height:0;">
                     <div class="modal-body">
                         <input type="hidden" id="category_id" value="">
 {{--                        <div class="mb-3">--}}

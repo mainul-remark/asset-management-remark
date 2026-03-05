@@ -106,7 +106,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
 
-            <form id="keyVisualForm" enctype="multipart/form-data">
+            <form id="keyVisualForm" enctype="multipart/form-data" style="display:flex;flex-direction:column;flex:1;overflow:hidden;min-height:0;">
                 @csrf
                 <input type="hidden" id="key_visual_id" name="_kv_id" value="">
 
@@ -240,7 +240,7 @@
                             <div class="input-group">
                                 <span class="input-group-text"><i class="ri-arrow-left-right-line"></i></span>
                                 <input type="number" min="0" class="form-control" id="minimum_res_width"
-                                    name="minimum_res_width" placeholder="e.g. 1920">
+                                    name="minimum_res_width" readonly value="1920" placeholder="e.g. 1920">
                             </div>
                             <div class="invalid-feedback" id="error-minimum_res_width"></div>
                         </div>
@@ -251,7 +251,7 @@
                             <div class="input-group">
                                 <span class="input-group-text"><i class="ri-arrow-up-down-line"></i></span>
                                 <input type="number" min="0" class="form-control" id="minimum_res_height"
-                                    name="minimum_res_height" placeholder="e.g. 1080">
+                                    name="minimum_res_height" readonly value="1080" placeholder="e.g. 1080">
                             </div>
                             <div class="invalid-feedback" id="error-minimum_res_height"></div>
                         </div>
@@ -397,7 +397,7 @@
                 </h6>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form id="kvBrandForm" enctype="multipart/form-data">
+            <form id="kvBrandForm" enctype="multipart/form-data" style="display:flex;flex-direction:column;flex:1;overflow:hidden;min-height:0;">
                 @csrf
                 <div class="modal-body">
                     <div class="mb-3">
@@ -457,7 +457,7 @@
                 </h6>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form id="kvCategoryForm">
+            <form id="kvCategoryForm" style="display:flex;flex-direction:column;flex:1;overflow:hidden;min-height:0;">
                 @csrf
                 <div class="modal-body">
                     <div class="mb-3">

@@ -108,7 +108,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
 
-                <form id="assetTypeForm" enctype="multipart/form-data">
+                <form id="assetTypeForm" enctype="multipart/form-data" style="display:flex;flex-direction:column;flex:1;overflow:hidden;min-height:0;">
                     @csrf
                     <input type="hidden" id="asset_type_id" value="">
 

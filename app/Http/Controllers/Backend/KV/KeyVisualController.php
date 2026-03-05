@@ -16,8 +16,17 @@ class KeyVisualController extends Controller
 {
     public function index()
     {
+        return view('backend.kv.kv-theme', [
+            'keyVisuals' => KeyVisual::with('assetType:id,name', 'brands:id,name,code', 'categories:id,name,code')->latest()->get(),
+            'assetTypes' => AssetType::orderBy('name')->get(['id', 'name']),
+            'brands'     => Brand::orderBy('name')->get(['id', 'name', 'code']),
+            'categories' => Category::orderBy('name')->get(['id', 'name', 'code']),
+        ]);
+    }
+    public function old()
+    {
         return view('backend.kv.kv', [
-            'keyVisuals' => KeyVisual::with('assetType:id,name')->latest()->get(),
+            'keyVisuals' => KeyVisual::with('assetType:id,name', 'brands:id,name,code', 'categories:id,name,code')->latest()->get(),
             'assetTypes' => AssetType::orderBy('name')->get(['id', 'name']),
             'brands'     => Brand::orderBy('name')->get(['id', 'name', 'code']),
             'categories' => Category::orderBy('name')->get(['id', 'name', 'code']),

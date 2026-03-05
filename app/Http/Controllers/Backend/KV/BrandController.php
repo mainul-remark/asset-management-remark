@@ -43,11 +43,13 @@ class BrandController extends Controller
         return response()->json($brand);
     }
 
-    public function edit(Brand $brand)
+    public function edit(Request $request, Brand $brand)
     {
+        if ($request->boolean('json') || $request->expectsJson() || $request->wantsJson()) {
+            return response()->json($brand);
+        }
+
         return view('backend.kv.partials.edit-brand', ['brand' => $brand, 'isShow' => true])->render();
-        $brand = Brand::findOrFail($id);
-        return response()->json($brand);
     }
 
     public function update(Request $request, string $id)
