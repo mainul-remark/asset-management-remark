@@ -62,22 +62,22 @@
                             </div>
                         </div>
 
-                        <div class="col-md-6">
+                        <div class="col-md-6 d-none" data-meta-field="kv_size">
                             <label for="kv_size" class="form-label">KV Size (KB) <span class="text-danger">*</span></label>
                             <input type="number" class="form-control" id="kv_size" name="kv_size" min="0" step="1" readonly placeholder="Auto calculated">
                             <div class="invalid-feedback" id="error-kv_size"></div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-6 d-none" data-meta-field="aspect_ratio">
                             <label for="aspect_ratio" class="form-label">Aspect Ratio</label>
                             <input type="number" class="form-control" id="aspect_ratio" name="aspect_ratio" step="0.0001" min="0" readonly placeholder="Auto calculated">
                             <div class="invalid-feedback" id="error-aspect_ratio"></div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-6 d-none" data-meta-field="file_type">
                             <label for="file_type" class="form-label">File Type</label>
                             <input type="text" class="form-control" id="file_type" name="file_type" readonly placeholder="e.g. image/png">
                             <div class="invalid-feedback" id="error-file_type"></div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-6 d-none" data-meta-field="file_duration">
                             <label for="file_duration" class="form-label">File Duration</label>
                             <input type="text" class="form-control" id="file_duration" name="file_duration" readonly placeholder="Auto for video file">
                             <div class="invalid-feedback" id="error-file_duration"></div>

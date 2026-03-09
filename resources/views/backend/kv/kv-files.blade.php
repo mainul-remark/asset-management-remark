@@ -165,6 +165,40 @@ $(function () {
         labelIdle: '<i class="ri-upload-cloud-2-line" style="font-size:1.45rem;color:var(--text-muted)"></i><br><span class="text-muted fs-13">Drag & drop image/video or <span class="filepond--label-action">browse</span></span>',
     });
 
+    const metaFields = {
+        kv_size: {
+            $input: $('#kv_size'),
+            $wrapper: $('[data-meta-field="kv_size"]'),
+            hasValue(value) {
+                return value !== null && value !== undefined && value !== '' && !Number.isNaN(Number(value));
+            },
+        },
+        aspect_ratio: {
+            $input: $('#aspect_ratio'),
+            $wrapper: $('[data-meta-field="aspect_ratio"]'),
+            hasValue(value) {
+                return Number(value) > 0;
+            },
+        },
+        file_type: {
+            $input: $('#file_type'),
+            $wrapper: $('[data-meta-field="file_type"]'),
+            hasValue(value) {
+                return String(value ?? '').trim() !== '';
+            },
+        },
+        file_duration: {
+            $input: $('#file_duration'),
+            $wrapper: $('[data-meta-field="file_duration"]'),
+            hasValue(value) {
+                return String(value ?? '').trim() !== '';
+            },
+        },
+    };
+
+    let fallbackMeta = emptyMeta();
+    let metaReadToken = 0;
+
     function showToast(message, type = 'success') {
         const $toast = $(`
             <div class="toast align-items-center text-bg-${type} border-0 show position-fixed top-0 end-0 m-3" style="z-index:99999" role="alert">
@@ -175,6 +209,40 @@ $(function () {
             </div>
         `).appendTo('body');
         setTimeout(() => $toast.remove(), 3500);
+    }
+
+    function emptyMeta() {
+        return {
+            kv_size: '',
+            aspect_ratio: '',
+            file_type: '',
+            file_duration: '',
+        };
+    }
+
+    function normalizeMeta(meta = {}) {
+        return {
+            kv_size: meta.kv_size ?? '',
+            aspect_ratio: meta.aspect_ratio ?? '',
+            file_type: meta.file_type ?? '',
+            file_duration: meta.file_duration ?? '',
+        };
+    }
+
+    function refreshMetaVisibility() {
+        Object.values(metaFields).forEach(function (field) {
+            field.$wrapper.toggleClass('d-none', !field.hasValue(field.$input.val()));
+        });
+    }
+
+    function setMetaValues(meta = {}) {
+        const values = normalizeMeta(meta);
+
+        Object.entries(metaFields).forEach(function ([key, field]) {
+            field.$input.val(values[key]);
+        });
+
+        refreshMetaVisibility();
     }
 
     function formatDuration(seconds) {
@@ -203,10 +271,9 @@ $(function () {
         $('#key_visual_id').val('');
         $('#key_visual_size_id').val('');
         $('#status').val('1');
-        $('#kv_size').val('');
-        $('#aspect_ratio').val('');
-        $('#file_type').val('');
-        $('#file_duration').val('');
+        metaReadToken += 1;
+        fallbackMeta = emptyMeta();
+        setMetaValues(fallbackMeta);
         $('#existing-file-link').attr('href', '#');
         $('#existing-file-wrap').addClass('d-none');
         kvFilePond.removeFiles();
@@ -216,9 +283,14 @@ $(function () {
     function applyFileMeta(file) {
         if (!file) return;
 
-        $('#kv_size').val(Math.round(((file.size || 0) / 1024)));
-        $('#file_type').val(file.type || '');
-        $('#file_duration').val('');
+        const currentMetaToken = ++metaReadToken;
+
+        setMetaValues({
+            kv_size: Math.round(((file.size || 0) / 1024)),
+            aspect_ratio: '',
+            file_type: file.type || '',
+            file_duration: '',
+        });
 
         const objectUrl = URL.createObjectURL(file);
 
@@ -227,32 +299,57 @@ $(function () {
             video.preload = 'metadata';
             video.src = objectUrl;
             video.onloadedmetadata = function () {
+                if (currentMetaToken !== metaReadToken) {
+                    URL.revokeObjectURL(objectUrl);
+                    return;
+                }
+
                 if (video.videoWidth > 0 && video.videoHeight > 0) {
                     $('#aspect_ratio').val((video.videoWidth / video.videoHeight).toFixed(4));
                 } else {
                     $('#aspect_ratio').val('');
                 }
                 $('#file_duration').val(formatDuration(video.duration));
+                refreshMetaVisibility();
                 URL.revokeObjectURL(objectUrl);
             };
             video.onerror = function () {
+                if (currentMetaToken !== metaReadToken) {
+                    URL.revokeObjectURL(objectUrl);
+                    return;
+                }
+
+                refreshMetaVisibility();
                 URL.revokeObjectURL(objectUrl);
             };
         } else if ((file.type || '').startsWith('image/')) {
             const image = new Image();
             image.onload = function () {
+                if (currentMetaToken !== metaReadToken) {
+                    URL.revokeObjectURL(objectUrl);
+                    return;
+                }
+
                 if (image.width > 0 && image.height > 0) {
                     $('#aspect_ratio').val((image.width / image.height).toFixed(4));
                 } else {
                     $('#aspect_ratio').val('');
                 }
+                refreshMetaVisibility();
                 URL.revokeObjectURL(objectUrl);
             };
             image.onerror = function () {
+                if (currentMetaToken !== metaReadToken) {
+                    URL.revokeObjectURL(objectUrl);
+                    return;
+                }
+
+                refreshMetaVisibility();
                 URL.revokeObjectURL(objectUrl);
             };
             image.src = objectUrl;
         } else {
+            refreshMetaVisibility();
             URL.revokeObjectURL(objectUrl);
         }
     }
@@ -265,7 +362,13 @@ $(function () {
     });
 
     kvFilePond.on('removefile', function () {
+        metaReadToken += 1;
         $('#error-kv_file_upload').text('');
+        setMetaValues(fallbackMeta);
+
+        if ($('#kv_file_id').val() && $('#existing-file-link').attr('href') !== '#') {
+            $('#existing-file-wrap').removeClass('d-none');
+        }
     });
 
     function formatDate(dateString) {
@@ -297,10 +400,13 @@ $(function () {
                 $('#name').val(data.name || '');
                 $('#key_visual_id').val(data.key_visual_id || '');
                 $('#key_visual_size_id').val(data.key_visual_size_id || '');
-                $('#kv_size').val(data.kv_size ?? 0);
-                $('#aspect_ratio').val(data.aspect_ratio ?? '');
-                $('#file_type').val(data.file_type || '');
-                $('#file_duration').val(data.file_duration || '');
+                fallbackMeta = normalizeMeta({
+                    kv_size: data.kv_size ?? '',
+                    aspect_ratio: data.aspect_ratio ?? '',
+                    file_type: data.file_type || '',
+                    file_duration: data.file_duration || '',
+                });
+                setMetaValues(fallbackMeta);
                 $('#status').val(Number(data.status) === 1 ? '1' : '0');
 
                 if (data.kv_file) {

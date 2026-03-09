@@ -123,6 +123,8 @@ class KeyVisualFilesController extends Controller
             $file = $request->file('kv_file_upload');
             $directory = 'backend/assets/uploaded-files/key-visual-files';
             $absoluteDirectory = public_path($directory);
+            $fileSizeInKb = (int) round(((int) $file->getSize()) / 1024);
+            $fileMimeType = (string) ($file->getClientMimeType() ?? $validated['file_type'] ?? '');
 
             if (!File::isDirectory($absoluteDirectory)) {
                 File::makeDirectory($absoluteDirectory, 0777, true, true);
@@ -138,8 +140,8 @@ class KeyVisualFilesController extends Controller
             $file->move($absoluteDirectory, $fileName);
 
             $validated['kv_file'] = $directory . '/' . $fileName;
-            $validated['kv_size'] = (int) round(((int) $file->getSize()) / 1024);
-            $validated['file_type'] = (string) ($file->getClientMimeType() ?? $validated['file_type'] ?? '');
+            $validated['kv_size'] = $fileSizeInKb;
+            $validated['file_type'] = $fileMimeType;
         } elseif ($kvFile) {
             $validated['kv_file'] = $kvFile->kv_file;
         }

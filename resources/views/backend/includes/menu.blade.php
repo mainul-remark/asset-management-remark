@@ -113,6 +113,9 @@
                             <a href="{{ route('categories.index') }}" class="side-menu__item">Categories</a>
                         </li>
                         <li class="slide">
+                            <a href="{{ route('key-visual-sizes.index') }}" class="side-menu__item">Key Visual Sizes</a>
+                        </li>
+                        <li class="slide">
                             <a href="{{ route('key-visuals.index') }}" class="side-menu__item">Key Visuals</a>
                         </li>
                     </ul>
