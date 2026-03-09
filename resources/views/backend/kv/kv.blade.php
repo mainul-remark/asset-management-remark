@@ -65,6 +65,10 @@
                                     </td>
                                     <td>
                                         <div class="btn-list">
+                                            <button class="btn btn-icon btn-sm btn-info-light btn-wave size-btn-view"
+                                                data-id="{{ $keyVisual->id }}" title="Size View">
+                                                <i class="ri-font-size"></i>
+                                            </button>
                                             <button class="btn btn-icon btn-sm btn-info-light btn-wave btn-view"
                                                 data-id="{{ $keyVisual->id }}" title="View">
                                                 <i class="ri-eye-line"></i>
@@ -495,6 +499,36 @@
                     </button>
                 </div>
             </form>
+        </div>
+    </div>
+</div>
+
+{{-- ═══════════════════════════════════════════════════════
+     SHOW KV SIZES MODAL (child)
+══════════════════════════════════════════════════════════ --}}
+<div class="modal fade" id="KvSizesModal" >
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h6 class="modal-title fw-semibold" id="categoryModalLabel">
+                    <i class="ri-list-check-3 me-2 text-primary"></i>Show KV Available Sizes
+                </h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th></th>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+            </div>
         </div>
     </div>
 </div>
@@ -1093,6 +1127,12 @@ $(function () {
                 showToast('Failed to load key visual data.', 'danger');
             });
     });
+
+    // ── EVENT: KV SIZES VIEW BUTTON ────────────────────────────────
+    $(document).on('click', '.size-btn-view', function () {
+        const id = $(this).data('id');
+        $('#KvSizesModal').modal('show');
+    })
 
     // ── EVENT: VIEW BUTTON ────────────────────────────────
     $(document).on('click', '.btn-view', function () {

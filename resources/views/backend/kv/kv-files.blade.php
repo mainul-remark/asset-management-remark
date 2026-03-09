@@ -1,0 +1,451 @@
+@extends('backend.master')
+
+@section('title', 'Key Visual Files')
+
+@section('body')
+@php
+    $hasDependencies = isset($keyVisuals, $keyVisualSizes) && $keyVisuals->isNotEmpty() && $keyVisualSizes->isNotEmpty();
+@endphp
+<div class="container m-t-50">
+    <div class="row">
+        <div class="col-xl-12">
+            <div class="card custom-card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="card-title mb-1">Key Visual Files</div>
+                        <p class="text-muted fs-12 mb-0">Manage key visual files.</p>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-primary btn-wave" id="btn-add-file" @disabled(!$hasDependencies) title="{{ $hasDependencies ? 'Add key visual file' : 'Create key visual and size first' }}">
+                        <i class="ri-add-line me-1"></i> Add File
+                    </button>
+                </div>
+                <div class="card-body">
+                    @unless($hasDependencies)
+                        <div class="alert alert-warning">
+                            You need at least one key visual and one key visual size before creating a key visual file.
+                        </div>
+                    @endunless
+                    <div class="table-responsive">
+                        <table id="data-table" class="table table-bordered text-nowrap w-100 align-middle">
+                            <thead>
+                                <tr>
+                                    <th width="45">#</th>
+                                    <th>Name</th>
+                                    <th>Key Visual</th>
+                                    <th>Size</th>
+                                    <th>File</th>
+                                    <th>KV Size</th>
+                                    <th>Aspect Ratio</th>
+                                    <th>Type</th>
+                                    <th>Duration</th>
+                                    <th>Status</th>
+                                    <th>Created</th>
+                                    <th width="110">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($kvFiles as $kvFile)
+                                    <tr>
+                                        <td>{{ $loop->iteration }}</td>
+                                        <td class="fw-semibold">{{ $kvFile->name }}</td>
+                                        <td>
+                                            @if($kvFile->keyVisual)
+                                                {{ $kvFile->keyVisual->name }}
+                                                @if($kvFile->keyVisual->unique_code)
+                                                    <span class="badge bg-light text-dark ms-1">{{ $kvFile->keyVisual->unique_code }}</span>
+                                                @endif
+                                            @else
+                                                <span class="text-muted">N/A</span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if($kvFile->keyVisualSize)
+                                                {{ $kvFile->keyVisualSize->name }}
+                                                <span class="text-muted d-block fs-11">
+                                                    {{ rtrim(rtrim((string) $kvFile->keyVisualSize->width, '0'), '.') }}
+                                                    x
+                                                    {{ rtrim(rtrim((string) $kvFile->keyVisualSize->height, '0'), '.') }}
+                                                    {{ strtoupper($kvFile->keyVisualSize->unit_name) }}
+                                                </span>
+                                            @else
+                                                <span class="text-muted">N/A</span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if($kvFile->kv_file)
+                                                <a href="{{ asset($kvFile->kv_file) }}" target="_blank" rel="noopener">Open file</a>
+                                            @else
+                                                <span class="text-muted">N/A</span>
+                                            @endif
+                                        </td>
+                                        <td>{{ number_format((int) $kvFile->kv_size) }} KB</td>
+                                        <td>{{ $kvFile->aspect_ratio !== null ? number_format((float) $kvFile->aspect_ratio, 4) : 'N/A' }}</td>
+                                        <td>{{ $kvFile->file_type ?: 'N/A' }}</td>
+                                        <td>{{ $kvFile->file_duration ?: 'N/A' }}</td>
+                                        <td>
+                                            @if((int) $kvFile->status === 1)
+                                                <span class="badge bg-outline-success">Active</span>
+                                            @else
+                                                <span class="badge bg-outline-danger">Inactive</span>
+                                            @endif
+                                        </td>
+                                        <td>{{ optional($kvFile->created_at)->format('d M Y') }}</td>
+                                        <td>
+                                            <div class="btn-list">
+                                                <button class="btn btn-icon btn-sm btn-info-light btn-wave btn-view" data-id="{{ $kvFile->id }}" title="View">
+                                                    <i class="ri-eye-line"></i>
+                                                </button>
+                                                <button class="btn btn-icon btn-sm btn-primary-light btn-wave btn-edit" data-id="{{ $kvFile->id }}" title="Edit">
+                                                    <i class="ri-edit-box-line"></i>
+                                                </button>
+                                                <button class="btn btn-icon btn-sm btn-danger-light btn-wave btn-delete" data-id="{{ $kvFile->id }}" data-name="{{ $kvFile->name }}" title="Delete">
+                                                    <i class="ri-delete-bin-line"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
+
+@section('modal')
+@include('backend.kv.Modals.keyVisualFiles')
+@endsection
+
+@push('styles')
+<link rel="stylesheet" href="{{ asset('backend/build/assets/libs/filepond/filepond.min.css') }}">
+<link rel="stylesheet" href="{{ asset('backend/build/assets/libs/filepond-plugin-image-preview/filepond-plugin-image-preview.min.css') }}">
+<style>
+    .btn-list { display: flex; gap: 4px; }
+</style>
+@endpush
+
+@push('scripts')
+@include('backend.includes.plugins.datatable')
+<script src="{{ asset('backend/build/assets/libs/filepond/filepond.min.js') }}"></script>
+<script src="{{ asset('backend/build/assets/libs/filepond-plugin-image-preview/filepond-plugin-image-preview.min.js') }}"></script>
+<script src="{{ asset('backend/build/assets/libs/filepond-plugin-image-exif-orientation/filepond-plugin-image-exif-orientation.min.js') }}"></script>
+<script src="{{ asset('backend/build/assets/libs/filepond-plugin-file-validate-type/filepond-plugin-file-validate-type.min.js') }}"></script>
+<script src="{{ asset('backend/build/assets/libs/filepond-plugin-file-validate-size/filepond-plugin-file-validate-size.min.js') }}"></script>
+<script>
+$(function () {
+    const fileModal = new bootstrap.Modal(document.getElementById('fileModal'));
+    const viewModal = new bootstrap.Modal(document.getElementById('viewModal'));
+    const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+
+    const BASE = base_url;
+    const apiUrl = (id = '') => base_url + 'key-visual-files' + (id ? '/' + id : '');
+
+    FilePond.registerPlugin(
+        FilePondPluginImagePreview,
+        FilePondPluginImageExifOrientation,
+        FilePondPluginFileValidateType,
+        FilePondPluginFileValidateSize
+    );
+
+    const kvFilePond = FilePond.create(document.querySelector('.filepond-kv-file'), {
+        allowMultiple: false,
+        instantUpload: false,
+        allowProcess: false,
+        allowRevert: false,
+        maxFiles: 1,
+        credits: false,
+        acceptedFileTypes: [
+            'image/jpeg', 'image/png', 'image/jpg', 'image/gif', 'image/svg+xml', 'image/webp',
+            'video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/x-matroska', 'video/webm'
+        ],
+        maxFileSize: '50MB',
+        labelIdle: '<i class="ri-upload-cloud-2-line" style="font-size:1.45rem;color:var(--text-muted)"></i><br><span class="text-muted fs-13">Drag & drop image/video or <span class="filepond--label-action">browse</span></span>',
+    });
+
+    function showToast(message, type = 'success') {
+        const $toast = $(`
+            <div class="toast align-items-center text-bg-${type} border-0 show position-fixed top-0 end-0 m-3" style="z-index:99999" role="alert">
+                <div class="d-flex">
+                    <div class="toast-body">${message}</div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                </div>
+            </div>
+        `).appendTo('body');
+        setTimeout(() => $toast.remove(), 3500);
+    }
+
+    function formatDuration(seconds) {
+        if (!Number.isFinite(seconds) || seconds < 0) return '';
+        const total = Math.floor(seconds);
+        const h = Math.floor(total / 3600);
+        const m = Math.floor((total % 3600) / 60);
+        const s = total % 60;
+
+        if (h > 0) {
+            return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+        }
+
+        return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    }
+
+    function clearErrors() {
+        $('#fileForm .is-invalid').removeClass('is-invalid');
+        $('#fileForm .invalid-feedback').text('');
+        $('#kv_file_upload').closest('.filepond--root').removeClass('is-invalid');
+    }
+
+    function resetForm() {
+        $('#fileForm')[0].reset();
+        $('#kv_file_id').val('');
+        $('#key_visual_id').val('');
+        $('#key_visual_size_id').val('');
+        $('#status').val('1');
+        $('#kv_size').val('');
+        $('#aspect_ratio').val('');
+        $('#file_type').val('');
+        $('#file_duration').val('');
+        $('#existing-file-link').attr('href', '#');
+        $('#existing-file-wrap').addClass('d-none');
+        kvFilePond.removeFiles();
+        clearErrors();
+    }
+
+    function applyFileMeta(file) {
+        if (!file) return;
+
+        $('#kv_size').val(Math.round(((file.size || 0) / 1024)));
+        $('#file_type').val(file.type || '');
+        $('#file_duration').val('');
+
+        const objectUrl = URL.createObjectURL(file);
+
+        if ((file.type || '').startsWith('video/')) {
+            const video = document.createElement('video');
+            video.preload = 'metadata';
+            video.src = objectUrl;
+            video.onloadedmetadata = function () {
+                if (video.videoWidth > 0 && video.videoHeight > 0) {
+                    $('#aspect_ratio').val((video.videoWidth / video.videoHeight).toFixed(4));
+                } else {
+                    $('#aspect_ratio').val('');
+                }
+                $('#file_duration').val(formatDuration(video.duration));
+                URL.revokeObjectURL(objectUrl);
+            };
+            video.onerror = function () {
+                URL.revokeObjectURL(objectUrl);
+            };
+        } else if ((file.type || '').startsWith('image/')) {
+            const image = new Image();
+            image.onload = function () {
+                if (image.width > 0 && image.height > 0) {
+                    $('#aspect_ratio').val((image.width / image.height).toFixed(4));
+                } else {
+                    $('#aspect_ratio').val('');
+                }
+                URL.revokeObjectURL(objectUrl);
+            };
+            image.onerror = function () {
+                URL.revokeObjectURL(objectUrl);
+            };
+            image.src = objectUrl;
+        } else {
+            URL.revokeObjectURL(objectUrl);
+        }
+    }
+
+    kvFilePond.on('addfile', function (error, fileItem) {
+        if (error || !fileItem?.file) return;
+        $('#error-kv_file_upload').text('');
+        $('#existing-file-wrap').addClass('d-none');
+        applyFileMeta(fileItem.file);
+    });
+
+    kvFilePond.on('removefile', function () {
+        $('#error-kv_file_upload').text('');
+    });
+
+    function formatDate(dateString) {
+        return dateString
+            ? new Date(dateString).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+            : 'N/A';
+    }
+
+    function formatRatio(value) {
+        if (value === null || value === undefined || value === '') return 'N/A';
+        const number = Number(value);
+        return Number.isNaN(number) ? value : number.toFixed(4);
+    }
+
+    $('#btn-add-file').on('click', function () {
+        resetForm();
+        $('#fileModalLabel').text('Add Key Visual File');
+        $('#btn-save .btn-text').text('Save');
+        fileModal.show();
+    });
+
+    $(document).on('click', '.btn-edit', function () {
+        resetForm();
+        const id = $(this).data('id');
+
+        $.get(apiUrl(id) + '/edit')
+            .done(function (data) {
+                $('#kv_file_id').val(data.id);
+                $('#name').val(data.name || '');
+                $('#key_visual_id').val(data.key_visual_id || '');
+                $('#key_visual_size_id').val(data.key_visual_size_id || '');
+                $('#kv_size').val(data.kv_size ?? 0);
+                $('#aspect_ratio').val(data.aspect_ratio ?? '');
+                $('#file_type').val(data.file_type || '');
+                $('#file_duration').val(data.file_duration || '');
+                $('#status').val(Number(data.status) === 1 ? '1' : '0');
+
+                if (data.kv_file) {
+                    $('#existing-file-link').attr('href', BASE + data.kv_file);
+                    $('#existing-file-wrap').removeClass('d-none');
+                } else {
+                    $('#existing-file-link').attr('href', '#');
+                    $('#existing-file-wrap').addClass('d-none');
+                }
+
+                $('#fileModalLabel').text('Edit Key Visual File');
+                $('#btn-save .btn-text').text('Update');
+                fileModal.show();
+            })
+            .fail(function () {
+                showToast('Failed to load key visual file data.', 'danger');
+            });
+    });
+
+    $(document).on('click', '.btn-view', function () {
+        const id = $(this).data('id');
+
+        $.get(apiUrl(id))
+            .done(function (data) {
+                $('#view-name').text(data.name || 'N/A');
+                $('#view-key-visual').text(
+                    data.key_visual
+                        ? (data.key_visual.name + (data.key_visual.unique_code ? ` (${data.key_visual.unique_code})` : ''))
+                        : 'N/A'
+                );
+                $('#view-key-visual-size').text(
+                    data.key_visual_size
+                        ? `${data.key_visual_size.name} (${data.key_visual_size.width ?? 0} x ${data.key_visual_size.height ?? 0} ${(data.key_visual_size.unit_name || 'px').toUpperCase()})`
+                        : 'N/A'
+                );
+                $('#view-kv-file').html(
+                    data.kv_file
+                        ? `<a href="${BASE + data.kv_file}" target="_blank" rel="noopener"><i class="ri-external-link-line me-1"></i>Open file</a>`
+                        : 'N/A'
+                );
+                $('#view-kv-size').text(`${Number(data.kv_size || 0).toLocaleString()} KB`);
+                $('#view-aspect-ratio').text(formatRatio(data.aspect_ratio));
+                $('#view-file-type').text(data.file_type || 'N/A');
+                $('#view-file-duration').text(data.file_duration || 'N/A');
+                $('#view-status').html(Number(data.status) === 1
+                    ? '<span class="badge bg-success-transparent">Active</span>'
+                    : '<span class="badge bg-danger-transparent">Inactive</span>');
+                $('#view-created').text(formatDate(data.created_at));
+                $('#view-updated').text(formatDate(data.updated_at));
+                viewModal.show();
+            })
+            .fail(function () {
+                showToast('Failed to load details.', 'danger');
+            });
+    });
+
+    $(document).on('click', '.btn-delete', function () {
+        $('#delete-file-id').val($(this).data('id'));
+        $('#delete-file-name').text($(this).data('name'));
+        deleteModal.show();
+    });
+
+    $('#btn-confirm-delete').on('click', function () {
+        const id = $('#delete-file-id').val();
+        const $btn = $(this);
+
+        $btn.prop('disabled', true);
+        $btn.find('.btn-text').text('Deleting...');
+        $btn.find('.spinner-border').removeClass('d-none');
+
+        $.ajax({
+            url: apiUrl(id),
+            type: 'DELETE',
+            success: function (res) {
+                deleteModal.hide();
+                showToast(res.message || 'Deleted successfully.', 'success');
+                setTimeout(() => location.reload(), 700);
+            },
+            error: function (xhr) {
+                showToast(xhr.responseJSON?.message || 'Failed to delete file.', 'danger');
+            },
+            complete: function () {
+                $btn.prop('disabled', false);
+                $btn.find('.btn-text').text('Yes, Delete');
+                $btn.find('.spinner-border').addClass('d-none');
+            }
+        });
+    });
+
+    $('#fileForm').on('submit', function (e) {
+        e.preventDefault();
+        clearErrors();
+
+        const id = $('#kv_file_id').val();
+        const formData = new FormData(this);
+        formData.delete('kv_file_upload');
+
+        const uploadFile = kvFilePond.getFile();
+        if (uploadFile?.file) {
+            formData.append('kv_file_upload', uploadFile.file);
+        }
+
+        if (id) {
+            formData.append('_method', 'PUT');
+        }
+
+        $('#btn-save').prop('disabled', true);
+        $('#btn-spinner').removeClass('d-none');
+
+        $.ajax({
+            url: apiUrl(id || ''),
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (res) {
+                fileModal.hide();
+                showToast(res.message || 'Saved successfully.', 'success');
+                setTimeout(() => location.reload(), 700);
+            },
+            error: function (xhr) {
+                if (xhr.status === 422 && xhr.responseJSON?.errors) {
+                    $.each(xhr.responseJSON.errors, function (field, messages) {
+                        const msg = messages[0];
+                        if (field === 'kv_file_upload') {
+                            $('#kv_file_upload').closest('.filepond--root').addClass('is-invalid');
+                            $('#error-kv_file_upload').text(msg);
+                            return;
+                        }
+
+                        const $field = $('#' + field);
+                        $field.addClass('is-invalid');
+                        $('#error-' + field).text(msg);
+                    });
+                    return;
+                }
+
+                showToast(xhr.responseJSON?.message || 'Something went wrong. Please try again.', 'danger');
+            },
+            complete: function () {
+                $('#btn-save').prop('disabled', false);
+                $('#btn-spinner').addClass('d-none');
+            }
+        });
+    });
+});
+</script>
+@endpush

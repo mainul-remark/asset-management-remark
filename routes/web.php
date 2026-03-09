@@ -13,6 +13,8 @@ use App\Http\Controllers\Backend\Asset\AssetController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\UsersController;
 use App\Http\Controllers\Backend\KV\KeyVisualController;
+use App\Http\Controllers\Backend\KV\KeyVisualSizesController;
+use App\Http\Controllers\Backend\KV\KeyVisualFilesController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -34,19 +36,21 @@ Route::middleware([
     Route::get('key-visuals/next-unique-code', [KeyVisualController::class, 'nextUniqueCode'])->name('key-visuals.next-unique-code');
 
     Route::resources([
-        'brands'            => BrandController::class,
-        'categories'        => CategoryController::class,
-        'stores'            => StoreController::class,
-        'asset-types'       => AssetTypeController::class,
-        'site-settings'     => SiteSettingsController::class,
-        'assets'            => AssetController::class,
-        'key-visuals'       => KeyVisualController::class,
+        'brands'                    => BrandController::class,
+        'categories'                => CategoryController::class,
+        'stores'                    => StoreController::class,
+        'asset-types'               => AssetTypeController::class,
+        'site-settings'             => SiteSettingsController::class,
+        'assets'                    => AssetController::class,
+        'key-visuals'               => KeyVisualController::class,
+        'key-visual-sizes'          => KeyVisualSizesController::class,
+        'key-visual-files'          => KeyVisualFilesController::class,
     ]);
 
     Route::get('key-visualsx', [KeyVisualController::class, 'old']);
     Route::post('site-settings/theme', [SiteSettingsController::class, 'saveTheme'])->name('site-settings.theme');
 
-    Route::prefix('admin')->middleware('resource.maker','auth.acl')->group(function () {
+    Route::prefix('admin')->middleware(['resource.maker','auth.acl'])->group(function () {
         Route::resource('/roles',RoleController::class);
         Route::resource('/users',UsersController::class);
     });

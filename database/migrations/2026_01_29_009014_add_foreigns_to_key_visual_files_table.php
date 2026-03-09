@@ -10,20 +10,18 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::table('key_visual_key_visual_size', function (
-            Blueprint $table
-        ) {
-            $table
-                ->foreign('key_visual_size_id')
-                ->references('id')
-                ->on('key_visual_sizes')
-                ->onUpdate('CASCADE')
-                ->onDelete('CASCADE');
-
+        Schema::table('key_visual_files', function (Blueprint $table) {
             $table
                 ->foreign('key_visual_id')
                 ->references('id')
                 ->on('key_visuals')
+                ->onUpdate('CASCADE')
+                ->onDelete('CASCADE');
+
+            $table
+                ->foreign('key_visual_size_id')
+                ->references('id')
+                ->on('key_visual_sizes')
                 ->onUpdate('CASCADE')
                 ->onDelete('CASCADE');
         });
@@ -34,11 +32,9 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::table('key_visual_key_visual_size', function (
-            Blueprint $table
-        ) {
-            $table->dropForeign(['key_visual_size_id']);
+        Schema::table('key_visual_files', function (Blueprint $table) {
             $table->dropForeign(['key_visual_id']);
+            $table->dropForeign(['key_visual_size_id']);
         });
     }
 };
