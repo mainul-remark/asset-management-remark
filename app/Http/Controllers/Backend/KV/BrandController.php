@@ -45,7 +45,7 @@ class BrandController extends Controller
 
     public function edit(Request $request, Brand $brand)
     {
-        if ($request->boolean('json') || $request->expectsJson() || $request->wantsJson()) {
+        if ($request->boolean('json')) {
             return response()->json($brand);
         }
 

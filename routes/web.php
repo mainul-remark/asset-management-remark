@@ -47,8 +47,15 @@ Route::middleware([
         'key-visual-files'          => KeyVisualFilesController::class,
     ]);
 
-    Route::prefix('stores')->group(function () {
+    Route::prefix('store')->group(function () {
         Route::get('/assign-assets', [AssetController::class, 'assignAssets'])->name('assets.assign-assets');
+        Route::post('/assign-assets', [AssetController::class, 'storeAssignment'])->name('assets.assign-assets.store');
+        Route::get('/assign-assets/{assignAsset}/edit', [AssetController::class, 'editAssignment'])->name('assets.assign-assets.edit');
+        Route::put('/assign-assets/{assignAsset}', [AssetController::class, 'updateAssignment'])->name('assets.assign-assets.update');
+        Route::delete('/assign-assets/{assignAsset}', [AssetController::class, 'destroyAssignment'])->name('assets.assign-assets.destroy');
+    });
+    Route::prefix('kv')->group(function () {
+        Route::get('/assign-kv', [KeyVisualController::class, 'assignKvs'])->name('key-visuals.assign-kvs');
     });
 
     Route::get('key-visualsx', [KeyVisualController::class, 'old']);
@@ -62,6 +69,11 @@ Route::middleware([
     // Cascading dropdowns for stores
     Route::get('get-districts/{division}', [StoreController::class, 'getDistricts'])->name('get.districts');
     Route::get('get-thanas/{district}', [StoreController::class, 'getThanas'])->name('get.thanas');
+    Route::get('get-stores-by-district/{district}', [StoreController::class, 'getStoresByDistrict'])->name('get.stores-by-district');
+
+    // Assign assets filter
+    Route::get('get-assets-by-type/{assetType}', [AssetController::class, 'getAssetsByType'])->name('get.assets-by-type');
+    Route::get('assign-assets/filter', [AssetController::class, 'assignAssetsFilter'])->name('assets.assign-assets.filter');
 
 });
 

@@ -199,6 +199,7 @@
                                         @endif
                                     </td>
                                     <td>
+                                        <a href="{{ route('assets.assign-assets') }}" class="btn-action " data-id="{{ $store->id }}" title="View"><i class="bi bi-check"></i></a>
                                         <button class="btn-action btn-view" data-id="{{ $store->id }}" title="View"><i class="bi bi-eye"></i></button>
                                         <button class="btn-action btn-edit" data-id="{{ $store->id }}" title="Edit"><i class="bi bi-pencil-square"></i></button>
                                         <button class="btn-action text-danger btn-delete" data-id="{{ $store->id }}" data-name="{{ $store->title }}" title="Delete"><i class="bi bi-trash"></i></button>

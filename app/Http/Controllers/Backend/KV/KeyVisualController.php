@@ -11,6 +11,7 @@ use App\Models\KeyVisual;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Mainul\CustomHelperFunctions\Helpers\CustomHelper;
 
 class KeyVisualController extends Controller
 {
@@ -140,5 +141,10 @@ class KeyVisualController extends Controller
             ->map(fn($v) => (int) $v)
             ->values()
             ->toArray();
+    }
+
+    public function assignKvs(Request $request)
+    {
+        return CustomHelper::returnDataForWebOrApi();
     }
 }

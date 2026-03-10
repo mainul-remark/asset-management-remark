@@ -253,11 +253,12 @@
                                             <div class="kv-card-meta"><i class="bi bi-aspect-ratio me-1"></i>{{ $keyVisual->minimum_res_width ?? 0 }} x {{ $keyVisual->minimum_res_height ?? 0 }} px</div>
                                         @endif
                                         <div class="d-flex gap-1 mt-2">
-                                            <button type="button" class="btn btn-sm btn-outline-primary flex-fill btn-edit" data-id="{{ $keyVisual->id }}">
-                                                <i class="ri-edit-box-line me-1"></i>Edit
+                                            <a href="{{ route('key-visual-files.index', ['kv' => $keyVisual->id]) }}" class="btn btn-sm btn-outline-primary"><i class="ri-eye-line me-1"></i></a>
+                                            <button type="button" class="btn btn-sm btn-outline-primary btn-edit" data-id="{{ $keyVisual->id }}">
+                                                <i class="ri-edit-box-line me-1"></i>
                                             </button>
-                                            <button type="button" class="btn btn-sm btn-outline-danger flex-fill btn-delete" data-id="{{ $keyVisual->id }}" data-name="{{ $keyVisual->name }}">
-                                                <i class="ri-delete-bin-line me-1"></i>Delete
+                                            <button type="button" class="btn btn-sm btn-outline-danger btn-delete" data-id="{{ $keyVisual->id }}" data-name="{{ $keyVisual->name }}">
+                                                <i class="ri-delete-bin-line me-1"></i>
                                             </button>
                                         </div>
                                     </div>
@@ -897,9 +898,10 @@
     text-overflow: ellipsis;
 }
 .kv-list-actions {
-    display: inline-flex;
+    /*display: inline-flex;*/
     align-items: center;
     gap: 0.35rem;
+    padding: 3px;
 }
 .kv-list-actions .btn {
     width: 32px;

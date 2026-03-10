@@ -550,7 +550,15 @@
     background: var(--light);
 }
 .kv-code-badge { font-size: 0.75rem; letter-spacing: 0.04em; }
-.btn-list { display: flex; gap: 4px; }
+.btn-list { display: flex; gap: 3px; }
+.btn-list .btn-edit,
+.btn-list .btn-delete,
+.btn-list .btn-view,
+.btn-list .btn-sizes {
+    width: 26px; height: 26px; min-width: 26px;
+    padding: 0; font-size: 0.7rem;
+    display: inline-flex; align-items: center; justify-content: center;
+}
 
 /* ── MODAL ────────────────────────────────────────────────── */
 .kv-modal-header {
