@@ -7,8 +7,11 @@ use App\Http\Requests\Backend\Asset\AssetRequest;
 use App\Models\Asset;
 use App\Models\AssetType;
 use App\Models\AssignAssetToStore;
+use App\Models\Division;
 use App\Models\Store;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Mainul\CustomHelperFunctions\Helpers\CustomHelper;
 
 class AssetController extends Controller
 {
@@ -80,5 +83,14 @@ class AssetController extends Controller
         return response()->json([
             'message' => 'Asset deleted successfully.',
         ]);
+    }
+
+    public function assignAssets(Request $request)
+    {
+        $data = [
+            'divisions' => Division::get(['id', 'name']),
+            'stores'    => Store::latest()->get(['id', 'title']),
+        ];
+        return CustomHelper::returnDataForWebOrApi($data, 'backend.asset-management.asset-assign-to-store');
     }
 }

@@ -3,8 +3,10 @@
 @section('title', 'Key Visual Files')
 
 @section('body')
+    @include('backend.includes.temp.prototype-callouts')
 @php
     $hasDependencies = isset($keyVisuals, $keyVisualSizes) && $keyVisuals->isNotEmpty() && $keyVisualSizes->isNotEmpty();
+    $selectedKeyVisualId = $selectedKeyVisualId ?? null;
 @endphp
 <div class="container m-t-50">
     <div class="row">
@@ -46,6 +48,14 @@
                             <tbody>
                                 @foreach($kvFiles as $kvFile)
                                     <tr>
+                                        @php
+                                            $fileType = strtolower((string) ($kvFile->file_type ?? ''));
+                                            $fileExtension = strtolower(pathinfo((string) $kvFile->kv_file, PATHINFO_EXTENSION));
+                                            $isImagePreview = str_starts_with($fileType, 'image/')
+                                                || in_array($fileExtension, ['jpeg', 'jpg', 'png', 'gif', 'svg', 'webp'], true);
+                                            $isVideoPreview = str_starts_with($fileType, 'video/')
+                                                || in_array($fileExtension, ['mp4', 'mov', 'avi', 'mkv', 'webm'], true);
+                                        @endphp
                                         <td>{{ $loop->iteration }}</td>
                                         <td class="fw-semibold">{{ $kvFile->name }}</td>
                                         <td>
@@ -73,7 +83,30 @@
                                         </td>
                                         <td>
                                             @if($kvFile->kv_file)
-                                                <a href="{{ asset($kvFile->kv_file) }}" target="_blank" rel="noopener">Open file</a>
+                                                <div class="kv-file-preview">
+                                                    @if($isImagePreview)
+                                                        <a href="{{ asset($kvFile->kv_file) }}" target="_blank" rel="noopener" class="kv-file-preview__link" aria-label="Preview {{ $kvFile->name }}">
+                                                            <img
+                                                                src="{{ asset($kvFile->kv_file) }}"
+                                                                alt="{{ $kvFile->name }}"
+                                                                class="kv-file-preview__media"
+                                                                loading="lazy"
+                                                            >
+                                                        </a>
+                                                    @elseif($isVideoPreview)
+                                                        <video
+                                                            class="kv-file-preview__media"
+                                                            controls
+                                                            muted
+                                                            playsinline
+                                                            preload="metadata"
+                                                        >
+                                                            <source src="{{ asset($kvFile->kv_file) }}" @if($kvFile->file_type) type="{{ $kvFile->file_type }}" @endif>
+                                                        </video>
+                                                    @else
+                                                        <span class="text-muted fs-11">Preview unavailable</span>
+                                                    @endif
+                                                </div>
                                             @else
                                                 <span class="text-muted">N/A</span>
                                             @endif
@@ -124,11 +157,35 @@
 <link rel="stylesheet" href="{{ asset('backend/build/assets/libs/filepond-plugin-image-preview/filepond-plugin-image-preview.min.css') }}">
 <style>
     .btn-list { display: flex; gap: 4px; }
+    .kv-file-preview {
+        width: 112px;
+        height: 68px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        border-radius: 0.75rem;
+        border: 1px solid var(--default-border);
+        background: rgb(var(--light-rgb));
+    }
+    .kv-file-preview__link {
+        display: block;
+        width: 100%;
+        height: 100%;
+    }
+    .kv-file-preview__media {
+        width: 100%;
+        height: 100%;
+        display: block;
+        object-fit: cover;
+        background: #000;
+    }
 </style>
 @endpush
 
 @push('scripts')
 @include('backend.includes.plugins.datatable')
+@include('backend.includes.plugins.select2')
 <script src="{{ asset('backend/build/assets/libs/filepond/filepond.min.js') }}"></script>
 <script src="{{ asset('backend/build/assets/libs/filepond-plugin-image-preview/filepond-plugin-image-preview.min.js') }}"></script>
 <script src="{{ asset('backend/build/assets/libs/filepond-plugin-image-exif-orientation/filepond-plugin-image-exif-orientation.min.js') }}"></script>
@@ -139,6 +196,7 @@ $(function () {
     const fileModal = new bootstrap.Modal(document.getElementById('fileModal'));
     const viewModal = new bootstrap.Modal(document.getElementById('viewModal'));
     const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    const preselectedKeyVisualId = @json($selectedKeyVisualId);
 
     const BASE = base_url;
     const apiUrl = (id = '') => base_url + 'key-visual-files' + (id ? '/' + id : '');
@@ -149,6 +207,32 @@ $(function () {
         FilePondPluginFileValidateType,
         FilePondPluginFileValidateSize
     );
+
+    const MAX_IMAGE_FILE_SIZE = 5 * 1024 * 1024;
+    const MAX_VIDEO_FILE_SIZE = 10 * 1024 * 1024;
+
+    function getUploadSizeLimit(file) {
+        const fileType = String(file?.type || '');
+
+        if (fileType.startsWith('image/')) {
+            return {
+                maxBytes: MAX_IMAGE_FILE_SIZE,
+                message: 'Image files must not exceed 5 MB.',
+            };
+        }
+
+        if (fileType.startsWith('video/')) {
+            return {
+                maxBytes: MAX_VIDEO_FILE_SIZE,
+                message: 'Video files must not exceed 10 MB.',
+            };
+        }
+
+        return {
+            maxBytes: MAX_VIDEO_FILE_SIZE,
+            message: 'Upload file must be an image or video.',
+        };
+    }
 
     const kvFilePond = FilePond.create(document.querySelector('.filepond-kv-file'), {
         allowMultiple: false,
@@ -161,8 +245,27 @@ $(function () {
             'image/jpeg', 'image/png', 'image/jpg', 'image/gif', 'image/svg+xml', 'image/webp',
             'video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/x-matroska', 'video/webm'
         ],
-        maxFileSize: '50MB',
+        maxFileSize: '10MB',
+        labelMaxFileSizeExceeded: 'File is too large',
+        labelMaxFileSize: 'Maximum video size is 10 MB and maximum image size is 5 MB',
         labelIdle: '<i class="ri-upload-cloud-2-line" style="font-size:1.45rem;color:var(--text-muted)"></i><br><span class="text-muted fs-13">Drag & drop image/video or <span class="filepond--label-action">browse</span></span>',
+        beforeAddFile: function (item) {
+            const file = item?.file ?? item;
+
+            if (!file) {
+                return false;
+            }
+
+            const limit = getUploadSizeLimit(file);
+            $('#error-kv_file_upload').text('');
+
+            if ((file.size || 0) > limit.maxBytes) {
+                $('#error-kv_file_upload').text(limit.message);
+                return false;
+            }
+
+            return true;
+        },
     });
 
     const metaFields = {
@@ -198,6 +301,7 @@ $(function () {
 
     let fallbackMeta = emptyMeta();
     let metaReadToken = 0;
+    let fallbackSizeId = '';
 
     function showToast(message, type = 'success') {
         const $toast = $(`
@@ -218,6 +322,28 @@ $(function () {
             file_type: '',
             file_duration: '',
         };
+    }
+
+    function setMediaDimensions(width = '', height = '') {
+        $('#media_width').val(width);
+        $('#media_height').val(height);
+    }
+
+    function syncDetectedKeyVisualSize(width, height) {
+        const detectedWidth = Number(width);
+        const detectedHeight = Number(height);
+
+        if (!(detectedWidth > 0 && detectedHeight > 0)) {
+            return;
+        }
+
+        const matchingOption = $('#key_visual_size_id option').filter(function () {
+            return Number($(this).data('width')) === detectedWidth
+                && Number($(this).data('height')) === detectedHeight
+                && String($(this).data('unit') || '').toLowerCase() === 'px';
+        }).first();
+
+        $('#key_visual_size_id').val(matchingOption.length ? matchingOption.val() : '');
     }
 
     function normalizeMeta(meta = {}) {
@@ -268,8 +394,10 @@ $(function () {
     function resetForm() {
         $('#fileForm')[0].reset();
         $('#kv_file_id').val('');
-        $('#key_visual_id').val('');
+        $('#key_visual_id').val(preselectedKeyVisualId || '');
         $('#key_visual_size_id').val('');
+        fallbackSizeId = '';
+        setMediaDimensions();
         $('#status').val('1');
         metaReadToken += 1;
         fallbackMeta = emptyMeta();
@@ -291,6 +419,7 @@ $(function () {
             file_type: file.type || '',
             file_duration: '',
         });
+        setMediaDimensions();
 
         const objectUrl = URL.createObjectURL(file);
 
@@ -305,8 +434,11 @@ $(function () {
                 }
 
                 if (video.videoWidth > 0 && video.videoHeight > 0) {
+                    setMediaDimensions(video.videoWidth, video.videoHeight);
+                    syncDetectedKeyVisualSize(video.videoWidth, video.videoHeight);
                     $('#aspect_ratio').val((video.videoWidth / video.videoHeight).toFixed(4));
                 } else {
+                    setMediaDimensions();
                     $('#aspect_ratio').val('');
                 }
                 $('#file_duration').val(formatDuration(video.duration));
@@ -331,8 +463,11 @@ $(function () {
                 }
 
                 if (image.width > 0 && image.height > 0) {
+                    setMediaDimensions(image.width, image.height);
+                    syncDetectedKeyVisualSize(image.width, image.height);
                     $('#aspect_ratio').val((image.width / image.height).toFixed(4));
                 } else {
+                    setMediaDimensions();
                     $('#aspect_ratio').val('');
                 }
                 refreshMetaVisibility();
@@ -364,6 +499,8 @@ $(function () {
     kvFilePond.on('removefile', function () {
         metaReadToken += 1;
         $('#error-kv_file_upload').text('');
+        $('#key_visual_size_id').val(fallbackSizeId);
+        setMediaDimensions();
         setMetaValues(fallbackMeta);
 
         if ($('#kv_file_id').val() && $('#existing-file-link').attr('href') !== '#') {
@@ -400,6 +537,8 @@ $(function () {
                 $('#name').val(data.name || '');
                 $('#key_visual_id').val(data.key_visual_id || '');
                 $('#key_visual_size_id').val(data.key_visual_size_id || '');
+                fallbackSizeId = data.key_visual_size_id || '';
+                setMediaDimensions();
                 fallbackMeta = normalizeMeta({
                     kv_size: data.kv_size ?? '',
                     aspect_ratio: data.aspect_ratio ?? '',
@@ -419,6 +558,7 @@ $(function () {
 
                 $('#fileModalLabel').text('Edit Key Visual File');
                 $('#btn-save .btn-text').text('Update');
+
                 fileModal.show();
             })
             .fail(function () {

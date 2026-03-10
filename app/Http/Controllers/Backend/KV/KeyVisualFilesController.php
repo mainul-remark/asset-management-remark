@@ -7,26 +7,45 @@ use App\Http\Requests\Backend\KV\KeyVisualFileRequest;
 use App\Models\KeyVisual;
 use App\Models\KeyVisualFiles;
 use App\Models\KeyVisualSize;
+use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class KeyVisualFilesController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $keyVisuals = KeyVisual::query()
+            ->select('id', 'name', 'unique_code')
+            ->orderBy('name')
+            ->get();
+
+        $selectedKeyVisual = null;
+        $requestedKeyVisualId = $request->integer('kv');
+
+        if ($request->filled('kv')) {
+            $selectedKeyVisual = $keyVisuals->firstWhere('id', $requestedKeyVisualId);
+        }
+
+        $kvFilesQuery = KeyVisualFiles::with([
+            'keyVisual:id,name,unique_code',
+            'keyVisualSize:id,name,width,height,unit_name',
+        ])->latest();
+
+        if ($selectedKeyVisual !== null) {
+            $kvFilesQuery->where('key_visual_id', $selectedKeyVisual->id);
+        }
+
         return view('backend.kv.kv-files', [
-            'kvFiles' => KeyVisualFiles::with([
-                'keyVisual:id,name,unique_code',
-                'keyVisualSize:id,name,width,height,unit_name',
-            ])->latest()->get(),
-            'keyVisuals' => KeyVisual::query()
-                ->select('id', 'name', 'unique_code')
-                ->orderBy('name')
-                ->get(),
+            'kvFiles' => $kvFilesQuery->get(),
+            'keyVisuals' => $keyVisuals,
             'keyVisualSizes' => KeyVisualSize::query()
                 ->select('id', 'name', 'width', 'height', 'unit_name')
                 ->orderBy('name')
                 ->get(),
+            'selectedKeyVisualId' => $selectedKeyVisual?->id,
         ]);
     }
 
@@ -100,7 +119,13 @@ class KeyVisualFilesController extends Controller
     private function preparePayload(KeyVisualFileRequest $request, ?KeyVisualFiles $kvFile = null): array
     {
         $validated = $request->validated();
-        unset($validated['kv_file_upload']);
+        unset($validated['kv_file_upload'], $validated['media_width'], $validated['media_height']);
+
+        $resolvedSizeId = $this->resolveKeyVisualSizeId($request, $validated, $kvFile);
+
+        if ($resolvedSizeId !== null) {
+            $validated['key_visual_size_id'] = $resolvedSizeId;
+        }
 
         if ((!isset($validated['aspect_ratio']) || $validated['aspect_ratio'] === null || $validated['aspect_ratio'] === '')
             && isset($validated['key_visual_size_id'])) {
@@ -146,6 +171,84 @@ class KeyVisualFilesController extends Controller
             $validated['kv_file'] = $kvFile->kv_file;
         }
 
+        if (!isset($validated['key_visual_size_id']) || $validated['key_visual_size_id'] === null || $validated['key_visual_size_id'] === '') {
+            throw ValidationException::withMessages([
+                'key_visual_size_id' => 'Key visual size could not be determined from the uploaded file. Please select one manually or upload a file with readable dimensions.',
+            ]);
+        }
+
         return $validated;
+    }
+
+    private function resolveKeyVisualSizeId(KeyVisualFileRequest $request, array $validated, ?KeyVisualFiles $kvFile = null): ?int
+    {
+        if ($request->hasFile('kv_file_upload')) {
+            $dimensions = $this->extractMediaDimensions($request);
+
+            if ($dimensions !== null) {
+                return (int) $this->findOrCreateKeyVisualSize($dimensions['width'], $dimensions['height'])->getKey();
+            }
+        }
+
+        if (!empty($validated['key_visual_size_id'])) {
+            return (int) $validated['key_visual_size_id'];
+        }
+
+        return $kvFile?->key_visual_size_id;
+    }
+
+    private function extractMediaDimensions(KeyVisualFileRequest $request): ?array
+    {
+        $width = (int) ($request->input('media_width') ?? 0);
+        $height = (int) ($request->input('media_height') ?? 0);
+
+        if ($width > 0 && $height > 0) {
+            return [
+                'width' => $width,
+                'height' => $height,
+            ];
+        }
+
+        $file = $request->file('kv_file_upload');
+
+        if (! $file instanceof UploadedFile || ! $this->isImageUpload($file)) {
+            return null;
+        }
+
+        $realPath = $file->getRealPath();
+        $imageSize = $realPath ? @getimagesize($realPath) : false;
+
+        if (!is_array($imageSize) || empty($imageSize[0]) || empty($imageSize[1])) {
+            return null;
+        }
+
+        return [
+            'width' => (int) $imageSize[0],
+            'height' => (int) $imageSize[1],
+        ];
+    }
+
+    private function findOrCreateKeyVisualSize(int $width, int $height): KeyVisualSize
+    {
+        return KeyVisualSize::query()->firstOrCreate(
+            [
+                'width' => $width,
+                'height' => $height,
+                'unit_name' => 'px',
+            ],
+            [
+                'name' => $width . ' x ' . $height,
+                'status' => 1,
+            ]
+        );
+    }
+
+    private function isImageUpload(UploadedFile $file): bool
+    {
+        $mimeType = (string) ($file->getClientMimeType() ?? $file->getMimeType() ?? '');
+        $extension = strtolower((string) $file->getClientOriginalExtension());
+
+        return str_starts_with($mimeType, 'image/')
+            || in_array($extension, ['jpeg', 'jpg', 'png', 'gif', 'svg', 'webp'], true);
     }
 }

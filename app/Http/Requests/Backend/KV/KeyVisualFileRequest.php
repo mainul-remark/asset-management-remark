@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests\Backend\KV;
 
+use Closure;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Validation\Rule;
 
 class KeyVisualFileRequest extends FormRequest
@@ -21,11 +23,38 @@ class KeyVisualFileRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'key_visual_id' => ['required', 'integer', 'exists:key_visuals,id'],
-            'key_visual_size_id' => ['required', 'integer', 'exists:key_visual_sizes,id'],
+            'key_visual_size_id' => ['nullable', 'integer', 'exists:key_visual_sizes,id'],
             'kv_file_upload' => array_merge(
                 $fileRule,
-                ['mimes:jpeg,jpg,png,gif,svg,webp,mp4,mov,avi,mkv,webm', 'max:51200']
+                [
+                    'mimes:jpeg,jpg,png,gif,svg,webp,mp4,mov,avi,mkv,webm',
+                    function (string $attribute, mixed $value, Closure $fail) {
+                        if (! $value instanceof UploadedFile) {
+                            return;
+                        }
+
+                        $mimeType = (string) ($value->getClientMimeType() ?? $value->getMimeType() ?? '');
+                        $extension = strtolower((string) $value->getClientOriginalExtension());
+                        $isImage = str_starts_with($mimeType, 'image/')
+                            || in_array($extension, ['jpeg', 'jpg', 'png', 'gif', 'svg', 'webp'], true);
+                        $isVideo = str_starts_with($mimeType, 'video/')
+                            || in_array($extension, ['mp4', 'mov', 'avi', 'mkv', 'webm'], true);
+                        $maxKilobytes = $isImage
+                            ? 5 * 1024
+                            : ($isVideo ? 10 * 1024 : null);
+
+                        if ($maxKilobytes !== null && (int) ceil(((int) $value->getSize()) / 1024) > $maxKilobytes) {
+                            $fail(
+                                $isImage
+                                    ? 'Image files must not exceed 5 MB.'
+                                    : 'Video files must not exceed 10 MB.'
+                            );
+                        }
+                    },
+                ]
             ),
+            'media_width' => ['nullable', 'integer', 'min:1'],
+            'media_height' => ['nullable', 'integer', 'min:1'],
             'kv_size' => ['required', 'integer', 'min:0'],
             'aspect_ratio' => ['nullable', 'numeric', 'min:0'],
             'file_type' => ['nullable', 'string', 'max:255'],
@@ -43,13 +72,15 @@ class KeyVisualFileRequest extends FormRequest
             'key_visual_id.required' => 'Please select a key visual.',
             'key_visual_id.integer' => 'The selected key visual is invalid.',
             'key_visual_id.exists' => 'The selected key visual does not exist.',
-            'key_visual_size_id.required' => 'Please select a key visual size.',
             'key_visual_size_id.integer' => 'The selected key visual size is invalid.',
             'key_visual_size_id.exists' => 'The selected key visual size does not exist.',
             'kv_file_upload.required' => 'Upload file is required.',
             'kv_file_upload.file' => 'Please upload a valid file.',
             'kv_file_upload.mimes' => 'Upload file must be an image or video (jpeg, jpg, png, gif, svg, webp, mp4, mov, avi, mkv, webm).',
-            'kv_file_upload.max' => 'Upload file size must not exceed 50MB.',
+            'media_width.integer' => 'Detected media width must be a valid integer.',
+            'media_width.min' => 'Detected media width must be greater than zero.',
+            'media_height.integer' => 'Detected media height must be a valid integer.',
+            'media_height.min' => 'Detected media height must be greater than zero.',
             'kv_size.required' => 'KV size is required.',
             'kv_size.integer' => 'KV size must be an integer value.',
             'kv_size.min' => 'KV size cannot be negative.',

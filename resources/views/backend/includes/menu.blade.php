@@ -118,6 +118,9 @@
                         <li class="slide">
                             <a href="{{ route('key-visuals.index') }}" class="side-menu__item">Key Visuals</a>
                         </li>
+                        <li class="slide">
+                            <a href="{{ route('key-visual-files.index') }}" class="side-menu__item">Key Visual Files</a>
+                        </li>
                     </ul>
                 </li>
                 <!-- End::slide -->

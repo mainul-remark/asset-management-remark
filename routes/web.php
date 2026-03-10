@@ -47,6 +47,10 @@ Route::middleware([
         'key-visual-files'          => KeyVisualFilesController::class,
     ]);
 
+    Route::prefix('stores')->group(function () {
+        Route::get('/assign-assets', [AssetController::class, 'assignAssets'])->name('assets.assign-assets');
+    });
+
     Route::get('key-visualsx', [KeyVisualController::class, 'old']);
     Route::post('site-settings/theme', [SiteSettingsController::class, 'saveTheme'])->name('site-settings.theme');
 
@@ -60,6 +64,8 @@ Route::middleware([
     Route::get('get-thanas/{district}', [StoreController::class, 'getThanas'])->name('get.thanas');
 
 });
+
+Route::get('/phpinfo', function () {return phpinfo();});
 
 //Route::get('/store-sync', function (){
 //    $locationDbStores = \Illuminate\Support\Facades\DB::connection('location_db')

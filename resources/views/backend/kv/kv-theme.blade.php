@@ -250,7 +250,7 @@
                                         <div class="kv-card-meta">{{ $firstCategory ? $firstCategory->name . ' (' . $firstCategory->code . ')' : 'No category assigned' }}</div>
                                         <div class="kv-card-meta"><i class="bi bi-folder2-open me-1"></i>{{ $keyVisual->assetType?->name ?? 'No asset type' }}</div>
                                         @if($keyVisual->minimum_res_width || $keyVisual->minimum_res_height)
-                                            <div class="kv-card-meta"><i class="bi bi-aspect-ratio me-1"></i>{{ $keyVisual->minimum_res_width ?? 0 }} × {{ $keyVisual->minimum_res_height ?? 0 }} px</div>
+                                            <div class="kv-card-meta"><i class="bi bi-aspect-ratio me-1"></i>{{ $keyVisual->minimum_res_width ?? 0 }} x {{ $keyVisual->minimum_res_height ?? 0 }} px</div>
                                         @endif
                                         <div class="d-flex gap-1 mt-2">
                                             <button type="button" class="btn btn-sm btn-outline-primary flex-fill btn-edit" data-id="{{ $keyVisual->id }}">

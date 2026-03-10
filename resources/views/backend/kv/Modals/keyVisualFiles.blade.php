@@ -17,7 +17,7 @@
                         </div>
                         <div class="col-md-6">
                             <label for="key_visual_id" class="form-label">Key Visual <span class="text-danger">*</span></label>
-                            <select class="form-select" id="key_visual_id" name="key_visual_id">
+                            <select class="form-select select-ele" id="key_visual_id" name="key_visual_id">
                                 <option value="">Select key visual</option>
                                 @foreach($keyVisuals as $keyVisual)
                                     <option value="{{ $keyVisual->id }}">
@@ -28,15 +28,21 @@
                             <div class="invalid-feedback" id="error-key_visual_id"></div>
                         </div>
                         <div class="col-md-6">
-                            <label for="key_visual_size_id" class="form-label">Key Visual Size <span class="text-danger">*</span></label>
+                            <label for="key_visual_size_id" class="form-label">Key Visual Size</label>
                             <select class="form-select" id="key_visual_size_id" name="key_visual_size_id">
-                                <option value="">Select key visual size</option>
+                                <option value="">Auto-detect from uploaded file</option>
                                 @foreach($keyVisualSizes as $size)
-                                    <option value="{{ $size->id }}">
+                                    <option
+                                        value="{{ $size->id }}"
+                                        data-width="{{ (int) $size->width }}"
+                                        data-height="{{ (int) $size->height }}"
+                                        data-unit="{{ strtolower($size->unit_name) }}"
+                                    >
                                         {{ $size->name }} ({{ rtrim(rtrim((string) $size->width, '0'), '.') }} x {{ rtrim(rtrim((string) $size->height, '0'), '.') }} {{ strtoupper($size->unit_name) }})
                                     </option>
                                 @endforeach
                             </select>
+                            <div class="form-text">Optional. Matching sizes will be selected automatically from the uploaded file; missing dimensions will create a new size on save.</div>
                             <div class="invalid-feedback" id="error-key_visual_size_id"></div>
                         </div>
                         <div class="col-md-6">
@@ -55,6 +61,9 @@
                                    id="kv_file_upload"
                                    name="kv_file_upload"
                                    accept="image/jpeg,image/png,image/jpg,image/gif,image/svg+xml,image/webp,video/mp4,video/quicktime,video/x-msvideo,video/x-matroska,video/webm">
+                            <input type="hidden" id="media_width" name="media_width">
+                            <input type="hidden" id="media_height" name="media_height">
+                            <div class="form-text">Images: max 5 MB. Videos: max 10 MB.</div>
                             <div class="invalid-feedback d-block" id="error-kv_file_upload"></div>
                             <div id="existing-file-wrap" class="small text-muted mt-2 d-none">
                                 Current file: <a id="existing-file-link" href="#" target="_blank" rel="noopener">Open file</a>
