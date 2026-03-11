@@ -88,7 +88,7 @@
                             <a href="{{ route('stores.index') }}" class="side-menu__item">Stores</a>
                         </li>
                         <li class="slide">
-                            <a href="{{ route('asset-types.index') }}" class="side-menu__item">Asset Types</a>
+                            <a href="{{ route('asset-types.index') }}" class="side-menu__item">Asset Categories</a>
                         </li>
                         <li class="slide">
                             <a href="{{ route('assets.index') }}" class="side-menu__item">Assets</a>

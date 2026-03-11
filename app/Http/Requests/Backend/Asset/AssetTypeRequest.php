@@ -29,10 +29,14 @@ class AssetTypeRequest extends FormRequest
             'depth'               => ['nullable', 'numeric', 'min:0'],
             'dimension_unit_name' => ['nullable', 'in:px,in,ft,cm,mm,m,yd'],
             'default_price'       => ['nullable', 'numeric', 'min:0'],
-            'status'              => ['nullable', 'in:0,1'],
-            'is_digital'          => ['nullable', 'in:0,1'],
-            'total_self'          => ['nullable', 'integer', 'min:0'],
-            'has_kv_space'        => ['nullable', 'in:0,1'],
+            'status'                => ['nullable', 'in:0,1'],
+            'is_digital'            => ['nullable', 'in:0,1'],
+            'total_self'            => ['nullable', 'integer', 'min:0'],
+            'has_kv_space'          => ['nullable', 'in:0,1'],
+            'has_default_dimension' => ['nullable', 'in:0,1'],
+            'need_asset_image'      => ['nullable', 'in:0,1'],
+            'need_asset_planogram'  => ['nullable', 'in:0,1'],
+            'has_asset_self'        => ['nullable', 'in:0,1'],
         ];
     }
 
