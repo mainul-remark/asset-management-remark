@@ -13,17 +13,21 @@
                             <i class="ri-add-line me-1"></i> Add Asset Category
                         </button>
                     </div>
+                    @php
+                        $hasImage      = $assetTypes->contains(fn($r) => $r->default_image);
+                        $hasDimensions = $assetTypes->contains(fn($r) => $r->height || $r->width);
+                        $hasProperties = $assetTypes->contains(fn($r) => $r->is_digital || $r->has_kv_space || $r->total_self > 0 || $r->need_asset_image || $r->need_asset_planogram || $r->has_asset_self);
+                    @endphp
                     <div class="card-body">
                         <div class="table-responsive">
                             <table id="data-table" class="table table-bordered text-nowrap w-100">
                                 <thead>
                                     <tr>
                                         <th>#</th>
-                                        <th>Image</th>
+                                        @if($hasImage)<th>Image</th>@endif
                                         <th>Name</th>
-{{--                                        <th>Default Fee</th>--}}
-                                        <th>Dimensions</th>
-                                        <th>Properties</th>
+                                        @if($hasDimensions)<th>Dimensions</th>@endif
+                                        @if($hasProperties)<th>Properties</th>@endif
                                         <th>Status</th>
                                         <th width="110">Actions</th>
                                     </tr>
@@ -32,6 +36,7 @@
                                 @foreach($assetTypes as $assetType)
                                     <tr>
                                         <td>{{ $loop->iteration }}</td>
+                                        @if($hasImage)
                                         <td>
                                             @if($assetType->default_image)
                                                 <img class="asset-thumb" src="{{ asset($assetType->default_image) }}" alt="{{ $assetType->name }}">
@@ -39,8 +44,9 @@
                                                 <div class="asset-thumb-empty"><i class="ri-image-line"></i></div>
                                             @endif
                                         </td>
+                                        @endif
                                         <td class="fw-semibold">{{ $assetType->name }}</td>
-{{--                                        <td>{{ $assetType->default_price ? '৳ '.number_format($assetType->default_price, 2) : '—' }}</td>--}}
+                                        @if($hasDimensions)
                                         <td>
                                             @if($assetType->height || $assetType->width)
                                                 <span class="text-muted fs-11">
@@ -51,6 +57,8 @@
                                                 <span class="text-muted">—</span>
                                             @endif
                                         </td>
+                                        @endif
+                                        @if($hasProperties)
                                         <td>
                                             @if($assetType->is_digital)
                                                 <span class="badge bg-info-transparent me-1">Digital</span>
@@ -58,8 +66,19 @@
                                             @if($assetType->has_kv_space)
                                                 <span class="badge bg-warning-transparent me-1">KV Space</span>
                                             @endif
-                                            <span class="badge bg-light text-dark border">{{ $assetType->total_self ?? 0 }} Shelf</span>
+                                            @if($assetType->need_asset_image)
+                                                <span class="badge bg-primary-transparent me-1">Asset Image</span>
+                                            @endif
+                                            @if($assetType->need_asset_planogram)
+                                                <span class="badge bg-secondary-transparent me-1">Planogram</span>
+                                            @endif
+                                            @if($assetType->has_asset_self)
+                                                <span class="badge bg-teal-transparent me-1">Self ({{ $assetType->total_self ?? 0 }})</span>
+                                            @elseif($assetType->total_self > 0)
+                                                <span class="badge bg-light text-dark border">{{ $assetType->total_self }} Shelf</span>
+                                            @endif
                                         </td>
+                                        @endif
                                         <td>
                                             @if($assetType->status == 1)
                                                 <span class="badge bg-success-transparent">Active</span>
@@ -479,7 +498,8 @@
         const viewModalEl    = new bootstrap.Modal(document.getElementById('viewModal'));
         const deleteModalEl  = new bootstrap.Modal(document.getElementById('deleteModal'));
 
-        $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
+        const csrfToken = $('meta[name="csrf-token"]').attr('content');
+        $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': csrfToken } });
 
         // ── Utility helpers ───────────────────────────────────────────────────
         const apiUrl = id => base_url + 'asset-types' + (id ? '/' + id : '');
@@ -675,8 +695,9 @@
             setBtnLoading($btn, true, 'Deleting...');
 
             $.ajax({
-                url:  apiUrl($('#delete-asset-type-id').val()),
-                type: 'DELETE',
+                url:     apiUrl($('#delete-asset-type-id').val()),
+                type:    'DELETE',
+                headers: { 'X-CSRF-TOKEN': csrfToken },
                 success: res => {
                     deleteModalEl.hide();
                     showToast(res.message, 'success');
@@ -692,8 +713,30 @@
             e.preventDefault();
             clearErrors();
 
+            if ($('#has_default_dimension').is(':checked')) {
+                let hasError = false;
+                if (!$('#height').val().trim()) {
+                    $('#height').addClass('is-invalid');
+                    $('#error-height').text('Height is required when Default Dimension is enabled.');
+                    hasError = true;
+                }
+                if (!$('#width').val().trim()) {
+                    $('#width').addClass('is-invalid');
+                    $('#error-width').text('Width is required when Default Dimension is enabled.');
+                    hasError = true;
+                }
+                if (!$('#dimension_unit_name').val()) {
+                    $('#dimension_unit_name').addClass('is-invalid');
+                    $('#error-dimension_unit_name').text('Unit is required when Default Dimension is enabled.');
+                    hasError = true;
+                }
+                if (hasError) return;
+            }
+
             const id       = $('#asset_type_id').val();
             const formData = new FormData(this);
+
+            formData.set('_token', csrfToken);
 
             ['status', 'is_digital', 'has_kv_space', 'has_default_dimension', 'need_asset_image', 'need_asset_planogram', 'has_asset_self']
                 .forEach(f => formData.set(f, $(`#${f}`).is(':checked') ? 1 : 0));
@@ -709,6 +752,7 @@
                 data: formData,
                 processData: false,
                 contentType: false,
+                headers: { 'X-CSRF-TOKEN': csrfToken },
                 success: res => {
                     assetTypeModal.hide();
                     showToast(res.message, 'success');

@@ -150,8 +150,8 @@
                         <div class="form-section mb-4">
                             <p class="form-section-label"><i class="ri-information-line me-1"></i>Basic Information</p>
                             <div class="row g-3">
-                                <div class="col-md-5">
-                                    <label for="asset_type_id" class="form-label">Asset Type <span class="text-danger">*</span></label>
+                                <div class="col-md-6">
+                                    <label for="asset_type_id" class="form-label">Asset Category <span class="text-danger">*</span></label>
                                     <select class="form-select" id="asset_type_id" name="asset_type_id">
                                         <option value="">— Select Type —</option>
                                         @foreach($assetTypes as $assetType)
@@ -160,11 +160,16 @@
                                     </select>
                                     <div class="invalid-feedback" id="error-asset_type_id"></div>
                                 </div>
-                                <div class="col-md-7">
-                                    <label for="name" class="form-label">Asset Name <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control" id="name" name="name"
-                                        placeholder="e.g. Shelf Display Unit A1">
-                                    <div class="invalid-feedback" id="error-name"></div>
+                                <div class="col-md-6">
+                                    <label for="store_id" class="form-label">Store</label>
+                                    <select class="form-select select-ele" id="store_id" name="store_id">
+                                        <option value="">— Select Store —</option>
+                                        @foreach($stores as $store)
+                                            <option value="{{ $store->id }}">{{ $store->title }} ({{ $store->code }})</option>
+                                        @endforeach
+                                    </select>
+                                    <div class="invalid-feedback" id="error-store_id"></div>
+                                    <div class="form-text" id="store-help-text">Disabled when asset is marked as Common.</div>
                                 </div>
                                 <div class="col-md-12 d-none" id="asset-code-row">
                                     <div class="alert alert-primary-transparent d-flex align-items-center gap-2 py-2 mb-0">
@@ -183,34 +188,21 @@
                             <p class="form-section-label"><i class="ri-store-2-line me-1"></i>Location & Pricing</p>
                             <div class="row g-3">
                                 <div class="col-md-6">
-                                    <label for="store_id" class="form-label">Store</label>
-                                    <select class="form-select select-ele" id="store_id" name="store_id">
-                                        <option value="">— Select Store —</option>
-                                        @foreach($stores as $store)
-                                            <option value="{{ $store->id }}">{{ $store->title }} ({{ $store->code }})</option>
-                                        @endforeach
-                                    </select>
-                                    <div class="invalid-feedback" id="error-store_id"></div>
-                                    <div class="form-text" id="store-help-text">Disabled when asset is marked as Common.</div>
+                                    <label for="name" class="form-label">Asset Name <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="name" name="name" readonly
+                                           placeholder="e.g. Shelf Display Unit A1">
+                                    <div class="invalid-feedback" id="error-name"></div>
                                 </div>
-                                <div class="col-md-3">
-                                    <label for="asset_price" class="form-label">Asset Price</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text">৳</span>
-                                        <input type="number" step="0.01" min="0" class="form-control"
-                                            id="asset_price" name="asset_price" placeholder="0.00">
-                                    </div>
-                                    <div class="invalid-feedback d-block" id="error-asset_price"></div>
-                                </div>
-                                <div class="col-md-3">
-                                    <label for="minimum_fee" class="form-label">Minimum Charge</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text">৳</span>
-                                        <input type="number" step="0.01" min="0" class="form-control"
-                                            id="minimum_fee" name="minimum_fee" placeholder="0.00">
-                                    </div>
-                                    <div class="invalid-feedback d-block" id="error-minimum_fee"></div>
-                                </div>
+
+{{--                                <div class="col-md-3">--}}
+{{--                                    <label for="minimum_fee" class="form-label">Minimum Charge</label>--}}
+{{--                                    <div class="input-group">--}}
+{{--                                        <span class="input-group-text">৳</span>--}}
+{{--                                        <input type="number" step="0.01" min="0" class="form-control"--}}
+{{--                                            id="minimum_fee" name="minimum_fee" placeholder="0.00">--}}
+{{--                                    </div>--}}
+{{--                                    <div class="invalid-feedback d-block" id="error-minimum_fee"></div>--}}
+{{--                                </div>--}}
                             </div>
                         </div>
 
