@@ -20,7 +20,7 @@ class AssetController extends Controller
     {
         return view('backend.asset-management.assets', [
             'assets'     => Asset::with(['assetType:id,name', 'store:id,title,code'])->latest()->get(),
-            'assetTypes' => AssetType::orderBy('name')->get(['id', 'name']),
+            'assetTypes' => AssetType::orderBy('name')->get(['id', 'name', 'need_asset_image', 'need_asset_planogram', 'has_asset_self', 'is_digital', 'total_self', 'has_kv_space']),
             'stores'     => Store::orderBy('title')->get(['id', 'title', 'code']),
         ]);
     }
@@ -39,6 +39,7 @@ class AssetController extends Controller
             }
             return $asset;
         });
+
 
         return response()->json([
             'message' => 'Asset created successfully.',
@@ -90,68 +91,34 @@ class AssetController extends Controller
     {
         $data = [
             'divisions'  => Division::orderBy('name')->get(['id', 'name']),
-            'assetTypes' => AssetType::orderBy('name')->get(['id', 'name']),
+            'assetTypes' => AssetType::orderBy('name')->get(['id', 'name', 'need_asset_image', 'need_asset_planogram', 'has_asset_self', 'is_digital', 'total_self', 'has_kv_space']),
         ];
+
         return CustomHelper::returnDataForWebOrApi($data, 'backend.asset-management.asset-assign-to-store');
+        return view( 'backend.asset-management.asset-assign-to-store');
     }
 
-    public function storeAssignment(Request $request)
+    public function nextName(Request $request)
     {
         $request->validate([
-            'asset_id'     => 'required|exists:assets,id',
-            'store_id'     => 'required|exists:stores,id',
-            'assign_date'  => 'required|date',
-            'asset_charge' => 'nullable|numeric|min:0',
+            'asset_type_id' => 'required|exists:asset_types,id',
+            'store_id'      => 'required|exists:stores,id',
         ]);
 
-        $assignment = AssignAssetToStore::create([
-            'asset_id'            => $request->asset_id,
-            'store_id'            => $request->store_id,
-            'assigned_by_user_id' => CustomHelper::loggedUser()->id,
-            'assign_date'         => $request->assign_date,
-            'asset_charge'        => $request->asset_charge ?? 0,
-        ]);
+        $assetType = AssetType::findOrFail($request->asset_type_id);
+        $store     = Store::findOrFail($request->store_id);
 
-        // Also update the asset's store_id
-        Asset::where('id', $request->asset_id)->update(['store_id' => $request->store_id]);
+        // 3-char code from asset type name (letters only, uppercase)
+        $typeCode  = strtoupper(substr(preg_replace('/[^a-zA-Z]/', '', $assetType->name), 0, 3));
+        $storeCode = strtoupper($store->code);
+        $prefix    = $typeCode . '-' . $storeCode . '-';
 
-        return response()->json(['success' => true, 'message' => 'Asset assigned to store successfully.']);
-    }
+        $seq = 1;
+        while (Asset::withTrashed()->where('name', $prefix . $seq)->exists()) {
+            $seq++;
+        }
 
-    public function editAssignment($id)
-    {
-        $assignment = AssignAssetToStore::with(['asset:id,name,asset_code', 'store:id,title,code'])->findOrFail($id);
-        return response()->json($assignment);
-    }
-
-    public function updateAssignment(Request $request, $id)
-    {
-        $assignment = AssignAssetToStore::findOrFail($id);
-
-        $request->validate([
-            'asset_id'     => 'required|exists:assets,id',
-            'store_id'     => 'required|exists:stores,id',
-            'assign_date'  => 'required|date',
-            'asset_charge' => 'nullable|numeric|min:0',
-        ]);
-
-        $assignment->update([
-            'asset_id'     => $request->asset_id,
-            'store_id'     => $request->store_id,
-            'assign_date'  => $request->assign_date,
-            'asset_charge' => $request->asset_charge ?? 0,
-        ]);
-
-        // Also update the asset's store_id
-        Asset::where('id', $request->asset_id)->update(['store_id' => $request->store_id]);
-
-        return response()->json(['success' => true, 'message' => 'Assignment updated successfully.']);
-    }
-
-    public function destroyAssignment($id)
-    {
-        AssignAssetToStore::findOrFail($id)->delete();
-        return response()->json(['success' => true, 'message' => 'Assignment deleted successfully.']);
+        return response()->json(['name' => $prefix . $seq]);
     }
 
     public function getAssetsByType($assetTypeId)

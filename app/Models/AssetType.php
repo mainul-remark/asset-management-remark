@@ -45,7 +45,7 @@ class AssetType extends Model
             'depth'                 => $request->depth,
             'dimention_unit_name'   => $request->dimension_unit_name,
             'default_price'         => $request->default_price,
-            'total_self'            => $request->total_self ?? 0,
+            'total_self'            => ($request->has_asset_self ?? 0) ? ($request->total_self ?? 0) : null,
             'status'                => $request->status ?? 0,
             'is_digital'            => $request->is_digital ?? 0,
             'has_kv_space'          => $request->has_kv_space ?? 0,

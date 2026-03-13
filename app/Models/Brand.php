@@ -6,7 +6,6 @@ use App\Models\Scopes\Searchable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Support\Facades\File;
 use Mainul\CustomHelperFunctions\Helpers\CustomHelper;
 
 class Brand extends Model
@@ -19,17 +18,25 @@ class Brand extends Model
 
     protected $searchableFields = ['*'];
 
-    public static function updateOrCreateBrand($request, $brand = null)
+    public static function updateOrCreateBrand($request, $brand = null): self
     {
-        return static::updateOrCreate(['id' => $brand?->id], [
-            'name'  => $request->name,
-            'code'  => strtoupper($request['code']),
-            'description'   => $request->description,
-            'status'    => $request->status,
-            'logo'  => CustomHelper::fileUpload($request->file('logo'), 'brands', 'brand-logo', 300, 300, $brand->logo ?? null),
-        ]);
+        $data = $request->validated();
+        $data['code'] = strtoupper($data['code']);
+        $data['status'] = $request->boolean('status') ? 1 : 0;
+
+        if ($request->hasFile('logo')) {
+            $data['logo'] = CustomHelper::fileUpload(
+                $request->file('logo'),
+                'brands',
+                'brand-logo',
+                300,
+                300,
+                $brand->logo ?? null
+            );
+        } else {
+            $data['logo'] = $brand->logo ?? null;
+        }
+
+        return static::updateOrCreate(['id' => $brand?->id], $data);
     }
-
-
-
 }

@@ -122,7 +122,7 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h6 class="modal-title fw-semibold" id="assetTypeModalLabel">
-                        <i class="ri-archive-line me-2 text-primary"></i>Add Asset Type
+                        <i class="ri-archive-line me-2 text-primary"></i>Add Asset Category
                     </h6>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
@@ -195,7 +195,7 @@
                         <div class="form-section mb-4">
                             <p class="form-section-label"><i class="ri-image-line me-1"></i>Storage & Image</p>
                             <div class="row g-3 align-items-start">
-                                <div class="col-12">
+                                <div class="col-12 d-none">
                                     <label class="form-label">Default Image</label>
                                     <div class="image-upload-zone" id="imageUploadZone">
                                         <div id="upload-placeholder" class="upload-placeholder-inner">

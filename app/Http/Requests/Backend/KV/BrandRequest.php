@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Backend\KV;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class BrandRequest extends FormRequest
 {
@@ -21,9 +22,18 @@ class BrandRequest extends FormRequest
      */
     public function rules(): array
     {
+        $brand = $this->route('brand');
+        $nameRule = Rule::unique('brands', 'name')->withoutTrashed();
+        $codeRule = Rule::unique('brands', 'code')->withoutTrashed();
+
+        if ($brand) {
+            $nameRule = $nameRule->ignore($brand);
+            $codeRule = $codeRule->ignore($brand);
+        }
+
         return [
-            'name'        => 'required|string|max:255|unique:brands,name',
-            'code'        => 'required|string|min:2|max:3|alpha|unique:brands,code',
+            'name'        => ['required', 'string', 'max:255', $nameRule],
+            'code'        => ['required', 'string', 'min:2', 'max:3', 'alpha', $codeRule],
             'description' => 'nullable|string|max:1000',
             'status'      => 'required|in:0,1',
             'logo'        => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',

@@ -34,6 +34,7 @@ Route::middleware([
     Route::get('stores/layout-list', [StoreController::class, 'layoutStores'])->name('stores.layout-list');
     Route::post('stores/{store}/layouts', [StoreController::class, 'uploadLayout'])->name('stores.upload-layout');
     Route::get('key-visuals/next-unique-code', [KeyVisualController::class, 'nextUniqueCode'])->name('key-visuals.next-unique-code');
+    Route::get('assets/next-name', [AssetController::class, 'nextName'])->name('assets.next-name');
 
     Route::resources([
         'brands'                    => BrandController::class,
@@ -49,10 +50,6 @@ Route::middleware([
 
     Route::prefix('store')->group(function () {
         Route::get('/assign-assets', [AssetController::class, 'assignAssets'])->name('assets.assign-assets');
-        Route::post('/assign-assets', [AssetController::class, 'storeAssignment'])->name('assets.assign-assets.store');
-        Route::get('/assign-assets/{assignAsset}/edit', [AssetController::class, 'editAssignment'])->name('assets.assign-assets.edit');
-        Route::put('/assign-assets/{assignAsset}', [AssetController::class, 'updateAssignment'])->name('assets.assign-assets.update');
-        Route::delete('/assign-assets/{assignAsset}', [AssetController::class, 'destroyAssignment'])->name('assets.assign-assets.destroy');
     });
     Route::prefix('kv')->group(function () {
         Route::get('/assign-kv', [KeyVisualController::class, 'assignKvs'])->name('key-visuals.assign-kvs');

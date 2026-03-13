@@ -93,6 +93,9 @@
                         <li class="slide">
                             <a href="{{ route('assets.index') }}" class="side-menu__item">Assets</a>
                         </li>
+                        <li class="slide">
+                            <a href="{{ route('assets.assign-assets') }}" class="side-menu__item">Assigned Assets</a>
+                        </li>
                     </ul>
                 </li>
                 <!-- KV menu -->
