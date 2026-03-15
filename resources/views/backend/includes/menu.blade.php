@@ -124,6 +124,9 @@
                         <li class="slide">
                             <a href="{{ route('key-visual-files.index') }}" class="side-menu__item">Key Visual Files</a>
                         </li>
+                        <li class="slide">
+                            <a href="{{ route('key-visuals.assign-kvs') }}" class="side-menu__item">Assign KV</a>
+                        </li>
                     </ul>
                 </li>
                 <!-- End::slide -->

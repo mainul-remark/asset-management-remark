@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\UsersController;
 use App\Http\Controllers\Backend\KV\KeyVisualController;
 use App\Http\Controllers\Backend\KV\KeyVisualSizesController;
 use App\Http\Controllers\Backend\KV\KeyVisualFilesController;
+use App\Http\Controllers\Backend\Asset\AssignKvToAssetController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -52,7 +53,13 @@ Route::middleware([
         Route::get('/assign-assets', [AssetController::class, 'assignAssets'])->name('assets.assign-assets');
     });
     Route::prefix('kv')->group(function () {
-        Route::get('/assign-kv', [KeyVisualController::class, 'assignKvs'])->name('key-visuals.assign-kvs');
+        Route::get('/assign-kv-to-asset', [AssignKvToAssetController::class, 'index'])->name('key-visuals.assign-kvs');
+        Route::post('/assign-kv-to-asset', [AssignKvToAssetController::class, 'store'])->name('key-visuals.assign-kvs.store');
+        Route::get('/assign-kv-to-asset/filter', [AssignKvToAssetController::class, 'filter'])->name('key-visuals.assign-kvs.filter');
+        Route::get('/assign-kv-to-asset/stores/{store}/assets', [AssignKvToAssetController::class, 'storeAssets'])->name('key-visuals.assign-kvs.store-assets');
+        Route::get('/assign-kv-to-asset/{assignKvToAsset}/edit', [AssignKvToAssetController::class, 'edit'])->name('key-visuals.assign-kvs.edit');
+        Route::put('/assign-kv-to-asset/{assignKvToAsset}', [AssignKvToAssetController::class, 'update'])->name('key-visuals.assign-kvs.update');
+        Route::delete('/assign-kv-to-asset/{assignKvToAsset}', [AssignKvToAssetController::class, 'destroy'])->name('key-visuals.assign-kvs.destroy');
     });
 
     Route::get('key-visualsx', [KeyVisualController::class, 'old']);
@@ -75,6 +82,7 @@ Route::middleware([
 });
 
 Route::get('/phpinfo', function () {return phpinfo();});
+Route::get('/optimize-clear', function () {return \Mainul\CustomHelperFunctions\Helpers\CustomHelper::optimizeClear();});
 
 //Route::get('/store-sync', function (){
 //    $locationDbStores = \Illuminate\Support\Facades\DB::connection('location_db')

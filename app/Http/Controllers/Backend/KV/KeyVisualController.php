@@ -143,8 +143,4 @@ class KeyVisualController extends Controller
             ->toArray();
     }
 
-    public function assignKvs(Request $request)
-    {
-        return CustomHelper::returnDataForWebOrApi();
-    }
 }

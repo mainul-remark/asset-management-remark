@@ -14,7 +14,7 @@ return new class extends Migration {
             $table->bigIncrements('id');
             $table->unsignedBigInteger('asset_type_id');
             $table->string('name');
-            $table->string('default_image');
+            $table->string('default_image')->nullable();
             $table->unsignedBigInteger('store_id')->nullable();
             $table->string('asset_code')->unique();
             $table->tinyInteger('has_kv_slot')->nullable();

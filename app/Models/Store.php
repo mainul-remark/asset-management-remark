@@ -123,4 +123,14 @@ class Store extends Model
     {
         return $this->belongsTo(Thana::class);
     }
+
+    public function assets()
+    {
+        return $this->hasMany(Asset::class);
+    }
+
+    public function assignAssetToStores()
+    {
+        return $this->hasMany(AssignAssetToStore::class);
+    }
 }
