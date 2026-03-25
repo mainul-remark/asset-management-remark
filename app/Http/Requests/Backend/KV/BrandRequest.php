@@ -36,6 +36,7 @@ class BrandRequest extends FormRequest
             'code'        => ['required', 'string', 'min:2', 'max:3', 'alpha', $codeRule],
             'description' => 'nullable|string|max:1000',
             'status'      => 'required|in:0,1',
+            'is_common'   => 'nullable|in:0,1',
             'logo'        => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
         ];
     }

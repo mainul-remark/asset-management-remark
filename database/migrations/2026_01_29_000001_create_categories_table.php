@@ -17,7 +17,11 @@ return new class extends Migration {
             $table->string('code')->nullable();
             $table->text('description')->nullable();
             $table->tinyInteger('status')->nullable();
-
+            $table
+                ->tinyInteger('is_common')
+                ->default(0)
+                ->nullable();
+            $table->unsignedBigInteger('created_by');
             $table->timestamps();
             $table->softDeletes();
         });

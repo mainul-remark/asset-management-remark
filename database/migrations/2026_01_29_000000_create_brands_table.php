@@ -20,7 +20,10 @@ return new class extends Migration {
                 ->default(1)
                 ->nullable();
             $table->text('logo')->nullable();
-
+            $table
+                ->tinyInteger('is_common')
+                ->default(0)
+                ->nullable();
             $table->timestamps();
             $table->softDeletes();
         });

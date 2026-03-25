@@ -23,7 +23,9 @@
                                         <th>Logo</th>
                                         <th>Code</th>
                                         <th>Description</th>
-                                        <th>Status</th>
+{{--                                        <th>Common</th>--}}
+{{--                                        <th>Status</th>--}}
+                                        <th>Info</th>
                                         <th>Action</th>
                                     </tr>
                                 </thead>
@@ -41,12 +43,25 @@
                                         </td>
                                         <td><span class="badge bg-primary-transparent">{{ $brand->code }}</span></td>
                                         <td class="text-wrap">{{ \Str::limit($brand->description, 50) }}</td>
+{{--                                        <td>--}}
+{{--                                            @if($brand->is_common)--}}
+{{--                                                <span class="badge bg-outline-success">Yes</span>--}}
+{{--                                            @else--}}
+{{--                                                <span class="badge bg-outline-secondary">No</span>--}}
+{{--                                            @endif--}}
+{{--                                        </td>--}}
                                         <td>
                                             @if($brand->status == 1)
                                                 <span class="badge bg-outline-success">Published</span>
                                             @else
                                                 <span class="badge bg-outline-danger">Unpublished</span>
                                             @endif
+
+                                                @if($brand->is_common)
+                                                    <span class="badge bg-outline-success">Common</span>
+                                                @else
+                                                    <span class="badge bg-outline-secondary">Not Common</span>
+                                                @endif
                                         </td>
                                         <td>
                                             <div class="btn-list">
@@ -105,16 +120,32 @@
                                 </div>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label d-block">Status</label>
-                                <div class="toggle-switch">
-                                    <label class="switch">
-                                        <input type="checkbox" id="status-switch" checked>
-                                        <span class="slider round"></span>
-                                    </label>
-                                    <span class="ms-2" id="status-label">Published</span>
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <label class="form-label d-block">Is Common</label>
+                                        <div class="toggle-switch">
+                                            <label class="switch">
+                                                <input type="checkbox" id="common-switch" >
+                                                <span class="slider round"></span>
+                                            </label>
+                                            <span class="ms-2" id="status-label">Published</span>
+                                        </div>
+                                        <input type="hidden" id="isCommon" name="is_common" value="0">
+                                        <div class="invalid-feedback" id="error-status"></div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label d-block">Status</label>
+                                        <div class="toggle-switch">
+                                            <label class="switch">
+                                                <input type="checkbox" id="status-switch" checked>
+                                                <span class="slider round"></span>
+                                            </label>
+                                            <span class="ms-2" id="status-label">Published</span>
+                                        </div>
+                                        <input type="hidden" id="status" name="status" value="1">
+                                        <div class="invalid-feedback" id="error-status"></div>
+                                    </div>
                                 </div>
-                                <input type="hidden" id="status" name="status" value="1">
-                                <div class="invalid-feedback" id="error-status"></div>
                             </div>
                         </div>
                         <div class="modal-footer">
@@ -145,6 +176,7 @@
                         <tr><th width="30%">Name</th><td id="view-name"></td></tr>
                         <tr><th>Code</th><td id="view-code"></td></tr>
                         <tr><th>Description</th><td id="view-description"></td></tr>
+                        <tr><th>Is Common</th><td id="view-is-common"></td></tr>
                         <tr><th>Status</th><td id="view-status"></td></tr>
 {{--                        <tr><th>Created</th><td id="view-created"></td></tr>--}}
                     </table>
@@ -251,6 +283,8 @@
                 $('#description').val(data.description);
                 $('#status').val(data.status);
                 $('#status-switch').prop('checked', data.status == 1).trigger('change');
+                $('#isCommon').val(data.is_common);
+                $('#common-switch').prop('checked', data.is_common == 1).trigger('change');
                 if (data.logo) {
                     $('#logo-preview').removeClass('d-none').find('img').attr('src', base_url + data.logo);
                 }
@@ -266,6 +300,9 @@
                 $('#view-name').text(data.name);
                 $('#view-code').text(data.code);
                 $('#view-description').text(data.description || '—');
+                $('#view-is-common').html(data.is_common == 1
+                    ? '<span class="badge bg-success-transparent">Yes</span>'
+                    : '<span class="badge bg-secondary-transparent">No</span>');
                 $('#view-status').html(data.status == 1
                     ? '<span class="badge bg-success-transparent">Published</span>'
                     : '<span class="badge bg-danger-transparent">Unpublished</span>');
@@ -389,6 +426,11 @@
             credits: false,
         });
 
+        // Common switch toggle
+        $('#common-switch').on('change', function () {
+            $('#isCommon').val($(this).is(':checked') ? '1' : '0');
+        });
+
         // Status switch toggle
         $('#status-switch').on('change', function () {
             const isChecked = $(this).is(':checked');
@@ -401,6 +443,7 @@
             $('#brand_id').val('');
             $('#logo-preview').addClass('d-none');
             pond.removeFiles();
+            $('#common-switch').prop('checked', false).trigger('change');
             $('#status-switch').prop('checked', true).trigger('change');
             clearErrors();
         }

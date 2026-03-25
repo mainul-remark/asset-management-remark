@@ -14,7 +14,7 @@ class Brand extends Model
     use Searchable;
     use SoftDeletes;
 
-    protected $fillable = ['name', 'code', 'description', 'status', 'logo'];
+    protected $fillable = ['name', 'code', 'description', 'status', 'logo', 'is_common'];
 
     protected $searchableFields = ['*'];
 
@@ -22,7 +22,8 @@ class Brand extends Model
     {
         $data = $request->validated();
         $data['code'] = strtoupper($data['code']);
-        $data['status'] = $request->boolean('status') ? 1 : 0;
+        $data['status']    = $request->boolean('status') ? 1 : 0;
+        $data['is_common'] = $request->boolean('is_common') ? 1 : 0;
 
         if ($request->hasFile('logo')) {
             $data['logo'] = CustomHelper::fileUpload(
