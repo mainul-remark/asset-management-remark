@@ -132,6 +132,16 @@ class AssetController extends Controller
 
     public function assignAssetsFilter(Request $request)
     {
+        $request->validate([
+            'division_id'   => 'nullable|exists:divisions,id',
+            'district_id'   => 'nullable|exists:districts,id',
+            'store_id'      => 'nullable|exists:stores,id',
+            'asset_type_id' => 'nullable|exists:asset_types,id',
+            'asset_id'      => 'nullable|exists:assets,id',
+            'assigned_from' => 'nullable|date',
+            'assigned_to'   => 'nullable|date|after_or_equal:assigned_from',
+        ]);
+
         $query = AssignAssetToStore::with([
             'asset:id,name,asset_code,asset_type_id,asset_price,status',
             'asset.assetType:id,name',
@@ -155,6 +165,12 @@ class AssetController extends Controller
         }
         if ($request->filled('asset_id')) {
             $query->where('asset_id', $request->asset_id);
+        }
+        if ($request->filled('assigned_from')) {
+            $query->whereDate('assign_date', '>=', $request->assigned_from);
+        }
+        if ($request->filled('assigned_to')) {
+            $query->whereDate('assign_date', '<=', $request->assigned_to);
         }
 
         return response()->json($query->latest()->get());

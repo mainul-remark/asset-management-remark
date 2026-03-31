@@ -327,6 +327,36 @@
                         <span class="badge bg-primary-transparent" id="assignAssetToStoreCount">0 assigned assets</span>
                     </div>
 
+                    <div class="border rounded-3 p-3 mb-3 bg-light">
+                        <div class="row g-3 align-items-end">
+                            <div class="col-12 col-md-4">
+                                <label class="form-label fw-semibold mb-1" for="assignAssetFilterCategory">Category</label>
+                                <select class="form-select form-select-sm" id="assignAssetFilterCategory">
+                                    <option value="">All Categories</option>
+                                    @foreach($assetTypes as $assetType)
+                                        <option value="{{ $assetType->id }}">{{ $assetType->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-12 col-md-3">
+                                <label class="form-label fw-semibold mb-1" for="assignAssetFilterFrom">Assigned From</label>
+                                <input type="date" class="form-control form-control-sm" id="assignAssetFilterFrom">
+                            </div>
+                            <div class="col-12 col-md-3">
+                                <label class="form-label fw-semibold mb-1" for="assignAssetFilterTo">Assigned To</label>
+                                <input type="date" class="form-control form-control-sm" id="assignAssetFilterTo">
+                            </div>
+                            <div class="col-12 col-md-2 d-flex gap-2">
+                                <button type="button" class="btn btn-primary btn-sm w-100" id="assignAssetFilterSubmit">
+                                    <i class="bi bi-funnel me-1"></i>Filter
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm" id="assignAssetFilterReset" title="Reset filters">
+                                    <i class="bi bi-arrow-clockwise"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
                     <div id="assignAssetToStoreLoading" class="text-center py-5 d-none">
                         <div class="spinner-border text-primary" role="status"></div>
                         <div class="mt-2 text-muted">Loading assigned assets...</div>
@@ -335,7 +365,7 @@
                     <div id="assignAssetToStoreEmpty" class="text-center py-5 d-none">
                         <i class="bi bi-inbox fs-2 d-block mb-2 text-muted"></i>
                         <div class="fw-semibold">No assigned assets found</div>
-                        <small class="text-muted">This store does not have any assigned asset records yet.</small>
+                        <small class="text-muted" id="assignAssetToStoreEmptyText">This store does not have any assigned asset records yet.</small>
                     </div>
 
                     <div class="table-responsive d-none" id="assignAssetToStoreTableWrap">
@@ -1727,6 +1757,7 @@
     <script>
         const assignAssetsFilterUrl = @json(route('assets.assign-assets.filter'));
         let assignedStoreAssetsTable = null;
+        let activeAssignAssetStore = null;
 
         function resetAssignedStoreAssetsTable() {
             if ($.fn.DataTable.isDataTable('#assignedStoreAssetsTable')) {
@@ -1741,6 +1772,41 @@
             $('#assignAssetToStoreLoading').toggleClass('d-none', state !== 'loading');
             $('#assignAssetToStoreEmpty').toggleClass('d-none', state !== 'empty');
             $('#assignAssetToStoreTableWrap').toggleClass('d-none', state !== 'table');
+        }
+
+        function getAssignedStoreFilterParams() {
+            const params = {
+                store_id: activeAssignAssetStore?.id || ''
+            };
+
+            const assetTypeId = $('#assignAssetFilterCategory').val();
+            const assignedFrom = $('#assignAssetFilterFrom').val();
+            const assignedTo = $('#assignAssetFilterTo').val();
+
+            if (assetTypeId) {
+                params.asset_type_id = assetTypeId;
+            }
+
+            if (assignedFrom) {
+                params.assigned_from = assignedFrom;
+            }
+
+            if (assignedTo) {
+                params.assigned_to = assignedTo;
+            }
+
+            return params;
+        }
+
+        function resetAssignedStoreFilters() {
+            $('#assignAssetFilterCategory').val('');
+            $('#assignAssetFilterFrom').val('');
+            $('#assignAssetFilterTo').val('');
+        }
+
+        function setAssignedStoreFilterLoading(isLoading) {
+            $('#assignAssetFilterSubmit').prop('disabled', isLoading);
+            $('#assignAssetFilterReset').prop('disabled', isLoading);
         }
 
         function formatAssignedAssetDate(value) {
@@ -1812,6 +1878,64 @@
             toggleAssignedStoreAssetsState('table');
         }
 
+        function loadAssignedStoreAssets() {
+            if (!activeAssignAssetStore?.id) {
+                return;
+            }
+
+            const assignedFrom = $('#assignAssetFilterFrom').val();
+            const assignedTo = $('#assignAssetFilterTo').val();
+
+            if (assignedFrom && assignedTo && assignedFrom > assignedTo) {
+                toastr.error('Assigned from date must be before or equal to assigned to date.');
+                return;
+            }
+
+            resetAssignedStoreAssetsTable();
+            toggleAssignedStoreAssetsState('loading');
+            $('#assignAssetToStoreSummary').text(`Loading assigned assets for ${activeAssignAssetStore.name}...`);
+            $('#assignAssetToStoreCount').text('Loading...');
+            setAssignedStoreFilterLoading(true);
+
+            $.ajax({
+                url: assignAssetsFilterUrl,
+                type: 'GET',
+                data: getAssignedStoreFilterParams(),
+                success: function (response) {
+                    const items = Array.isArray(response) ? response : [];
+
+                    $('#assignAssetToStoreSummary').text(
+                        items.length
+                            ? `Assigned assets currently linked to ${activeAssignAssetStore.name}.`
+                            : `No assigned assets matched the selected filters for ${activeAssignAssetStore.name}.`
+                    );
+
+                    if (!items.length) {
+                        $('#assignAssetToStoreCount').text('0 assigned assets');
+                        $('#assignAssetToStoreEmptyText').text('Try a different category or widen the assigned date range.');
+                        toggleAssignedStoreAssetsState('empty');
+                        return;
+                    }
+
+                    renderAssignedStoreAssetsTable(items);
+                },
+                error: function (xhr) {
+                    const message = xhr.status === 422
+                        ? xhr.responseJSON?.message || 'The selected filter values are not valid.'
+                        : 'Failed to load assigned assets.';
+
+                    $('#assignAssetToStoreSummary').text(`Failed to load assigned assets for ${activeAssignAssetStore.name}.`);
+                    $('#assignAssetToStoreCount').text('0 assigned assets');
+                    $('#assignAssetToStoreEmptyText').text('Please adjust the filters and try again.');
+                    toggleAssignedStoreAssetsState('empty');
+                    toastr.error(message);
+                },
+                complete: function () {
+                    setAssignedStoreFilterLoading(false);
+                }
+            });
+        }
+
         $('#assignAssetToStoreModal').on('hidden.bs.modal', function () {
             resetAssignedStoreAssetsTable();
             toggleAssignedStoreAssetsState('empty');
@@ -1819,6 +1943,9 @@
             $('#assignAssetToStoreModalSubtitle').text('Assigned assets for the selected store.');
             $('#assignAssetToStoreSummary').text('Choose a store to view assigned assets.');
             $('#assignAssetToStoreCount').text('0 assigned assets');
+            $('#assignAssetToStoreEmptyText').text('This store does not have any assigned asset records yet.');
+            activeAssignAssetStore = null;
+            resetAssignedStoreFilters();
         });
 
         $('#assignAssetToStoreModal').on('shown.bs.modal', function () {
@@ -1827,48 +1954,33 @@
             }
         });
 
+        $('#assignAssetFilterSubmit').on('click', function () {
+            loadAssignedStoreAssets();
+        });
+
+        $('#assignAssetFilterReset').on('click', function () {
+            resetAssignedStoreFilters();
+            loadAssignedStoreAssets();
+        });
+
         $(document).on('click', '.open-assign-asset-to-store-mdoal', function () {
             const storeId = $(this).data('id');
             const $row = $(this).closest('tr');
             const storeName = $row.find('.store-name').first().text().trim() || `Store #${storeId}`;
             const storeCode = $row.find('.store-id').first().text().replace('ID:', '').trim();
 
-            resetAssignedStoreAssetsTable();
-            toggleAssignedStoreAssetsState('loading');
+            activeAssignAssetStore = {
+                id: storeId,
+                name: storeName,
+                code: storeCode
+            };
+
+            resetAssignedStoreFilters();
             $('#assignAssetToStoreModalTitle').text(storeName);
             $('#assignAssetToStoreModalSubtitle').text(storeCode ? `Store code: ${storeCode}` : `Store ID: ${storeId}`);
-            $('#assignAssetToStoreSummary').text('Loading assigned assets for this store...');
-            $('#assignAssetToStoreCount').text('Loading...');
+            $('#assignAssetToStoreEmptyText').text('This store does not have any assigned asset records yet.');
             $('#assignAssetToStoreModal').modal('show');
-
-            $.ajax({
-                url: assignAssetsFilterUrl,
-                type: 'GET',
-                data: { store_id: storeId },
-                success: function (response) {
-                    const items = Array.isArray(response) ? response : [];
-
-                    $('#assignAssetToStoreSummary').text(
-                        items.length
-                            ? `Assigned assets currently linked to ${storeName}.`
-                            : `No assigned assets are currently linked to ${storeName}.`
-                    );
-
-                    if (!items.length) {
-                        $('#assignAssetToStoreCount').text('0 assigned assets');
-                        toggleAssignedStoreAssetsState('empty');
-                        return;
-                    }
-
-                    renderAssignedStoreAssetsTable(items);
-                },
-                error: function () {
-                    $('#assignAssetToStoreSummary').text('Failed to load assigned assets for this store.');
-                    $('#assignAssetToStoreCount').text('0 assigned assets');
-                    toggleAssignedStoreAssetsState('empty');
-                    toastr.error('Failed to load assigned assets.');
-                }
-            });
-        })
+            loadAssignedStoreAssets();
+        });
     </script>
 @endpush
