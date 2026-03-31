@@ -3,7 +3,8 @@
 namespace Database\Factories;
 
 use App\Models\Asset;
-use Illuminate\Support\Str;
+use App\Models\AssetType;
+use App\Models\Store;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class AssetFactory extends Factory
@@ -22,20 +23,30 @@ class AssetFactory extends Factory
      */
     public function definition(): array
     {
+        static $assetTypeIds = null;
+        static $storeIds = null;
+
+        $assetTypeIds ??= AssetType::query()->pluck('id')->all();
+        $storeIds ??= Store::query()->pluck('id')->all();
+        $hasSelf = $this->faker->boolean();
+
         return [
-            'name' => $this->faker->name(),
-            'default_image' => $this->faker->text(255),
-            'asset_code' => $this->faker->unique->text(255),
-            'has_kv_slot' => $this->faker->numberBetween(0, 127),
-            'minimum_fee' => $this->faker->randomNumber(1),
-            'asset_price' => $this->faker->randomNumber(1),
-            'is_common_asset' => $this->faker->numberBetween(0, 127),
-            'planogram_pdf' => $this->faker->text(255),
-            'status' => $this->faker->numberBetween(0, 127),
-            'has_self' => $this->faker->numberBetween(0, 127),
-            'total_self' => $this->faker->numberBetween(0, 127),
-            'asset_type_id' => \App\Models\AssetType::factory(),
-            'store_id' => \App\Models\Store::factory(),
+            'asset_type_id' => $assetTypeIds !== []
+                ? $this->faker->randomElement($assetTypeIds)
+                : AssetType::factory(),
+            'name' => ucfirst($this->faker->words(3, true)),
+            'default_image' => null,
+            'store_id' => $storeIds !== []
+                ? $this->faker->randomElement($storeIds)
+                : Store::factory(),
+            'has_kv_slot' => (int) $this->faker->boolean(),
+            'minimum_fee' => $this->faker->randomFloat(2, 0, 5000),
+            'asset_price' => $this->faker->randomFloat(2, 100, 50000),
+            'is_common_asset' => 0,
+            'planogram_pdf' => null,
+            'status' => 1,
+            'has_self' => (int) $hasSelf,
+            'total_self' => $hasSelf ? $this->faker->numberBetween(1, 12) : null,
         ];
     }
 }

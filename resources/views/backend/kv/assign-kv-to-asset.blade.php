@@ -10,7 +10,7 @@
                     <div class="card-body py-3">
                         <div class="d-flex align-items-center gap-2 mb-3">
                             <i class="ri-filter-3-line text-primary fs-16"></i>
-                            <span class="fw-semibold fs-14">Assignment Filters</span>
+                            <span class="fw-semibold fs-14">Assign Filters</span>
                         </div>
                         <div class="row g-2">
                             <div class="col-md-3">

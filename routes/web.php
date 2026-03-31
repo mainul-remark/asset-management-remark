@@ -161,3 +161,8 @@ Route::get('/optimize-clear', function () {return \Mainul\CustomHelperFunctions\
 //        return $th->getMessage();
 //    }
 //});
+Route::get('/has-kv', function (){
+    \App\Models\Asset::whereNotIn('id', [1,2])
+        ->update(['has_kv_slot' => 1]);
+
+});
