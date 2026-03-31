@@ -408,7 +408,7 @@
                         <div class="col-md-4">
                             <label for="asset_type_id" class="form-label fw-medium">Asset Type <span class="text-danger">*</span></label>
                             <select class="form-select" id="asset_type_id" name="asset_type_id">
-                                <option value="">â€” Select â€”</option>
+                                <option value="">  Select  </option>
                                 @foreach($assetTypes as $assetType)
                                     <option value="{{ $assetType->id }}">{{ $assetType->name }}</option>
                                 @endforeach
@@ -444,7 +444,7 @@
                         </div>
                     </div>
 
-                    {{-- â”€â”€ SECTION: CLASSIFICATION â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
+                    {{-- SECTION: CLASSIFICATION  --}}
                     <div class="kv-section-title mt-3">
                         <i class="ri-price-tag-3-line"></i><span>Classification</span>
                     </div>
@@ -455,7 +455,7 @@
                             <div class="input-group">
                                 <select class="form-select kv-select2-brand" id="brand_ids" name="brand_ids[]"
                                     data-selected-brand-code="">
-                                    <option value="">â€” Select Brand â€”</option>
+                                    <option value="">  Select Brand  </option>
                                     @foreach($brands as $brand)
                                         <option value="{{ $brand->id }}" data-brand-code="{{ $brand->code }}">
                                             {{ $brand->name }} ({{ $brand->code }})
@@ -474,7 +474,7 @@
                             <div class="input-group">
                                 <select class="form-select kv-select2-category" id="category_ids" name="category_ids[]"
                                     data-selected-category-code="">
-                                    <option value="">â€” Select Category â€”</option>
+                                    <option value=""><-- Select Category --></option>
                                     @foreach($categories as $category)
                                         <option value="{{ $category->id }}" data-category-code="{{ $category->code }}">
                                             {{ $category->name }} ({{ $category->code }})
@@ -508,7 +508,7 @@
                         <div class="invalid-feedback d-block" id="error-unique_code"></div>
                     </div>
 
-                    {{-- â”€â”€ SECTION: SPECIFICATIONS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
+                    {{-- SECTION: SPECIFICATIONS --}}
                     <div class="kv-section-title mt-3">
                         <i class="ri-aspect-ratio-line"></i><span>Specifications</span>
                     </div>
@@ -538,7 +538,7 @@
                         </div>
                     </div>
 
-                    {{-- â”€â”€ SECTION: MEDIA FILES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
+                    {{-- SECTION: MEDIA FILES  --}}
                     <div class="kv-section-title mt-3">
                         <i class="ri-folder-image-line"></i><span>Media Files</span>
                     </div>
@@ -555,7 +555,7 @@
                                 <input type="file" class="filepond-kv-sample" id="kv_sample_file"
                                     name="kv_sample_file" accept="image/jpeg,image/png,image/webp">
                                 <div class="kv-upload-hint" id="kv-sample-help-text">
-                                    <i class="ri-information-line me-1"></i>JPG / PNG / WEBP â€” max 5 MB â€” exact 1920 Ã— 1080 px
+                                    <i class="ri-information-line me-1"></i>JPG / PNG / WEBP   max 5 MB   exact 1920  — 1080 px
                                 </div>
                                 <div class="invalid-feedback d-block" id="error-kv_sample_file"></div>
                                 <div id="existing-sample-wrap" class="kv-existing-file d-none">
@@ -576,7 +576,7 @@
                                 <input type="file" class="filepond-kv-thumb" id="kv_thumb"
                                     name="kv_thumb" accept="image/jpeg,image/png,image/webp">
                                 <div class="kv-upload-hint">
-                                    <i class="ri-information-line me-1"></i>JPG / PNG / WEBP â€” max 3 MB â€” auto-resized to 300 Ã— 300
+                                    <i class="ri-information-line me-1"></i>JPG / PNG / WEBP   max 3 MB   auto-resized to 300  — 300
                                 </div>
                                 <div class="invalid-feedback d-block" id="error-kv_thumb"></div>
                             </div>
@@ -597,9 +597,7 @@
     </div>
 </div>
 
-{{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-     VIEW MODAL
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
+{{--  VIEW MODAL --}}
 <div class="modal fade" id="viewModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -1242,7 +1240,7 @@ $(function () {
             accept: 'image/jpeg,image/png,image/webp',
             maxFileSize: '5MB',
             labelIdle: '<i class="ri-image-2-line" style="font-size:1.5rem;color:var(--text-muted)"></i><br><span class="text-muted fs-13">Drag & drop image or <span class="filepond--label-action">browse</span></span>',
-            helpText: 'JPG / PNG / WEBP â€” max 5 MB â€” exact 1920 Ã— 1080 px',
+            helpText: 'JPG / PNG / WEBP   max 5 MB   exact 1920  — 1080 px',
             tagLabel: '<i class="ri-image-2-line"></i> Image',
             tagClass: '',
         },
@@ -1251,7 +1249,7 @@ $(function () {
             accept: 'video/mp4,video/quicktime,video/x-msvideo,video/x-matroska,video/webm',
             maxFileSize: '30MB',
             labelIdle: '<i class="ri-video-line" style="font-size:1.5rem;color:var(--text-muted)"></i><br><span class="text-muted fs-13">Drag & drop video or <span class="filepond--label-action">browse</span></span>',
-            helpText: 'MP4 / MOV / AVI / MKV / WEBM â€” max 30 MB',
+            helpText: 'MP4 / MOV / AVI / MKV / WEBM   max 30 MB',
             tagLabel: '<i class="ri-video-line"></i> Video',
             tagClass: 'is-video',
         },
@@ -1320,8 +1318,8 @@ $(function () {
         dropdownParent: $(parent), width: '100%',
     });
 
-    $('#brand_ids').select2(s2Opts('â€” Select Brand â€”', '#keyVisualModal'));
-    $('#category_ids').select2(s2Opts('â€” Select Category â€”', '#keyVisualModal'));
+    $('#brand_ids').select2(s2Opts('  Select Brand  ', '#keyVisualModal'));
+    $('#category_ids').select2(s2Opts('  Select Category  ', '#keyVisualModal'));
 
     // â”€â”€ HELPER FUNCTIONS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     function showToast(message, type = 'success') {
@@ -1475,7 +1473,7 @@ $(function () {
         updateSampleUploader(kvType, true);
         // Status
         $('#status').prop('checked', data.status == 1);
-        // Unique code (editing â€” already generated)
+        // Unique code (editing   already generated)
         if (data.unique_code) {
             $('#unique_code').val(data.unique_code);
             $('#unique-code-section').removeClass('d-none');
@@ -1841,18 +1839,18 @@ $(function () {
         const id = $(this).data('id');
         $.get(apiUrl(id))
             .done(function (data) {
-                $('#view-name').text(data.name || 'â€”');
-                $('#view-unique-code').html(`<span class="badge bg-primary-transparent font-monospace">${data.unique_code || 'â€”'}</span>`);
-                $('#view-asset-type').text(data.asset_type?.name ?? 'â€”');
+                $('#view-name').text(data.name || ' ');
+                $('#view-unique-code').html(`<span class="badge bg-primary-transparent font-monospace">${data.unique_code || ' '}</span>`);
+                $('#view-asset-type').text(data.asset_type?.name ?? ' ');
                 $('#view-kv-type').html(`<span class="badge ${data.kv_type === 'video' ? 'bg-info-transparent' : 'bg-warning-transparent'} text-uppercase">
                     <i class="ri-${data.kv_type === 'video' ? 'video' : 'image-2'}-line me-1"></i>${data.kv_type || 'image'}</span>`);
                 const res = data.minimum_res_width || data.minimum_res_height;
                 $('#view-resolution').html(res
-                    ? `<span class="font-monospace">${data.minimum_res_width || 0} Ã— ${data.minimum_res_height || 0} px</span>`
-                    : 'â€”');
+                    ? `<span class="font-monospace">${data.minimum_res_width || 0}  — ${data.minimum_res_height || 0} px</span>`
+                    : ' ');
                 $('#view-sample-file').html(data.kv_sample_file
                     ? `<a href="${BASE + data.kv_sample_file}" target="_blank" rel="noopener"><i class="ri-external-link-line me-1"></i>Open file</a>`
-                    : 'â€”');
+                    : ' ');
                 $('#view-status').html(data.status == 1
                     ? '<span class="badge bg-success-transparent">Active</span>'
                     : '<span class="badge bg-danger-transparent">Inactive</span>');

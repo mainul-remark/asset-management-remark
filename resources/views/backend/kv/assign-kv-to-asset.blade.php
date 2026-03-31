@@ -12,7 +12,7 @@
                             <i class="ri-filter-3-line text-primary fs-16"></i>
                             <span class="fw-semibold fs-14">Assign Filters</span>
                         </div>
-                        <div class="row g-2">
+                        <div class="row g-2">com1
                             <div class="col-md-3">
                                 <label for="filter-division" class="form-label fs-12 mb-1">Division</label>
                                 <select id="filter-division" class="form-select form-select-sm select-ele">
@@ -134,7 +134,7 @@
             <div class="modal-content">
                 <div class="modal-header border-bottom-0 pb-0">
                     <div>
-                        <h5 class="modal-title fw-semibold" id="assignmentModalLabel">Add KV Assignment</h5>
+                        <h5 class="modal-title fw-semibold" id="assignmentModalLabel">KV Assignment</h5>
                         <p class="text-muted fs-12 mb-0">Link a key visual file to a store asset</p>
                     </div>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -196,15 +196,15 @@
                             </div>
                             <div class="section-card-body">
                                 <div class="row g-3">
-                                    <div class="col-md-4">
-                                        <label for="modal-asset-type" class="form-label">Asset Category</label>
-                                        <select id="modal-asset-type" class="form-select select-ele">
-                                            <option value="">All Categories</option>
-                                            @foreach($assetTypes as $assetType)
-                                                <option value="{{ $assetType->id }}">{{ $assetType->name }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
+{{--                                    <div class="col-md-4">--}}
+{{--                                        <label for="modal-asset-type" class="form-label">Asset Category</label>--}}
+{{--                                        <select id="modal-asset-type" class="form-select select-ele">--}}
+{{--                                            <option value="">All Categories</option>--}}
+{{--                                            @foreach($assetTypes as $assetType)--}}
+{{--                                                <option value="{{ $assetType->id }}">{{ $assetType->name }}</option>--}}
+{{--                                            @endforeach--}}
+{{--                                        </select>--}}
+{{--                                    </div>--}}
                                     <div class="col-md-4">
                                         <label for="modal-brand" class="form-label">Brand</label>
                                         <select id="modal-brand" class="form-select select-ele">
@@ -215,7 +215,7 @@
                                         </select>
                                     </div>
                                     <div class="col-md-4">
-                                        <label for="modal-category" class="form-label">Category</label>
+                                        <label for="modal-category" class="form-label">KV Category</label>
                                         <select id="modal-category" class="form-select select-ele">
                                             <option value="">All Categories</option>
                                             @foreach($categories as $category)
@@ -232,6 +232,11 @@
                                         <label for="modal-key-visual-file" class="form-label">Key Visual File <span class="text-danger">*</span></label>
                                         <select id="modal-key-visual-file" class="form-select select-ele" name="key_visual_files_id"></select>
                                         <div class="invalid-feedback" id="error-key_visual_files_id"></div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="modal-key-visual-size" class="form-label">Key Visual Sizes <span class="text-danger">*</span></label>
+                                        <select id="modal-key-visual-size" class="form-select select-ele" name="key_visual_size_id"></select>
+                                        <div class="invalid-feedback" id="error-key_visual_size_id"></div>
                                     </div>
                                 </div>
                             </div>
