@@ -199,13 +199,15 @@
                                         @endif
                                     </td>
                                     <td>
-                                        <a href="{{ route('assets.assign-assets') }}" class="btn-action " data-id="{{ $store->id }}" title="View"><i class="bi bi-check"></i></a>
+                                        <a href="javascript:void(0)" class="btn-action open-assign-asset-to-store-mdoal" data-id="{{ $store->id }}" title="Assigned Assets"><i class="bi bi-cassette"></i></a>
+{{--                                        <a href="{{ route('assets.assign-assets') }}" class="btn-action open-assign-asset-to-store-mdoal" data-id="{{ $store->id }}" title="View"><i class="bi bi-check"></i></a>--}}
                                         <button class="btn-action btn-view" data-id="{{ $store->id }}" title="View"><i class="bi bi-eye"></i></button>
                                         <button class="btn-action btn-edit" data-id="{{ $store->id }}" title="Edit"><i class="bi bi-pencil-square"></i></button>
                                         <button class="btn-action text-danger btn-delete" data-id="{{ $store->id }}" data-name="{{ $store->title }}" title="Delete"><i class="bi bi-trash"></i></button>
                                     </td>
                                 </tr>
                             @endforeach
+
                             </tbody>
                         </table>
                     </div>
@@ -308,6 +310,57 @@
 @endsection
 
 @section('modal')
+{{--    assign assets to store management--}}
+    <div class="modal fade" id="assignAssetToStoreModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div>
+                        <h5 class="modal-title mb-1" id="assignAssetToStoreModalTitle">Store Assets</h5>
+                        <small class="text-muted" id="assignAssetToStoreModalSubtitle">Assigned assets for the selected store.</small>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                        <div class="text-muted small" id="assignAssetToStoreSummary">Choose a store to view assigned assets.</div>
+                        <span class="badge bg-primary-transparent" id="assignAssetToStoreCount">0 assigned assets</span>
+                    </div>
+
+                    <div id="assignAssetToStoreLoading" class="text-center py-5 d-none">
+                        <div class="spinner-border text-primary" role="status"></div>
+                        <div class="mt-2 text-muted">Loading assigned assets...</div>
+                    </div>
+
+                    <div id="assignAssetToStoreEmpty" class="text-center py-5 d-none">
+                        <i class="bi bi-inbox fs-2 d-block mb-2 text-muted"></i>
+                        <div class="fw-semibold">No assigned assets found</div>
+                        <small class="text-muted">This store does not have any assigned asset records yet.</small>
+                    </div>
+
+                    <div class="table-responsive d-none" id="assignAssetToStoreTableWrap">
+                        <table class="table table-bordered align-middle text-nowrap w-100 mb-0" id="assignedStoreAssetsTable">
+                            <thead>
+                            <tr>
+                                <th width="60">SL</th>
+                                <th>Asset</th>
+                                <th>Asset Code</th>
+                                <th>Category</th>
+                                <th>Assign Date</th>
+                                <th>Assigned By</th>
+                            </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     {{-- Create / Edit Modal --}}
     <div class="modal fade" id="storeModal" >
         <div class="modal-dialog modal-dialog-centered modal-lg ">
@@ -1669,5 +1722,153 @@
             });
         })();
     });
+    </script>
+
+    <script>
+        const assignAssetsFilterUrl = @json(route('assets.assign-assets.filter'));
+        let assignedStoreAssetsTable = null;
+
+        function resetAssignedStoreAssetsTable() {
+            if ($.fn.DataTable.isDataTable('#assignedStoreAssetsTable')) {
+                $('#assignedStoreAssetsTable').DataTable().clear().destroy();
+            }
+
+            $('#assignedStoreAssetsTable tbody').empty();
+            assignedStoreAssetsTable = null;
+        }
+
+        function toggleAssignedStoreAssetsState(state) {
+            $('#assignAssetToStoreLoading').toggleClass('d-none', state !== 'loading');
+            $('#assignAssetToStoreEmpty').toggleClass('d-none', state !== 'empty');
+            $('#assignAssetToStoreTableWrap').toggleClass('d-none', state !== 'table');
+        }
+
+        function formatAssignedAssetDate(value) {
+            if (!value) {
+                return '-';
+            }
+
+            const parsed = new Date(value);
+
+            if (Number.isNaN(parsed.getTime())) {
+                return value;
+            }
+
+            return parsed.toLocaleDateString('en-GB', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric'
+            });
+        }
+
+        function renderAssignedStoreAssetsTable(items) {
+            resetAssignedStoreAssetsTable();
+
+            const rows = items.map(function (item, index) {
+                const asset = item.asset || {};
+                const categoryName = asset.asset_type?.name || '-';
+                const assignedBy = item.assigned_by?.name || '-';
+
+                return `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>
+                            <div class="fw-semibold">${asset.name || '-'}</div>
+                        </td>
+                        <td>${asset.asset_code || '-'}</td>
+                        <td>${categoryName}</td>
+                        <td>${formatAssignedAssetDate(item.assign_date)}</td>
+                        <td>${assignedBy}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            $('#assignedStoreAssetsTable tbody').html(rows);
+
+            assignedStoreAssetsTable = $('#assignedStoreAssetsTable').DataTable({
+                dom: '<"d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3"<"text-muted"i><"d-flex align-items-center"f>>rt<"d-flex justify-content-between align-items-center mt-3"lp>',
+                pageLength: 10,
+                lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, 'All']],
+                order: [[1, 'asc']],
+                responsive: true,
+                language: {
+                    searchPlaceholder: 'Search assigned assets...',
+                    sSearch: '',
+                    info: 'Showing _START_ to _END_ of _TOTAL_ assigned assets',
+                    infoEmpty: 'No assigned assets found',
+                    zeroRecords: 'No matching assigned assets found',
+                    lengthMenu: 'Show _MENU_ entries',
+                    paginate: {
+                        previous: "<i class='bi bi-chevron-left'></i>",
+                        next: "<i class='bi bi-chevron-right'></i>"
+                    }
+                },
+                columnDefs: [
+                    { orderable: false, searchable: false, targets: 0 }
+                ]
+            });
+
+            $('#assignAssetToStoreCount').text(`${items.length} assigned asset${items.length === 1 ? '' : 's'}`);
+            toggleAssignedStoreAssetsState('table');
+        }
+
+        $('#assignAssetToStoreModal').on('hidden.bs.modal', function () {
+            resetAssignedStoreAssetsTable();
+            toggleAssignedStoreAssetsState('empty');
+            $('#assignAssetToStoreModalTitle').text('Store Assets');
+            $('#assignAssetToStoreModalSubtitle').text('Assigned assets for the selected store.');
+            $('#assignAssetToStoreSummary').text('Choose a store to view assigned assets.');
+            $('#assignAssetToStoreCount').text('0 assigned assets');
+        });
+
+        $('#assignAssetToStoreModal').on('shown.bs.modal', function () {
+            if (assignedStoreAssetsTable) {
+                assignedStoreAssetsTable.columns.adjust().responsive.recalc();
+            }
+        });
+
+        $(document).on('click', '.open-assign-asset-to-store-mdoal', function () {
+            const storeId = $(this).data('id');
+            const $row = $(this).closest('tr');
+            const storeName = $row.find('.store-name').first().text().trim() || `Store #${storeId}`;
+            const storeCode = $row.find('.store-id').first().text().replace('ID:', '').trim();
+
+            resetAssignedStoreAssetsTable();
+            toggleAssignedStoreAssetsState('loading');
+            $('#assignAssetToStoreModalTitle').text(storeName);
+            $('#assignAssetToStoreModalSubtitle').text(storeCode ? `Store code: ${storeCode}` : `Store ID: ${storeId}`);
+            $('#assignAssetToStoreSummary').text('Loading assigned assets for this store...');
+            $('#assignAssetToStoreCount').text('Loading...');
+            $('#assignAssetToStoreModal').modal('show');
+
+            $.ajax({
+                url: assignAssetsFilterUrl,
+                type: 'GET',
+                data: { store_id: storeId },
+                success: function (response) {
+                    const items = Array.isArray(response) ? response : [];
+
+                    $('#assignAssetToStoreSummary').text(
+                        items.length
+                            ? `Assigned assets currently linked to ${storeName}.`
+                            : `No assigned assets are currently linked to ${storeName}.`
+                    );
+
+                    if (!items.length) {
+                        $('#assignAssetToStoreCount').text('0 assigned assets');
+                        toggleAssignedStoreAssetsState('empty');
+                        return;
+                    }
+
+                    renderAssignedStoreAssetsTable(items);
+                },
+                error: function () {
+                    $('#assignAssetToStoreSummary').text('Failed to load assigned assets for this store.');
+                    $('#assignAssetToStoreCount').text('0 assigned assets');
+                    toggleAssignedStoreAssetsState('empty');
+                    toastr.error('Failed to load assigned assets.');
+                }
+            });
+        })
     </script>
 @endpush

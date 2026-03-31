@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Support\Carbon;
 use Mainul\CustomHelperFunctions\Helpers\CustomHelper;
+use RuntimeException;
 
 class AssignAssetToStore extends Model
 {
@@ -28,13 +29,19 @@ class AssignAssetToStore extends Model
 
     protected $table = 'assign_asset_to_stores';
 
-    public static function assignAssetsToStoreLog($asset)
+    public static function assignAssetsToStoreLog($asset, ?int $assignedByUserId = null)
     {
+        $assignedByUserId ??= CustomHelper::loggedUser()?->id ?? User::query()->value('id');
+
+        if (!$assignedByUserId) {
+            throw new RuntimeException('AssignAssetToStore logging requires an existing user.');
+        }
+
         return static::create([
             'asset_id'              => $asset->id,
             'store_id'              => $asset->store_id,
-            'assigned_by_user_id'   => CustomHelper::loggedUser()->id,
-            'assign_date'           => Carbon::now(),
+            'assigned_by_user_id'   => $assignedByUserId,
+            'assign_date'           => Carbon::now()->toDateString(),
             'asset_charge'          => 0,
         ]);
     }
