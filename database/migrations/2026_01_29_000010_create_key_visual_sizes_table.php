@@ -13,18 +13,15 @@ return new class extends Migration {
         Schema::create('key_visual_sizes', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->string('name')->nullable();
-            $table->decimal('height')->default(0);
-            $table->decimal('width');
+            $table->decimal('height', 12, 0)->default(0);
+            $table->decimal('width', 12, 0)->default(0);
             $table
                 ->enum('unit_name', ['px', 'in', 'ft', 'cm', 'mm', 'm', 'yd'])
                 ->default('px');
-            $table->longText('kv_file')->nullable();
-            $table->mediumInteger('kv_size')->default(0);
             $table
-                ->float('aspect_ratio')
-                ->default(0)
+                ->tinyInteger('status')
+                ->default(1)
                 ->nullable();
-            $table->tinyInteger('status');
 
             $table->timestamps();
         });

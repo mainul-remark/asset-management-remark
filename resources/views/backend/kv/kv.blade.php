@@ -45,7 +45,7 @@
                                     </td>
                                     <td class="fw-semibold">{{ $keyVisual->name }}</td>
                                     <td><span class="badge bg-primary-transparent font-monospace kv-code-badge">{{ $keyVisual->unique_code }}</span></td>
-                                    <td>{{ $keyVisual->assetType?->name ?? '—' }}</td>
+                                    <td>{{ $keyVisual->assetType?->name ?? 'N/A' }}</td>
                                     <td>
                                         <span class="badge {{ $keyVisual->kv_type === 'video' ? 'bg-info-transparent' : 'bg-warning-transparent' }} text-uppercase">
                                             <i class="ri-{{ $keyVisual->kv_type === 'video' ? 'video' : 'image-2' }}-line me-1"></i>{{ $keyVisual->kv_type ?? 'image' }}
@@ -53,9 +53,9 @@
                                     </td>
                                     <td>
                                         @if($keyVisual->minimum_res_width || $keyVisual->minimum_res_height)
-                                            <span class="text-muted fs-11 font-monospace">{{ $keyVisual->minimum_res_width ?? 0 }} × {{ $keyVisual->minimum_res_height ?? 0 }} px</span>
+                                            <span class="text-muted fs-11 font-monospace">{{ $keyVisual->minimum_res_width ?? 0 }} x {{ $keyVisual->minimum_res_height ?? 0 }} px</span>
                                         @else
-                                            <span class="text-muted">—</span>
+                                            <span class="text-muted fs-12">N/A</span>
                                         @endif
                                     </td>
                                     <td>
@@ -65,6 +65,10 @@
                                     </td>
                                     <td>
                                         <div class="btn-list">
+                                            <button class="btn btn-icon btn-sm btn-info-light btn-wave size-btn-view"
+                                                data-id="{{ $keyVisual->id }}" title="Size View">
+                                                <i class="ri-font-size"></i>
+                                            </button>
                                             <button class="btn btn-icon btn-sm btn-info-light btn-wave btn-view"
                                                 data-id="{{ $keyVisual->id }}" title="View">
                                                 <i class="ri-eye-line"></i>
@@ -106,7 +110,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
 
-            <form id="keyVisualForm" enctype="multipart/form-data">
+            <form id="keyVisualForm" enctype="multipart/form-data" style="display:flex;flex-direction:column;flex:1;overflow:hidden;min-height:0;">
                 @csrf
                 <input type="hidden" id="key_visual_id" name="_kv_id" value="">
 
@@ -127,7 +131,7 @@
                         <div class="col-md-4">
                             <label for="asset_type_id" class="form-label fw-medium">Asset Type <span class="text-danger">*</span></label>
                             <select class="form-select" id="asset_type_id" name="asset_type_id">
-                                <option value="">— Select —</option>
+                                <option value="">-- Select --</option>
                                 @foreach($assetTypes as $assetType)
                                     <option value="{{ $assetType->id }}">{{ $assetType->name }}</option>
                                 @endforeach
@@ -169,46 +173,41 @@
                     </div>
 
                     <div class="row g-3 mb-3">
-                        <div class="col-md-5">
-                            <label for="brand_ids" class="form-label fw-medium">Brand <span class="text-danger">*</span></label>
-                            <div class="input-group">
-                                <select class="form-select kv-select2-brand" id="brand_ids" name="brand_ids[]"
-                                    data-selected-brand-code="">
-                                    <option value="">— Select Brand —</option>
-                                    @foreach($brands as $brand)
-                                        <option value="{{ $brand->id }}" data-brand-code="{{ $brand->code }}">
-                                            {{ $brand->name }} ({{ $brand->code }})
-                                        </option>
-                                    @endforeach
-                                </select>
-                                <button type="button" class="btn btn-outline-secondary kv-open-brand-modal"
-                                    title="Create new brand">
-                                    <i class="ri-add-line"></i>
-                                </button>
+                        <div class="col-md-6">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <label for="brand_ids" class="form-label fw-medium mb-0">Brand <span class="text-danger">*</span></label>
+                                <a href="#" class="fs-12 text-primary kv-open-brand-modal">
+                                    <i class="ri-add-line"></i> Add new
+                                </a>
                             </div>
+                            <select class="form-select kv-select2-brand" id="brand_ids" name="brand_ids[]"
+                                data-selected-brand-code="">
+                                <option value=""></option>
+                                @foreach($brands as $brand)
+                                    <option value="{{ $brand->id }}" data-brand-code="{{ $brand->code }}">
+                                        {{ $brand->name }} ({{ $brand->code }})
+                                    </option>
+                                @endforeach
+                            </select>
                             <div class="invalid-feedback d-block" id="error-brand_ids"></div>
                         </div>
-                        <div class="col-md-5">
-                            <label for="category_ids" class="form-label fw-medium">Category <span class="text-danger">*</span></label>
-                            <div class="input-group">
-                                <select class="form-select kv-select2-category" id="category_ids" name="category_ids[]"
-                                    data-selected-category-code="">
-                                    <option value="">— Select Category —</option>
-                                    @foreach($categories as $category)
-                                        <option value="{{ $category->id }}" data-category-code="{{ $category->code }}">
-                                            {{ $category->name }} ({{ $category->code }})
-                                        </option>
-                                    @endforeach
-                                </select>
-                                <button type="button" class="btn btn-outline-secondary kv-open-category-modal"
-                                    title="Create new category">
-                                    <i class="ri-add-line"></i>
-                                </button>
+                        <div class="col-md-6">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <label for="category_ids" class="form-label fw-medium mb-0">Category <span class="text-danger">*</span></label>
+                                <a href="#" class="fs-12 text-primary kv-open-category-modal">
+                                    <i class="ri-add-line"></i> Add new
+                                </a>
                             </div>
+                            <select class="form-select kv-select2-category" id="category_ids" name="category_ids[]"
+                                data-selected-category-code="">
+                                <option value=""></option>
+                                @foreach($categories as $category)
+                                    <option value="{{ $category->id }}" data-category-code="{{ $category->code }}">
+                                        {{ $category->name }} ({{ $category->code }})
+                                    </option>
+                                @endforeach
+                            </select>
                             <div class="invalid-feedback d-block" id="error-category_ids"></div>
-                        </div>
-                        <div class="col-md-2 d-flex align-items-end" id="unique_code-row" style="display:none!important;">
-                            {{-- hidden placeholder for grid alignment; real code shown below --}}
                         </div>
                     </div>
 
@@ -274,7 +273,7 @@
                                 <input type="file" class="filepond-kv-sample" id="kv_sample_file"
                                     name="kv_sample_file" accept="image/jpeg,image/png,image/webp">
                                 <div class="kv-upload-hint" id="kv-sample-help-text">
-                                    <i class="ri-information-line me-1"></i>JPG / PNG / WEBP — max 5 MB — exact 1920 × 1080 px
+                                    <i class="ri-information-line me-1"></i>JPG / PNG / WEBP &mdash; max 5 MB &mdash; exact 1920 &times; 1080 px
                                 </div>
                                 <div class="invalid-feedback d-block" id="error-kv_sample_file"></div>
                                 <div id="existing-sample-wrap" class="kv-existing-file d-none">
@@ -295,7 +294,7 @@
                                 <input type="file" class="filepond-kv-thumb" id="kv_thumb"
                                     name="kv_thumb" accept="image/jpeg,image/png,image/webp">
                                 <div class="kv-upload-hint">
-                                    <i class="ri-information-line me-1"></i>JPG / PNG / WEBP — max 3 MB — auto-resized to 300 × 300
+                                    <i class="ri-information-line me-1"></i>JPG / PNG / WEBP &mdash; max 3 MB &mdash; auto-resized to 300 &times; 300
                                 </div>
                                 <div class="invalid-feedback d-block" id="error-kv_thumb"></div>
                             </div>
@@ -397,7 +396,7 @@
                 </h6>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form id="kvBrandForm" enctype="multipart/form-data">
+            <form id="kvBrandForm" enctype="multipart/form-data" style="display:flex;flex-direction:column;flex:1;overflow:hidden;min-height:0;">
                 @csrf
                 <div class="modal-body">
                     <div class="mb-3">
@@ -457,7 +456,7 @@
                 </h6>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form id="kvCategoryForm">
+            <form id="kvCategoryForm" style="display:flex;flex-direction:column;flex:1;overflow:hidden;min-height:0;">
                 @csrf
                 <div class="modal-body">
                     <div class="mb-3">
@@ -499,6 +498,36 @@
     </div>
 </div>
 
+{{-- ═══════════════════════════════════════════════════════
+     SHOW KV SIZES MODAL (child)
+══════════════════════════════════════════════════════════ --}}
+<div class="modal fade" id="KvSizesModal" >
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h6 class="modal-title fw-semibold" id="categoryModalLabel">
+                    <i class="ri-list-check-3 me-2 text-primary"></i>Show KV Available Sizes
+                </h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th></th>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @endsection
 
 @push('styles')
@@ -521,7 +550,15 @@
     background: var(--light);
 }
 .kv-code-badge { font-size: 0.75rem; letter-spacing: 0.04em; }
-.btn-list { display: flex; gap: 4px; }
+.btn-list { display: flex; gap: 3px; }
+.btn-list .btn-edit,
+.btn-list .btn-delete,
+.btn-list .btn-view,
+.btn-list .btn-sizes {
+    width: 26px; height: 26px; min-width: 26px;
+    padding: 0; font-size: 0.7rem;
+    display: inline-flex; align-items: center; justify-content: center;
+}
 
 /* ── MODAL ────────────────────────────────────────────────── */
 .kv-modal-header {
@@ -626,11 +663,7 @@
 .kv-existing-file a { font-weight: 600; }
 
 /* ── SELECT2 IN MODAL ─────────────────────────────────────── */
-.select2-container { z-index: 99999 !important; width: 100% !important; flex: 1; }
-.input-group .select2-container .select2-selection {
-    border-radius: 0.375rem 0 0 0.375rem !important;
-    border-right: 0 !important;
-}
+.select2-container { z-index: 99999 !important; width: 100% !important; }
 
 /* ── FILEPOND ─────────────────────────────────────────────── */
 .filepond--root { margin-bottom: 0; }
@@ -686,7 +719,7 @@ $(function () {
             accept: 'image/jpeg,image/png,image/webp',
             maxFileSize: '5MB',
             labelIdle: '<i class="ri-image-2-line" style="font-size:1.5rem;color:var(--text-muted)"></i><br><span class="text-muted fs-13">Drag & drop image or <span class="filepond--label-action">browse</span></span>',
-            helpText: 'JPG / PNG / WEBP — max 5 MB — exact 1920 × 1080 px',
+            helpText: 'JPG / PNG / WEBP - max 5 MB - exact 1920 x 1080 px',
             tagLabel: '<i class="ri-image-2-line"></i> Image',
             tagClass: '',
         },
@@ -695,7 +728,7 @@ $(function () {
             accept: 'video/mp4,video/quicktime,video/x-msvideo,video/x-matroska,video/webm',
             maxFileSize: '30MB',
             labelIdle: '<i class="ri-video-line" style="font-size:1.5rem;color:var(--text-muted)"></i><br><span class="text-muted fs-13">Drag & drop video or <span class="filepond--label-action">browse</span></span>',
-            helpText: 'MP4 / MOV / AVI / MKV / WEBM — max 30 MB',
+            helpText: 'MP4 / MOV / AVI / MKV / WEBM - max 30 MB',
             tagLabel: '<i class="ri-video-line"></i> Video',
             tagClass: 'is-video',
         },
@@ -764,8 +797,8 @@ $(function () {
         dropdownParent: $(parent), width: '100%',
     });
 
-    $('#brand_ids').select2(s2Opts('— Select Brand —', '#keyVisualModal'));
-    $('#category_ids').select2(s2Opts('— Select Category —', '#keyVisualModal'));
+    $('#brand_ids').select2(s2Opts('Select Brand', '#keyVisualModal'));
+    $('#category_ids').select2(s2Opts('Select Category', '#keyVisualModal'));
 
     // ── HELPER FUNCTIONS ──────────────────────────────────
     function showToast(message, type = 'success') {
@@ -793,6 +826,11 @@ $(function () {
     function setError(inputSel, errorId, msg) {
         $(inputSel).addClass('is-invalid');
         $(errorId).text(msg);
+    }
+
+    function setLoading($btn, loading) {
+        $btn.prop('disabled', loading);
+        $btn.find('.spinner-border').toggleClass('d-none', !loading);
     }
 
     function generateShortCode(rawName) {
@@ -919,7 +957,7 @@ $(function () {
         updateSampleUploader(kvType, true);
         // Status
         $('#status').prop('checked', data.status == 1);
-        // Unique code (editing — already generated)
+        // Unique code (editing - already generated)
         if (data.unique_code) {
             $('#unique_code').val(data.unique_code);
             $('#unique-code-section').removeClass('d-none');
@@ -1094,23 +1132,29 @@ $(function () {
             });
     });
 
+    // ── EVENT: KV SIZES VIEW BUTTON ────────────────────────────────
+    $(document).on('click', '.size-btn-view', function () {
+        const id = $(this).data('id');
+        $('#KvSizesModal').modal('show');
+    })
+
     // ── EVENT: VIEW BUTTON ────────────────────────────────
     $(document).on('click', '.btn-view', function () {
         const id = $(this).data('id');
         $.get(apiUrl(id))
             .done(function (data) {
-                $('#view-name').text(data.name || '—');
-                $('#view-unique-code').html(`<span class="badge bg-primary-transparent font-monospace">${data.unique_code || '—'}</span>`);
-                $('#view-asset-type').text(data.asset_type?.name ?? '—');
+                $('#view-name').text(data.name || 'N/A');
+                $('#view-unique-code').html(`<span class="badge bg-primary-transparent font-monospace">${data.unique_code || 'N/A'}</span>`);
+                $('#view-asset-type').text(data.asset_type?.name ?? 'N/A');
                 $('#view-kv-type').html(`<span class="badge ${data.kv_type === 'video' ? 'bg-info-transparent' : 'bg-warning-transparent'} text-uppercase">
                     <i class="ri-${data.kv_type === 'video' ? 'video' : 'image-2'}-line me-1"></i>${data.kv_type || 'image'}</span>`);
                 const res = data.minimum_res_width || data.minimum_res_height;
                 $('#view-resolution').html(res
-                    ? `<span class="font-monospace">${data.minimum_res_width || 0} × ${data.minimum_res_height || 0} px</span>`
-                    : '—');
+                    ? `<span class="font-monospace">${data.minimum_res_width || 0} x ${data.minimum_res_height || 0} px</span>`
+                    : 'N/A');
                 $('#view-sample-file').html(data.kv_sample_file
                     ? `<a href="${BASE + data.kv_sample_file}" target="_blank" rel="noopener"><i class="ri-external-link-line me-1"></i>Open file</a>`
-                    : '—');
+                    : 'N/A');
                 $('#view-status').html(data.status == 1
                     ? '<span class="badge bg-success-transparent">Active</span>'
                     : '<span class="badge bg-danger-transparent">Inactive</span>');
@@ -1132,19 +1176,17 @@ $(function () {
 
     $('#btn-confirm-delete').on('click', function () {
         const $btn = $(this);
-        $btn.prop('disabled', true).find('.spinner-border').removeClass('d-none');
+        setLoading($btn, true);
         $.ajax({
             url: apiUrl($('#delete-kv-id').val()),
             type: 'DELETE',
             success: function (res) {
                 deleteModal.hide();
-                showToast(res.message, 'success');
+                showToast(res.message || 'Deleted successfully.', 'success');
                 setTimeout(() => location.reload(), 700);
             },
             error: function () { showToast('Failed to delete key visual.', 'danger'); },
-            complete: function () {
-                $btn.prop('disabled', false).find('.spinner-border').addClass('d-none');
-            },
+            complete: function () { setLoading($btn, false); },
         });
     });
 
@@ -1172,8 +1214,8 @@ $(function () {
         // Method spoofing for PUT
         if (id) formData.append('_method', 'PUT');
 
-        $('#btn-save').prop('disabled', true);
-        $('#btn-spinner').removeClass('d-none');
+        const $saveBtn = $('#btn-save');
+        setLoading($saveBtn, true);
 
         $.ajax({
             url: apiUrl(id || null),
@@ -1189,7 +1231,6 @@ $(function () {
             error: function (xhr) {
                 if (xhr.status === 422 && xhr.responseJSON?.errors) {
                     $.each(xhr.responseJSON.errors, function (field, messages) {
-                        const msg = messages[0];
                         if (field === 'kv_sample_file') {
                             $('#kv_sample_file').closest('.filepond--root').addClass('is-invalid');
                         } else if (field === 'kv_thumb') {
@@ -1197,16 +1238,13 @@ $(function () {
                         } else {
                             $('#' + field).addClass('is-invalid');
                         }
-                        $('#error-' + field).text(msg);
+                        $('#error-' + field).text(messages[0]);
                     });
                 } else {
                     showToast(xhr.responseJSON?.message || 'Something went wrong. Please try again.', 'danger');
                 }
             },
-            complete: function () {
-                $('#btn-save').prop('disabled', false);
-                $('#btn-spinner').addClass('d-none');
-            },
+            complete: function () { setLoading($saveBtn, false); },
         });
     });
 
@@ -1222,8 +1260,8 @@ $(function () {
         const logoFile = brandLogoPond.getFile();
         if (logoFile?.file) formData.append('logo', logoFile.file);
 
-        $('#kv-brand-btn-save').prop('disabled', true);
-        $('#kv-brand-btn-spinner').removeClass('d-none');
+        const $brandBtn = $('#kv-brand-btn-save');
+        setLoading($brandBtn, true);
 
         $.ajax({
             url: BRAND_URL, type: 'POST',
@@ -1245,10 +1283,7 @@ $(function () {
                     showToast('Failed to create brand.', 'danger');
                 }
             },
-            complete: function () {
-                $('#kv-brand-btn-save').prop('disabled', false);
-                $('#kv-brand-btn-spinner').addClass('d-none');
-            },
+            complete: function () { setLoading($brandBtn, false); },
         });
     });
 
@@ -1261,8 +1296,8 @@ $(function () {
         const formData = new FormData(this);
         formData.set('status', $('#kv_category_status').val());
 
-        $('#kv-category-btn-save').prop('disabled', true);
-        $('#kv-category-btn-spinner').removeClass('d-none');
+        const $catBtn = $('#kv-category-btn-save');
+        setLoading($catBtn, true);
 
         $.ajax({
             url: CAT_URL, type: 'POST',
@@ -1283,10 +1318,7 @@ $(function () {
                     showToast('Failed to create category.', 'danger');
                 }
             },
-            complete: function () {
-                $('#kv-category-btn-save').prop('disabled', false);
-                $('#kv-category-btn-spinner').addClass('d-none');
-            },
+            complete: function () { setLoading($catBtn, false); },
         });
     });
 

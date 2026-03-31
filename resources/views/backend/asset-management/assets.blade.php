@@ -150,8 +150,8 @@
                         <div class="form-section mb-4">
                             <p class="form-section-label"><i class="ri-information-line me-1"></i>Basic Information</p>
                             <div class="row g-3">
-                                <div class="col-md-5">
-                                    <label for="asset_type_id" class="form-label">Asset Type <span class="text-danger">*</span></label>
+                                <div class="col-md-6">
+                                    <label for="asset_type_id" class="form-label">Asset Category <span class="text-danger">*</span></label>
                                     <select class="form-select" id="asset_type_id" name="asset_type_id">
                                         <option value="">— Select Type —</option>
                                         @foreach($assetTypes as $assetType)
@@ -160,11 +160,16 @@
                                     </select>
                                     <div class="invalid-feedback" id="error-asset_type_id"></div>
                                 </div>
-                                <div class="col-md-7">
-                                    <label for="name" class="form-label">Asset Name <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control" id="name" name="name"
-                                        placeholder="e.g. Shelf Display Unit A1">
-                                    <div class="invalid-feedback" id="error-name"></div>
+                                <div class="col-md-6">
+                                    <label for="store_id" class="form-label">Store</label>
+                                    <select class="form-select select-ele" id="store_id" name="store_id">
+                                        <option value="">— Select Store —</option>
+                                        @foreach($stores as $store)
+                                            <option value="{{ $store->id }}">{{ $store->title }} ({{ $store->code }})</option>
+                                        @endforeach
+                                    </select>
+                                    <div class="invalid-feedback" id="error-store_id"></div>
+                                    <div class="form-text" id="store-help-text">Disabled when asset is marked as Common.</div>
                                 </div>
                                 <div class="col-md-12 d-none" id="asset-code-row">
                                     <div class="alert alert-primary-transparent d-flex align-items-center gap-2 py-2 mb-0">
@@ -180,46 +185,33 @@
 
                         {{-- ── Section: Location & Pricing ── --}}
                         <div class="form-section mb-4">
-                            <p class="form-section-label"><i class="ri-store-2-line me-1"></i>Location & Pricing</p>
+{{--                            <p class="form-section-label"><i class="ri-store-2-line me-1"></i>Location & Pricing</p>--}}
                             <div class="row g-3">
                                 <div class="col-md-6">
-                                    <label for="store_id" class="form-label">Store</label>
-                                    <select class="form-select select-ele" id="store_id" name="store_id">
-                                        <option value="">— Select Store —</option>
-                                        @foreach($stores as $store)
-                                            <option value="{{ $store->id }}">{{ $store->title }} ({{ $store->code }})</option>
-                                        @endforeach
-                                    </select>
-                                    <div class="invalid-feedback" id="error-store_id"></div>
-                                    <div class="form-text" id="store-help-text">Disabled when asset is marked as Common.</div>
+                                    <label for="name" class="form-label">Asset Name <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="name" name="name" readonly
+                                           placeholder="e.g. Shelf Display Unit A1">
+                                    <div class="invalid-feedback" id="error-name"></div>
                                 </div>
-                                <div class="col-md-3">
-                                    <label for="asset_price" class="form-label">Asset Price</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text">৳</span>
-                                        <input type="number" step="0.01" min="0" class="form-control"
-                                            id="asset_price" name="asset_price" placeholder="0.00">
-                                    </div>
-                                    <div class="invalid-feedback d-block" id="error-asset_price"></div>
-                                </div>
-                                <div class="col-md-3">
-                                    <label for="minimum_fee" class="form-label">Minimum Charge</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text">৳</span>
-                                        <input type="number" step="0.01" min="0" class="form-control"
-                                            id="minimum_fee" name="minimum_fee" placeholder="0.00">
-                                    </div>
-                                    <div class="invalid-feedback d-block" id="error-minimum_fee"></div>
-                                </div>
+
+{{--                                <div class="col-md-3">--}}
+{{--                                    <label for="minimum_fee" class="form-label">Minimum Charge</label>--}}
+{{--                                    <div class="input-group">--}}
+{{--                                        <span class="input-group-text">৳</span>--}}
+{{--                                        <input type="number" step="0.01" min="0" class="form-control"--}}
+{{--                                            id="minimum_fee" name="minimum_fee" placeholder="0.00">--}}
+{{--                                    </div>--}}
+{{--                                    <div class="invalid-feedback d-block" id="error-minimum_fee"></div>--}}
+{{--                                </div>--}}
                             </div>
                         </div>
 
                         {{-- ── Section: Media ── --}}
-                        <div class="form-section mb-4">
+                        <div class="form-section mb-4 d-none" id="media-section">
                             <p class="form-section-label"><i class="ri-image-line me-1"></i>Media</p>
                             <div class="row g-3">
-                                <div class="col-md-6">
-                                    <label class="form-label">Default Image <span class="text-danger" id="image-required-star">*</span></label>
+                                <div class="col-md-6 d-none" id="image-field-wrap">
+                                    <label class="form-label">Default Image <span class="text-danger d-none" id="image-required-star">*</span></label>
                                     <div class="image-upload-zone" id="imageUploadZone">
                                         <div id="upload-placeholder" class="upload-placeholder-inner">
                                             <i class="ri-upload-cloud-2-line fs-2 text-muted"></i>
@@ -237,8 +229,8 @@
                                         </button>
                                     </div>
                                 </div>
-                                <div class="col-md-6">
-                                    <label for="planogram_pdf" class="form-label">Planogram PDF</label>
+                                <div class="col-md-6 d-none" id="planogram-field-wrap">
+                                    <label for="planogram_pdf" class="form-label">Planogram PDF <span class="text-danger d-none" id="planogram-required-star">*</span></label>
                                     <div class="pdf-upload-zone" id="pdfUploadZone">
                                         <div id="pdf-placeholder" class="upload-placeholder-inner">
                                             <i class="ri-file-pdf-2-line fs-2 text-muted"></i>
@@ -276,7 +268,7 @@
                                         <div class="invalid-feedback" id="error-status"></div>
                                     </div>
                                 </div>
-                                <div class="col-md-3">
+                                <div class="col-md-3 d-none" id="has-kv-slot-wrap">
                                     <div class="switch-option-card">
                                         <div class="form-check form-switch mb-0">
                                             <input class="form-check-input form-checked-warning" type="checkbox"
@@ -287,7 +279,7 @@
                                         <div class="invalid-feedback" id="error-has_kv_slot"></div>
                                     </div>
                                 </div>
-                                <div class="col-md-3">
+                                <div class="col-md-3 d-none" id="has-self-wrap">
                                     <div class="switch-option-card">
                                         <div class="form-check form-switch mb-0">
                                             <input class="form-check-input form-checked-info" type="checkbox"
@@ -591,6 +583,66 @@
             pdfInput.value = '';
         }
 
+        // ── Asset type flags map ───────────────────────────────────────────────
+        @php
+            $assetTypeFlagsData = $assetTypes->keyBy('id')->map(fn($t) => [
+                'need_asset_image'     => (int) $t->need_asset_image,
+                'need_asset_planogram' => (int) $t->need_asset_planogram,
+                'has_asset_self'       => (int) $t->has_asset_self,
+                'is_digital'           => (int) $t->is_digital,
+                'total_self'           => (int) $t->total_self,
+                'has_kv_space'         => (int) $t->has_kv_space,
+            ]);
+        @endphp
+        const assetTypeFlags = {!! json_encode($assetTypeFlagsData) !!};
+
+        function applyMediaFields(typeId) {
+            const flags        = typeId ? (assetTypeFlags[typeId] || {}) : {};
+            const needImage    = flags.need_asset_image    === 1;
+            const needPlanogram = flags.need_asset_planogram === 1;
+
+            $('#image-field-wrap').toggleClass('d-none', !needImage);
+            $('#image-required-star').toggleClass('d-none', !needImage);
+            if (!needImage) { clearImagePreview(); $('#error-default_image').text(''); }
+
+            $('#planogram-field-wrap').toggleClass('d-none', !needPlanogram);
+            $('#planogram-required-star').toggleClass('d-none', !needPlanogram);
+            if (!needPlanogram) { clearPdfPreview(); $('#existing-pdf-wrap').addClass('d-none'); $('#error-planogram_pdf').text(''); }
+
+            $('#media-section').toggleClass('d-none', !needImage && !needPlanogram);
+
+            // Auto-check checkboxes based on category flags (only on type change, not edit populate)
+            const hasSelf = typeId && flags.has_asset_self === 1;
+            $('#has-self-wrap').toggleClass('d-none', !hasSelf);
+            $('#has_self').prop('checked', hasSelf).trigger('change');
+            if (hasSelf) $('#total_self').val(flags.total_self || '');
+
+            const hasKvSpace = typeId && flags.has_kv_space === 1;
+            $('#has-kv-slot-wrap').toggleClass('d-none', !hasKvSpace);
+            $('#has_kv_slot').prop('checked', hasKvSpace);
+        }
+
+        // ── Auto-generate asset name ───────────────────────────────────────────
+        let nameGenerationEnabled = false;
+
+        function tryGenerateName() {
+            if (!nameGenerationEnabled) return;
+            const typeId  = $('#asset_type_id').val();
+            const storeId = $('#store_id').val();
+            if (!typeId || !storeId) { $('#name').val(''); return; }
+
+            $('#name').val('Generating…').addClass('text-muted');
+            $.get(base_url + 'assets/next-name', { asset_type_id: typeId, store_id: storeId })
+                .done(res => $('#name').val(res.name).removeClass('text-muted'))
+                .fail(() => $('#name').val('').removeClass('text-muted'));
+        }
+
+        $('#asset_type_id').on('change', function () {
+            applyMediaFields($(this).val());
+            tryGenerateName();
+        });
+        $('#store_id').on('change', tryGenerateName);
+
         // ── Is Common Asset toggle (disables store select) ─────────────────────
         $('#is_common_asset').on('change', function () {
             // toggleCommonAsset();
@@ -625,13 +677,14 @@
 
         // ── Form: open / reset ─────────────────────────────────────────────────
         function openFormModal(mode) {
+            nameGenerationEnabled = false;
             resetForm();
             const isEdit = mode === 'edit';
             $('#assetModalLabel').html(
                 `<i class="ri-${isEdit ? 'edit-box' : 'box-3'}-line me-2 text-primary"></i>${isEdit ? 'Edit' : 'Add'} Asset`
             );
             $('#btn-save .btn-text').html(`<i class="ri-save-line me-1"></i>${isEdit ? 'Update' : 'Save'}`);
-            $('#image-required-star').toggleClass('d-none', isEdit);
+            if (mode === 'add') nameGenerationEnabled = true;
         }
 
         function resetForm() {
@@ -648,6 +701,7 @@
             $('#has_self').prop('checked', false);
             $('#is_common_asset').prop('checked', false);
             $('#store_id').val('').prop('disabled', false).trigger('change');
+            applyMediaFields(null);
             toggleShelfSection();
             clearErrors();
         }
@@ -664,6 +718,7 @@
             $.get(apiUrl($(this).data('id')) + '/edit', function (data) {
                 $('#asset_id').val(data.id);
                 $('#asset_type_id').val(data.asset_type_id);
+                applyMediaFields(data.asset_type_id);
                 $('#name').val(data.name);
                 $('#asset-code-row').removeClass('d-none');
                 $('#asset_code_display').text(data.asset_code || '—');
@@ -693,6 +748,7 @@
                     $('#existing-planogram-link').attr('href', base_url + data.planogram_pdf);
                 }
 
+                nameGenerationEnabled = true; // enable after initial populate
                 assetModal.show();
             });
         });

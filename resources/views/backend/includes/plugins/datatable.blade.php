@@ -43,8 +43,8 @@
                 lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
                 order: [[1, 'asc']],
                 columnDefs: [
-                    { orderable: false, targets: [2, 6] },
-                    { searchable: false, targets: [0, 2, 6] }
+                    { orderable: false, targets: [2, -1] },
+                    { searchable: false, targets: [0, 2, -1] }
                 ],
                 stateSave: true
             });

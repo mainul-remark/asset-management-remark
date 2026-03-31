@@ -17,6 +17,14 @@ return new class extends Migration {
                 ->on('categories')
                 ->onUpdate('CASCADE')
                 ->onDelete('CASCADE');
+
+            $table
+                ->foreign('created_by')
+                ->references('id')
+                ->on('users')
+                ->onUpdate('CASCADE')
+                ->onDelete('CASCADE');
+
         });
     }
 

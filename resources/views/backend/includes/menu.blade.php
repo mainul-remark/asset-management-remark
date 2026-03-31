@@ -88,10 +88,13 @@
                             <a href="{{ route('stores.index') }}" class="side-menu__item">Stores</a>
                         </li>
                         <li class="slide">
-                            <a href="{{ route('asset-types.index') }}" class="side-menu__item">Asset Types</a>
+                            <a href="{{ route('asset-types.index') }}" class="side-menu__item">Asset Categories</a>
                         </li>
                         <li class="slide">
                             <a href="{{ route('assets.index') }}" class="side-menu__item">Assets</a>
+                        </li>
+                        <li class="slide">
+                            <a href="{{ route('assets.assign-assets') }}" class="side-menu__item">Assigned Assets</a>
                         </li>
                     </ul>
                 </li>
@@ -113,7 +116,16 @@
                             <a href="{{ route('categories.index') }}" class="side-menu__item">Categories</a>
                         </li>
                         <li class="slide">
+                            <a href="{{ route('key-visual-sizes.index') }}" class="side-menu__item">Key Visual Sizes</a>
+                        </li>
+                        <li class="slide">
                             <a href="{{ route('key-visuals.index') }}" class="side-menu__item">Key Visuals</a>
+                        </li>
+                        <li class="slide">
+                            <a href="{{ route('key-visual-files.index') }}" class="side-menu__item">Key Visual Files</a>
+                        </li>
+                        <li class="slide">
+                            <a href="{{ route('key-visuals.assign-kvs') }}" class="side-menu__item">Assign KV</a>
                         </li>
                     </ul>
                 </li>

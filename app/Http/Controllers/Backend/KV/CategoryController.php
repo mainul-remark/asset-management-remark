@@ -44,6 +44,7 @@ class CategoryController extends Controller
             'code'        => 'required|string|min:2|max:3|alpha|unique:categories,code',
             'description' => 'nullable|string|max:1000',
             'status'      => 'required|in:0,1',
+            'is_common'   => 'nullable|in:0,1',
         ], $this->validationMessages());
 
         try {
@@ -92,6 +93,7 @@ class CategoryController extends Controller
             'code'        => ['required', 'string', 'min:2', 'max:3', 'alpha', Rule::unique('categories', 'code')->ignore($category->id)],
             'description' => 'nullable|string|max:1000',
             'status'      => 'required|in:0,1',
+            'is_common'   => 'nullable|in:0,1',
         ], $this->validationMessages());
 
         try {

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "a760c23aab170af2d4ba4995e6081a04",
+    "content-hash": "9efbb1b84b4e4c4174f210d32ab0687f",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -3216,6 +3216,54 @@
                 }
             ],
             "time": "2025-12-10T09:58:31+00:00"
+        },
+        {
+            "name": "mainul/chunk-uploader",
+            "version": "v1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Mainul12501/laravel-chunk-upload.git",
+                "reference": "a37be994c175228e0cc4c2f8e8cecdf005a8c92e"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Mainul12501/laravel-chunk-upload/zipball/a37be994c175228e0cc4c2f8e8cecdf005a8c92e",
+                "reference": "a37be994c175228e0cc4c2f8e8cecdf005a8c92e",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/support": "^10.0|^11.0|^12.0",
+                "php": "^8.1"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "RemarkHB\\ChunkUploader\\ChunkUploaderServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "RemarkHB\\ChunkUploader\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "RemarkHB",
+                    "email": "dev@example.com"
+                }
+            ],
+            "description": "Chunked file upload (local storage) for Laravel with server-side merge and optional demo JS.",
+            "support": {
+                "issues": "https://github.com/Mainul12501/laravel-chunk-upload/issues",
+                "source": "https://github.com/Mainul12501/laravel-chunk-upload/tree/v1.0.0"
+            },
+            "time": "2026-03-09T06:52:36+00:00"
         },
         {
             "name": "mainul/custom-helpers",

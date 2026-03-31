@@ -13,10 +13,15 @@ use App\Http\Controllers\Backend\Asset\AssetController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\UsersController;
 use App\Http\Controllers\Backend\KV\KeyVisualController;
+use App\Http\Controllers\Backend\KV\KeyVisualSizesController;
+use App\Http\Controllers\Backend\KV\KeyVisualFilesController;
+use App\Http\Controllers\Backend\Asset\AssignKvToAssetController;
 
 Route::get('/', function () {
     return view('welcome');
 })->name('/');
+
+
 
 Route::middleware([
     'auth:sanctum',
@@ -30,19 +35,37 @@ Route::middleware([
     Route::get('stores/layout-list', [StoreController::class, 'layoutStores'])->name('stores.layout-list');
     Route::post('stores/{store}/layouts', [StoreController::class, 'uploadLayout'])->name('stores.upload-layout');
     Route::get('key-visuals/next-unique-code', [KeyVisualController::class, 'nextUniqueCode'])->name('key-visuals.next-unique-code');
+    Route::get('assets/next-name', [AssetController::class, 'nextName'])->name('assets.next-name');
 
     Route::resources([
-        'brands'            => BrandController::class,
-        'categories'        => CategoryController::class,
-        'stores'            => StoreController::class,
-        'asset-types'       => AssetTypeController::class,
-        'site-settings'     => SiteSettingsController::class,
-        'assets'            => AssetController::class,
-        'key-visuals'       => KeyVisualController::class,
+        'brands'                    => BrandController::class,
+        'categories'                => CategoryController::class,
+        'stores'                    => StoreController::class,
+        'asset-types'               => AssetTypeController::class,
+        'site-settings'             => SiteSettingsController::class,
+        'assets'                    => AssetController::class,
+        'key-visuals'               => KeyVisualController::class,
+        'key-visual-sizes'          => KeyVisualSizesController::class,
+        'key-visual-files'          => KeyVisualFilesController::class,
     ]);
+
+    Route::prefix('store')->group(function () {
+        Route::get('/assign-assets', [AssetController::class, 'assignAssets'])->name('assets.assign-assets');
+    });
+    Route::prefix('kv')->group(function () {
+        Route::get('/assign-kv-to-asset', [AssignKvToAssetController::class, 'index'])->name('key-visuals.assign-kvs');
+        Route::post('/assign-kv-to-asset', [AssignKvToAssetController::class, 'store'])->name('key-visuals.assign-kvs.store');
+        Route::get('/assign-kv-to-asset/filter', [AssignKvToAssetController::class, 'filter'])->name('key-visuals.assign-kvs.filter');
+        Route::get('/assign-kv-to-asset/stores/{store}/assets', [AssignKvToAssetController::class, 'storeAssets'])->name('key-visuals.assign-kvs.store-assets');
+        Route::get('/assign-kv-to-asset/{assignKvToAsset}/edit', [AssignKvToAssetController::class, 'edit'])->name('key-visuals.assign-kvs.edit');
+        Route::put('/assign-kv-to-asset/{assignKvToAsset}', [AssignKvToAssetController::class, 'update'])->name('key-visuals.assign-kvs.update');
+        Route::delete('/assign-kv-to-asset/{assignKvToAsset}', [AssignKvToAssetController::class, 'destroy'])->name('key-visuals.assign-kvs.destroy');
+    });
+
+    Route::get('key-visualsx', [KeyVisualController::class, 'old']);
     Route::post('site-settings/theme', [SiteSettingsController::class, 'saveTheme'])->name('site-settings.theme');
 
-    Route::prefix('admin')->middleware('resource.maker','auth.acl')->group(function () {
+    Route::prefix('admin')->middleware(['resource.maker','auth.acl'])->group(function () {
         Route::resource('/roles',RoleController::class);
         Route::resource('/users',UsersController::class);
     });
@@ -50,8 +73,16 @@ Route::middleware([
     // Cascading dropdowns for stores
     Route::get('get-districts/{division}', [StoreController::class, 'getDistricts'])->name('get.districts');
     Route::get('get-thanas/{district}', [StoreController::class, 'getThanas'])->name('get.thanas');
+    Route::get('get-stores-by-district/{district}', [StoreController::class, 'getStoresByDistrict'])->name('get.stores-by-district');
+
+    // Assign assets filter
+    Route::get('get-assets-by-type/{assetType}', [AssetController::class, 'getAssetsByType'])->name('get.assets-by-type');
+    Route::get('assign-assets/filter', [AssetController::class, 'assignAssetsFilter'])->name('assets.assign-assets.filter');
 
 });
+
+Route::get('/phpinfo', function () {return phpinfo();});
+Route::get('/optimize-clear', function () {return \Mainul\CustomHelperFunctions\Helpers\CustomHelper::optimizeClear();});
 
 //Route::get('/store-sync', function (){
 //    $locationDbStores = \Illuminate\Support\Facades\DB::connection('location_db')

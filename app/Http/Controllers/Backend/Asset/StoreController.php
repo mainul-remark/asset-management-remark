@@ -44,6 +44,15 @@ class StoreController extends Controller
         return response()->json($thanas);
     }
 
+    public function getStoresByDistrict($districtId)
+    {
+        $stores = Store::select('id', 'title', 'code')
+            ->where('district_id', $districtId)
+            ->orderBy('title')
+            ->get();
+        return response()->json($stores);
+    }
+
     public function layoutStores(Request $request)
     {
         $query = Store::query()

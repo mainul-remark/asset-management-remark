@@ -28,12 +28,16 @@ class AssetTypeFactory extends Factory
             'height' => $this->faker->randomFloat(2, 0, 9999),
             'width' => $this->faker->randomFloat(2, 0, 9999),
             'depth' => $this->faker->randomNumber(1),
-            'dimension_unit_name' => 'px',
+            'dimention_unit_name' => 'px',
             'default_price' => $this->faker->randomNumber(1),
             'status' => $this->faker->numberBetween(0, 127),
             'is_digital' => $this->faker->numberBetween(0, 127),
             'total_self' => $this->faker->numberBetween(0, 127),
             'has_kv_space' => $this->faker->numberBetween(0, 127),
+            'has_default_dimension' => $this->faker->numberBetween(0, 127),
+            'need_asset_image' => $this->faker->numberBetween(0, 127),
+            'need_asset_planogram' => $this->faker->numberBetween(0, 127),
+            'has_asset_self' => $this->faker->numberBetween(0, 127),
         ];
     }
 }

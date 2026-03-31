@@ -90,7 +90,12 @@ class KeyVisual extends Model
 
     public function keyVisualSizes()
     {
-        return $this->belongsToMany(KeyVisualSize::class);
+        return $this->hasMany(KeyVisualSize::class);
+    }
+
+    public function keyVisualFiles()
+    {
+        return $this->hasMany(KeyVisualFiles::class, 'key_visual_id');
     }
 
     public function brands()
