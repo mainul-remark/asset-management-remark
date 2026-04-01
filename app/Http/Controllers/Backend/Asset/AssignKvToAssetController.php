@@ -50,11 +50,11 @@ class AssignKvToAssetController extends Controller
                 ->whereNull('deleted_at')
                 ->orderBy('name')
                 ->get(['id', 'name', 'unique_code', 'asset_type_id']),
-//            'keyVisualFiles' => KeyVisualFiles::with('keyVisualSize:id,name,width,height,unit_name')
-//                ->where('status', 1)
-//                ->whereNull('deleted_at')
-//                ->orderBy('name')
-//                ->get(['id', 'name', 'key_visual_id', 'key_visual_size_id', 'kv_file', 'kv_size', 'file_type']),
+            'keyVisualFiles' => KeyVisualFiles::with('keyVisualSize:id,name,width,height,unit_name')
+                ->where('status', 1)
+                ->whereNull('deleted_at')
+                ->orderBy('name')
+                ->get(['id', 'name', 'key_visual_id', 'key_visual_size_id', 'kv_file', 'kv_size', 'file_type']),
             'brands' => Brand::whereNull('deleted_at')->orderBy('name')->get(['id', 'name', 'code', 'logo']),
             'categories' => Category::whereNull('deleted_at')->orderBy('name')->get(['id', 'name', 'code']),
             'users' => User::orderBy('name')->get(['id', 'name']),
