@@ -9,6 +9,8 @@ use App\Http\Controllers\Backend\Asset\StoreController;
 use App\Http\Controllers\Backend\Asset\AssetTypeController;
 use App\Http\Controllers\Backend\SiteSettingsController;
 use App\Http\Controllers\Backend\Asset\AssetController;
+use App\Http\Controllers\Backend\Asset\VisualMerchandisingController;
+use App\Http\Controllers\Backend\Asset\VisualMerchandisingFileController;
 
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\UsersController;
@@ -47,6 +49,8 @@ Route::middleware([
         'key-visuals'               => KeyVisualController::class,
         'key-visual-sizes'          => KeyVisualSizesController::class,
         'key-visual-files'          => KeyVisualFilesController::class,
+        'visual-merchandising'      => VisualMerchandisingController::class,
+        'visual-merchandising-files'=> VisualMerchandisingFileController::class,
     ]);
 
     Route::prefix('store')->group(function () {
