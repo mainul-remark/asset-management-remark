@@ -225,8 +225,16 @@
                             </div>
                             <div class="col-12">
                                 <label for="vm_files" class="form-label">Upload Evidence</label>
-                                <input type="file" class="form-control" id="vm_files" name="vm_files[]" accept="image/jpeg,image/png,image/jpg,image/gif,image/svg+xml,image/webp,video/mp4,video/quicktime,video/x-msvideo,video/x-matroska,video/webm" multiple>
-                                <div class="form-text">Supported files: images up to 5 MB each, videos up to 10 MB each.</div>
+                                <div class="vm-upload-zone" id="vmUploadZone" tabindex="0" role="button" aria-controls="vm_files" aria-label="Upload visual merchandising evidence">
+                                    <input type="file" class="d-none" id="vm_files" name="vm_files[]" accept="image/jpeg,image/png,image/jpg,image/gif,image/svg+xml,image/webp,video/mp4,video/quicktime,video/x-msvideo,video/x-matroska,video/webm" multiple>
+                                    <div class="vm-upload-zone__inner">
+                                        <i class="ri-upload-cloud-2-line vm-upload-zone__icon"></i>
+                                        <div class="fw-semibold">Drag and drop images or videos here</div>
+                                        <div class="text-muted fs-12">or click to browse from your device</div>
+                                        <div class="text-muted fs-11 mt-1">Images up to 5 MB each. Videos up to 10 MB each.</div>
+                                    </div>
+                                </div>
+                                <div class="form-text" id="vm-upload-summary">No files selected yet.</div>
                                 <div class="invalid-feedback d-block" id="error-vm_files"></div>
                             </div>
                             <div class="col-12">
@@ -326,6 +334,12 @@
         .vm-media-remove { position: absolute; top: 10px; right: 10px; z-index: 2; }
         .vm-empty-state { min-height: 120px; border: 1px dashed var(--default-border); border-radius: 1rem; color: var(--text-muted); display: flex; align-items: center; justify-content: center; text-align: center; padding: 16px; background: rgba(var(--light-rgb), .5); }
         .select2-container--bootstrap-5 .select2-selection.is-invalid { border-color: #dc3545 !important; }
+        .vm-upload-zone { border: 1.5px dashed var(--default-border); border-radius: 1rem; background: rgba(var(--light-rgb), .45); cursor: pointer; transition: border-color .2s ease, background .2s ease, transform .2s ease, box-shadow .2s ease; }
+        .vm-upload-zone:hover, .vm-upload-zone:focus { border-color: rgba(var(--primary-rgb), .55); background: rgba(var(--primary-rgb), .04); box-shadow: 0 0 0 .2rem rgba(var(--primary-rgb), .08); outline: none; }
+        .vm-upload-zone.drag-over { border-color: rgba(var(--primary-rgb), .95); background: rgba(var(--primary-rgb), .08); transform: translateY(-1px); }
+        .vm-upload-zone.is-invalid { border-color: #dc3545; background: rgba(220, 53, 69, .04); }
+        .vm-upload-zone__inner { min-height: 150px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 6px; padding: 22px; }
+        .vm-upload-zone__icon { font-size: 2.15rem; color: rgb(var(--primary-rgb)); }
     </style>
 @endpush
 
@@ -335,13 +349,15 @@
     <script src="https://cdn.ckeditor.com/4.22.1/standard/ckeditor.js"></script>
     <script>
         $(function () {
-            CKEDITOR.replace( 'issue_text' , {
+            const issueEditor = CKEDITOR.replace( 'issue_text' , {
                 versionCheck: false
             });
 
             const vmModal = new bootstrap.Modal(document.getElementById('vmModal'));
             const viewModal = new bootstrap.Modal(document.getElementById('viewModal'));
             const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+            const vmUploadZone = document.getElementById('vmUploadZone');
+            const vmFilesInput = document.getElementById('vm_files');
 
             const assetDirectory = @json($assetDirectory);
             const apiUrl = (id = '') => base_url + 'visual-merchandising' + (id ? '/' + id : '');
@@ -395,6 +411,8 @@
             function clearErrors() {
                 $('#vmForm .is-invalid').removeClass('is-invalid');
                 $('#vmForm .invalid-feedback').text('');
+                $('#vmUploadZone').removeClass('is-invalid');
+                $(issueEditor.container.$).removeClass('is-invalid');
                 $('#vmForm .select2-hidden-accessible').each(function () {
                     $(this).next('.select2-container').find('.select2-selection').removeClass('is-invalid');
                 });
@@ -403,12 +421,17 @@
             function markFieldInvalid(fieldId, message) {
                 if (fieldId === 'vm_files') {
                     $('#vm_files').addClass('is-invalid');
+                    $('#vmUploadZone').addClass('is-invalid');
                     $('#error-vm_files').text(message);
                     return;
                 }
 
                 const $field = $('#' + fieldId);
                 $field.addClass('is-invalid');
+
+                 if (fieldId === 'issue_text') {
+                    $(issueEditor.container.$).addClass('is-invalid');
+                }
 
                 if ($field.hasClass('select2-hidden-accessible')) {
                     $field.next('.select2-container').find('.select2-selection').addClass('is-invalid');
@@ -496,6 +519,7 @@
                 selectedFiles = [];
                 currentExistingFiles = [];
                 removedExistingFileIds = new Set();
+                issueEditor.setData('');
 
                 syncFileInput();
                 renderExistingFilePreviews();
@@ -516,7 +540,7 @@
                 selectedFiles.forEach(function (file) {
                     dataTransfer.items.add(file);
                 });
-                document.getElementById('vm_files').files = dataTransfer.files;
+                vmFilesInput.files = dataTransfer.files;
             }
 
             function filePreviewType(fileType, fileName = '') {
@@ -555,6 +579,19 @@
 
             function emptyGalleryMarkup(message) {
                 return `<div class="vm-empty-state">${escapeHtml(message)}</div>`;
+            }
+
+            function updateUploadSummary() {
+                if (!selectedFiles.length) {
+                    $('#vm-upload-summary').text('No files selected yet.');
+                    return;
+                }
+
+                const totalBytes = selectedFiles.reduce(function (total, file) {
+                    return total + (file.size || 0);
+                }, 0);
+                const totalMb = (totalBytes / 1024 / 1024).toFixed(totalBytes >= 1024 * 1024 ? 1 : 2);
+                $('#vm-upload-summary').text(`${selectedFiles.length} file${selectedFiles.length === 1 ? '' : 's'} selected, total ${totalMb} MB.`);
             }
 
             function mediaCardMarkup(file, options = {}) {
@@ -606,6 +643,7 @@
 
             function renderSelectedFilePreviews() {
                 $('#new-files-block').toggleClass('d-none', selectedFiles.length === 0);
+                updateUploadSummary();
 
                 if (!selectedFiles.length) {
                     $('#new-files-preview').empty();
@@ -635,6 +673,7 @@
                 $('#issue_fix_status').val(data.issue_fix_status || 'pending');
                 $('#status').val(Number(data.status) === 1 ? '1' : '0');
                 $('#issue_text').val(data.issue_text || '');
+                issueEditor.setData(data.issue_text || '');
 
                 currentExistingFiles = Array.isArray(data.visual_merchandising_files) ? data.visual_merchandising_files : [];
                 removedExistingFileIds = new Set();
@@ -658,11 +697,12 @@
                 populateAssetOptions();
             });
 
-            $('#vm_files').on('change', function (event) {
+            function handleIncomingFiles(fileList) {
                 $('#error-vm_files').text('');
                 $('#vm_files').removeClass('is-invalid');
+                $('#vmUploadZone').removeClass('is-invalid');
 
-                const incomingFiles = Array.from(event.target.files || []);
+                const incomingFiles = Array.from(fileList || []);
                 const validFiles = [];
                 const errors = [];
 
@@ -685,6 +725,40 @@
                 if (errors.length) {
                     markFieldInvalid('vm_files', errors[0]);
                 }
+            }
+
+            $('#vm_files').on('change', function (event) {
+                handleIncomingFiles(event.target.files || []);
+            });
+
+            vmUploadZone.addEventListener('click', function () {
+                vmFilesInput.click();
+            });
+
+            vmUploadZone.addEventListener('keydown', function (event) {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    vmFilesInput.click();
+                }
+            });
+
+            vmUploadZone.addEventListener('dragover', function (event) {
+                event.preventDefault();
+                vmUploadZone.classList.add('drag-over');
+            });
+
+            vmUploadZone.addEventListener('dragleave', function (event) {
+                if (event.relatedTarget && vmUploadZone.contains(event.relatedTarget)) {
+                    return;
+                }
+
+                vmUploadZone.classList.remove('drag-over');
+            });
+
+            vmUploadZone.addEventListener('drop', function (event) {
+                event.preventDefault();
+                vmUploadZone.classList.remove('drag-over');
+                handleIncomingFiles(event.dataTransfer?.files || []);
             });
 
             $('#btn-add-vm').on('click', function () {
@@ -785,6 +859,7 @@
             $('#vmForm').on('submit', function (event) {
                 event.preventDefault();
                 clearErrors();
+                issueEditor.updateElement();
                 syncFileInput();
 
                 const vmId = $('#vm_id').val();
