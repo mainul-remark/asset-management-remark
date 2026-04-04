@@ -20,6 +20,7 @@ class VisualMerchandisingController extends Controller
                     'store:id,title,code',
                     'asset:id,name,asset_code,store_id,is_common_asset,asset_type_id',
                     'asset.assetType:id,name',
+                    'creator:id,name,email',
                     'visualMerchandisingFiles' => fn ($query) => $query->latest('id'),
                 ])
                 ->latest()
@@ -46,7 +47,7 @@ class VisualMerchandisingController extends Controller
         return redirect()->route('visual-merchandising.index');
     }
 
-    public function store(VisualMerchandisingRequest $request): JsonResponse
+    public function store(VisualMerchandisingRequest $request)
     {
         $visualMerchandising = DB::transaction(
             fn () => VisualMerchandising::updateOrCreateVisualMerchandising($request)
@@ -65,6 +66,7 @@ class VisualMerchandisingController extends Controller
             'store:id,title,code',
             'asset:id,name,asset_code,store_id,is_common_asset,asset_type_id',
             'asset.assetType:id,name',
+            'creator:id,name,email',
             'visualMerchandisingFiles' => fn ($query) => $query->latest('id'),
         ]);
 
@@ -78,6 +80,7 @@ class VisualMerchandisingController extends Controller
             'store:id,title,code',
             'asset:id,name,asset_code,store_id,is_common_asset,asset_type_id',
             'asset.assetType:id,name',
+            'creator:id,name,email',
             'visualMerchandisingFiles' => fn ($query) => $query->latest('id'),
         ]);
 
@@ -113,6 +116,7 @@ class VisualMerchandisingController extends Controller
             'id' => $visualMerchandising->id,
             'store_id' => $visualMerchandising->store_id,
             'asset_id' => $visualMerchandising->asset_id,
+            'creator_id' => $visualMerchandising->creator_id,
             'issue_text' => $visualMerchandising->issue_text,
             'issue_fix_status' => $visualMerchandising->issue_fix_status,
             'status' => (int) $visualMerchandising->status,
@@ -122,6 +126,11 @@ class VisualMerchandisingController extends Controller
                 'id' => $visualMerchandising->store->id,
                 'title' => $visualMerchandising->store->title,
                 'code' => $visualMerchandising->store->code,
+            ] : null,
+            'creator' => $visualMerchandising->creator ? [
+                'id' => $visualMerchandising->creator->id,
+                'name' => $visualMerchandising->creator->name,
+                'email' => $visualMerchandising->creator->email,
             ] : null,
             'asset' => $visualMerchandising->asset ? [
                 'id' => $visualMerchandising->asset->id,

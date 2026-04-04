@@ -24,6 +24,13 @@ return new class extends Migration {
                 ->on('assets')
                 ->onUpdate('CASCADE')
                 ->onDelete('CASCADE');
+
+            $table
+                ->foreign('creator_id')
+                ->references('id')
+                ->on('users')
+                ->onUpdate('CASCADE')
+                ->onDelete('CASCADE');
         });
     }
 
@@ -35,6 +42,7 @@ return new class extends Migration {
         Schema::table('visual_merchandisings', function (Blueprint $table) {
             $table->dropForeign(['store_id']);
             $table->dropForeign(['asset_id']);
+            $table->dropForeign(['creator_id']);
         });
     }
 };

@@ -26,6 +26,7 @@ class VisualMerchandisingFactory extends Factory
             'issue_text' => $this->faker->text(),
             'issue_fix_status' => 'pending',
             'status' => $this->faker->numberBetween(0, 127),
+            'creator_id' => \App\Models\User::factory(),
             'store_id' => \App\Models\Store::factory(),
             'asset_id' => \App\Models\Asset::factory(),
         ];

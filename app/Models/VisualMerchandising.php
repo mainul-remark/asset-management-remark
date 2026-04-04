@@ -8,8 +8,8 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Support\Facades\File;
-use Illuminate\Support\Str;
+use Mainul\CustomHelperFunctions\Helpers\CustomHelper;
+use RuntimeException;
 
 class VisualMerchandising extends Model
 {
@@ -20,6 +20,7 @@ class VisualMerchandising extends Model
     protected $fillable = [
         'store_id',
         'asset_id',
+        'creator_id',
         'issue_text',
         'issue_fix_status',
         'status',
@@ -49,6 +50,11 @@ class VisualMerchandising extends Model
         unset($data['vm_files'], $data['remove_file_ids']);
 
         $data['status'] = $request->boolean('status') ? 1 : 0;
+        $data['creator_id'] = $visualMerchandising?->creator_id ?? CustomHelper::loggedUser()?->id ?? auth()->id();
+
+        if (! $data['creator_id']) {
+            throw new RuntimeException('Visual merchandising records require an authenticated creator.');
+        }
 
         if ($visualMerchandising) {
             $visualMerchandising->update($data);
@@ -84,30 +90,26 @@ class VisualMerchandising extends Model
             'store:id,title,code',
             'asset:id,name,asset_code,store_id,is_common_asset,asset_type_id',
             'asset.assetType:id,name',
+            'creator:id,name,email',
             'visualMerchandisingFiles',
         ]);
     }
 
     protected static function buildFilePayload(UploadedFile $file, int $visualMerchandisingId): array
     {
-        $directory = 'backend/assets/uploaded-files/visual-merchandising';
-        $absoluteDirectory = public_path($directory);
-
-        if (! File::isDirectory($absoluteDirectory)) {
-            File::makeDirectory($absoluteDirectory, 0777, true, true);
-        }
-
-        $baseName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-        $safeBaseName = Str::slug($baseName) ?: 'vm-file';
-        $extension = strtolower((string) $file->getClientOriginalExtension());
-        $fileName = 'vm-' . $visualMerchandisingId . '-' . $safeBaseName . '-' . random_int(1000, 99999) . '.' . $extension;
-
-        $file->move($absoluteDirectory, $fileName);
+        $storedFilePath = CustomHelper::fileUpload(
+            $file,
+            'visual-merchandising',
+            'vm-' . $visualMerchandisingId,
+            null,
+            null,
+            null
+        );
 
         return [
             'visual_merchandising_id' => $visualMerchandisingId,
-            'file_path' => $directory . '/' . $fileName,
-            'file_type' => (string) ($file->getClientMimeType() ?? $file->getMimeType() ?? $extension),
+            'file_path' => $storedFilePath,
+            'file_type' => (string) ($file->getClientMimeType() ?? $file->getMimeType() ?? CustomHelper::getFileType($file)),
         ];
     }
 
@@ -119,6 +121,11 @@ class VisualMerchandising extends Model
     public function asset()
     {
         return $this->belongsTo(Asset::class);
+    }
+
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'creator_id');
     }
 
     public function visualMerchandisingFiles()

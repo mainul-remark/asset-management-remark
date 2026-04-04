@@ -89,7 +89,7 @@
                                                 default => 'secondary',
                                             };
                                         @endphp
-                                        <tr>
+                                        <tr data-vm-id="{{ $visualMerchandising->id }}">
                                             <td>{{ $loop->iteration }}</td>
                                             <td>
                                                 <div class="d-flex align-items-start gap-3">
@@ -178,7 +178,7 @@
                     <h6 class="modal-title fw-semibold" id="vmModalLabel">Add Visual Merchandising Issue</h6>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form id="vmForm"  enctype="multipart/form-data">
+                <form id="vmForm"  enctype="multipart/form-data" style="display:flex;flex-direction:column;flex:1;overflow:hidden;min-height:0;" >
                     @csrf
                     <input type="hidden" id="vm_id" value="">
                     <div class="modal-body">
@@ -280,6 +280,7 @@
                     <table class="table table-bordered mb-4">
                         <tr><th width="28%">Store</th><td id="view-store"></td></tr>
                         <tr><th>Asset</th><td id="view-asset"></td></tr>
+                        <tr><th>Created By</th><td id="view-creator"></td></tr>
                         <tr><th>Issue Fix Status</th><td id="view-issue-fix-status"></td></tr>
                         <tr><th>Status</th><td id="view-status"></td></tr>
                         <tr><th>Issue Details</th><td id="view-issue-text"></td></tr>
@@ -358,6 +359,9 @@
             const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
             const vmUploadZone = document.getElementById('vmUploadZone');
             const vmFilesInput = document.getElementById('vm_files');
+            const dataTable = $.fn.DataTable.isDataTable('#data-table')
+                ? $('#data-table').DataTable()
+                : null;
 
             const assetDirectory = @json($assetDirectory);
             const apiUrl = (id = '') => base_url + 'visual-merchandising' + (id ? '/' + id : '');
@@ -398,6 +402,12 @@
                     month: 'short',
                     year: 'numeric',
                 });
+            }
+
+            function truncateText(value, limit = 110) {
+                const text = String(value ?? '');
+                if (text.length <= limit) return text;
+                return text.slice(0, Math.max(0, limit - 1)).trimEnd() + '...';
             }
 
             function escapeHtml(value) {
@@ -461,6 +471,126 @@
                 return Number(status) === 1
                     ? '<span class="badge bg-success-transparent">Active</span>'
                     : '<span class="badge bg-danger-transparent">Inactive</span>';
+            }
+
+            function refreshTableSerials() {
+                if (!dataTable) return;
+
+                dataTable.rows({ search: 'applied', order: 'applied' }).every(function (index) {
+                    $(this.node()).find('td').eq(0).text(index + 1);
+                });
+            }
+
+            function buildVmThumbMarkup(firstFile, assetName = 'VM File') {
+                if (!firstFile) {
+                    return '<div class="vm-thumb-placeholder"><i class="ri-image-line"></i></div>';
+                }
+
+                const previewType = firstFile.preview_type || filePreviewType(firstFile.file_type, firstFile.file_name || firstFile.file_path || '');
+                const fileUrl = firstFile.file_url || firstFile.url || '';
+
+                if (previewType === 'image' && fileUrl) {
+                    return `<img src="${fileUrl}" alt="${escapeHtml(assetName)}" class="vm-thumb-media">`;
+                }
+
+                if (previewType === 'video' && fileUrl) {
+                    return `<video class="vm-thumb-media" muted playsinline preload="metadata"><source src="${fileUrl}" ${firstFile.file_type ? `type="${escapeHtml(firstFile.file_type)}"` : ''}></video>`;
+                }
+
+                return '<div class="vm-thumb-placeholder"><i class="ri-attachment-2"></i></div>';
+            }
+
+            function buildVmActionButtons(vmData) {
+                const name = vmData.asset?.name || 'VM Issue';
+
+                return `
+                    <div class="btn-list">
+                        <button class="btn btn-icon btn-sm btn-info-light btn-wave btn-view" data-id="${vmData.id}" title="View">
+                            <i class="ri-eye-line"></i>
+                        </button>
+                        <button class="btn btn-icon btn-sm btn-primary-light btn-wave btn-edit" data-id="${vmData.id}" title="Edit">
+                            <i class="ri-edit-box-line"></i>
+                        </button>
+                        <button class="btn btn-icon btn-sm btn-danger-light btn-wave btn-delete" data-id="${vmData.id}" data-name="${escapeHtml(name)}" title="Delete">
+                            <i class="ri-delete-bin-line"></i>
+                        </button>
+                    </div>
+                `;
+            }
+
+            function buildVmRowData(vmData) {
+                const files = Array.isArray(vmData.visual_merchandising_files) ? vmData.visual_merchandising_files : [];
+                const firstFile = files[0] || null;
+                const assetName = vmData.asset?.name || 'N/A';
+                const assetCode = vmData.asset?.asset_code || 'N/A';
+                const assetTypeName = vmData.asset?.asset_type?.name || '';
+                const storeTitle = vmData.store?.title || 'N/A';
+                const storeCode = vmData.store?.code || '';
+                const fileCount = files.length;
+
+                return [
+                    '',
+                    `
+                        <div class="d-flex align-items-start gap-3">
+                            <div class="vm-thumb">
+                                ${buildVmThumbMarkup(firstFile, assetName)}
+                            </div>
+                            <div class="min-w-0">
+                                <div class="fw-semibold text-wrap">${escapeHtml(assetName)}</div>
+                                <div class="text-muted fs-12">${escapeHtml(assetCode)}</div>
+                                <div class="mt-1 d-flex flex-wrap gap-1">
+                                    ${assetTypeName ? `<span class="badge bg-light text-dark">${escapeHtml(assetTypeName)}</span>` : ''}
+                                    ${Number(vmData.asset?.is_common_asset || 0) === 1 ? '<span class="badge bg-primary-transparent">Common Asset</span>' : ''}
+                                </div>
+                            </div>
+                        </div>
+                    `,
+                    `
+                        <div class="fw-semibold text-wrap">${escapeHtml(storeTitle)}</div>
+                        <small class="text-muted">${escapeHtml(storeCode)}</small>
+                    `,
+                    `<div class="vm-issue-copy">${escapeHtml(truncateText(vmData.issue_text, 110))}</div>`,
+                    issueFixStatusBadge(vmData.issue_fix_status),
+                    `<span class="badge bg-light text-dark">${fileCount} file${fileCount === 1 ? '' : 's'}</span>`,
+                    statusBadge(vmData.status),
+                    formatDate(vmData.created_at),
+                    buildVmActionButtons(vmData),
+                ];
+            }
+
+            function upsertVmTableRow(vmData) {
+                if (!dataTable || !vmData?.id) return;
+
+                const $existingRow = $(`#data-table tbody tr[data-vm-id="${vmData.id}"]`);
+
+                if ($existingRow.length) {
+                    const rowApi = dataTable.row($existingRow);
+                    rowApi.data(buildVmRowData(vmData));
+                    dataTable.draw(false);
+                    $(rowApi.node()).attr('data-vm-id', vmData.id);
+                } else {
+                    const rowApi = dataTable.row.add(buildVmRowData(vmData));
+                    dataTable.draw(false);
+                    $(rowApi.node()).attr('data-vm-id', vmData.id);
+                }
+
+                refreshTableSerials();
+            }
+
+            function removeVmTableRow(vmId) {
+                if (!dataTable || !(Number(vmId) > 0)) return;
+
+                const $existingRow = $(`#data-table tbody tr[data-vm-id="${vmId}"]`);
+                if (!$existingRow.length) return;
+
+                dataTable.row($existingRow).remove();
+                dataTable.draw(false);
+                refreshTableSerials();
+            }
+
+            if (dataTable) {
+                dataTable.on('draw.dt', refreshTableSerials);
+                refreshTableSerials();
             }
 
             function assetIsAvailableForStore(asset, storeId) {
@@ -805,9 +935,13 @@
                         const assetLabel = data.asset
                             ? `${data.asset.name}${data.asset.asset_code ? ` (${data.asset.asset_code})` : ''}${data.asset.asset_type?.name ? ` - ${data.asset.asset_type.name}` : ''}`
                             : 'N/A';
+                        const creatorLabel = data.creator
+                            ? `${data.creator.name}${data.creator.email ? ` (${data.creator.email})` : ''}`
+                            : 'N/A';
 
                         $('#view-store').text(storeLabel);
                         $('#view-asset').text(assetLabel);
+                        $('#view-creator').text(creatorLabel);
                         $('#view-issue-fix-status').html(issueFixStatusBadge(data.issue_fix_status));
                         $('#view-status').html(statusBadge(data.status));
                         $('#view-issue-text').html(nl2br(data.issue_text || 'N/A'));
@@ -841,9 +975,9 @@
                     url: apiUrl(vmId),
                     type: 'DELETE',
                     success: function (response) {
+                        removeVmTableRow(vmId);
                         deleteModal.hide();
                         showToast(response.message || 'Deleted successfully.', 'success');
-                        setTimeout(() => location.reload(), 700);
                     },
                     error: function () {
                         showToast('Failed to delete the visual merchandising issue.', 'danger');
@@ -882,9 +1016,9 @@
                     processData: false,
                     contentType: false,
                     success: function (response) {
+                        upsertVmTableRow(response.data || null);
                         vmModal.hide();
                         showToast(response.message || 'Saved successfully.', 'success');
-                        setTimeout(() => location.reload(), 700);
                     },
                     error: function (xhr) {
                         if (xhr.status === 422 && xhr.responseJSON?.errors) {

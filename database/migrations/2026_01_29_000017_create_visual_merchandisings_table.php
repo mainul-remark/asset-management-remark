@@ -14,6 +14,7 @@ return new class extends Migration {
             $table->id();
             $table->unsignedBigInteger('store_id');
             $table->unsignedBigInteger('asset_id');
+            $table->unsignedBigInteger('creator_id');
             $table->longText('issue_text');
             $table
                 ->enum('issue_fix_status', [
