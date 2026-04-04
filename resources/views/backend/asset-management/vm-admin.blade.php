@@ -171,14 +171,14 @@
 @endsection
 
 @section('modal')
-    <div class="modal fade" id="vmModal" tabindex="-1" aria-labelledby="vmModalLabel" aria-hidden="true">
+    <div class="modal fade" id="vmModal" >
         <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header">
                     <h6 class="modal-title fw-semibold" id="vmModalLabel">Add Visual Merchandising Issue</h6>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form id="vmForm" enctype="multipart/form-data">
+                <form id="vmForm"  enctype="multipart/form-data">
                     @csrf
                     <input type="hidden" id="vm_id" value="">
                     <div class="modal-body">
