@@ -20,7 +20,10 @@ use App\Http\Controllers\Backend\KV\KeyVisualFilesController;
 use App\Http\Controllers\Backend\Asset\AssignKvToAssetController;
 
 Route::get('/', function () {
-    return view('welcome');
+    if (auth()->check())
+        return redirect('/dashboard');
+    else
+        return redirect('/login');
 })->name('/');
 
 
