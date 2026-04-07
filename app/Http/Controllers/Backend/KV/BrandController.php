@@ -33,7 +33,8 @@ class BrandController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to create brand.',
+//                'message' => 'Failed to create brand.',
+                'message' => $exception->getMessage(),
             ], 500);
         }
     }

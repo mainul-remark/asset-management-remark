@@ -20,6 +20,7 @@ return new class extends Migration {
                 ->default(1)
                 ->nullable();
             $table->text('logo')->nullable();
+            $table->unsignedBigInteger('created_by');
             $table
                 ->tinyInteger('is_common')
                 ->default(0)

@@ -88,6 +88,13 @@ Route::middleware([
 
 });
 
+Route::get('/t', function () {
+    foreach (\App\Models\Brand::all() as $brand) {
+        $brand->created_by = 1;
+        $brand->save();
+    }
+});
+
 Route::get('/phpinfo', function () {return phpinfo();});
 Route::get('/optimize-clear', function () {return \Mainul\CustomHelperFunctions\Helpers\CustomHelper::optimizeClear();});
 
