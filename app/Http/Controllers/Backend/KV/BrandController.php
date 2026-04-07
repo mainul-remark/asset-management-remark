@@ -26,11 +26,7 @@ class BrandController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Brand created successfully.',
-                'data' => [
-                    'id' => $brand->id,
-                    'name' => $brand->name,
-                    'code' => $brand->code,
-                ],
+                'data' => $brand->only(['id', 'name', 'code', 'description', 'logo', 'status', 'is_common']),
             ]);
         } catch (Throwable $exception) {
             report($exception);
@@ -62,11 +58,7 @@ class BrandController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Brand updated successfully.',
-                'data' => [
-                    'id' => $brand->id,
-                    'name' => $brand->name,
-                    'code' => $brand->code,
-                ],
+                'data' => $brand->only(['id', 'name', 'code', 'description', 'logo', 'status', 'is_common']),
             ]);
         } catch (Throwable $exception) {
             report($exception);

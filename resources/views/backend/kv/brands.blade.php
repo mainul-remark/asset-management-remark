@@ -236,6 +236,57 @@
         const brandModal = new bootstrap.Modal(document.getElementById('brandModal'));
         const viewModal = new bootstrap.Modal(document.getElementById('viewModal'));
         const deleteModalEl = new bootstrap.Modal(document.getElementById('deleteModal'));
+        const table = $('#data-table').DataTable();
+
+        function strLimit(str, limit) {
+            if (!str) return '';
+            return str.length > limit ? str.substring(0, limit) + '...' : str;
+        }
+
+        function buildBrandRow(brand, rowNum) {
+            const logoHtml = brand.logo
+                ? `<img src="${base_url}${brand.logo}" alt="${brand.name}" style="height: 40px; border-radius: 5px;">`
+                : '<span class="badge bg-light text-muted">No Logo</span>';
+            const statusBadge = brand.status == 1
+                ? '<span class="badge bg-outline-success">Published</span>'
+                : '<span class="badge bg-outline-danger">Unpublished</span>';
+            const commonBadge = brand.is_common == 1
+                ? '<span class="badge bg-outline-success">Common</span>'
+                : '<span class="badge bg-outline-secondary">Not Common</span>';
+            const actionBtns = `<div class="btn-list">
+                <button class="btn btn-icon btn-sm btn-info-light btn-wave btn-view" data-id="${brand.id}" title="View"><i class="ri-eye-line"></i></button>
+                <button class="btn btn-icon btn-sm btn-primary-light btn-wave btn-edit" data-id="${brand.id}" title="Edit"><i class="ri-edit-box-line"></i></button>
+                <button class="btn btn-icon btn-sm btn-danger-light btn-wave btn-delete" data-id="${brand.id}" data-name="${brand.name}" title="Delete"><i class="ri-delete-bin-line"></i></button>
+            </div>`;
+            return `<tr id="brand-row-${brand.id}">
+                <td>${rowNum}</td>
+                <td>${brand.name}</td>
+                <td>${logoHtml}</td>
+                <td><span class="badge bg-primary-transparent">${brand.code}</span></td>
+                <td class="text-wrap">${strLimit(brand.description, 50)}</td>
+                <td>${statusBadge} ${commonBadge}</td>
+                <td>${actionBtns}</td>
+            </tr>`;
+        }
+
+        function updateExistingRow(brand) {
+            const $row = $('#brand-row-' + brand.id);
+            const logoHtml = brand.logo
+                ? `<img src="${base_url}${brand.logo}" alt="${brand.name}" style="height: 40px; border-radius: 5px;">`
+                : '<span class="badge bg-light text-muted">No Logo</span>';
+            const statusBadge = brand.status == 1
+                ? '<span class="badge bg-outline-success">Published</span>'
+                : '<span class="badge bg-outline-danger">Unpublished</span>';
+            const commonBadge = brand.is_common == 1
+                ? '<span class="badge bg-outline-success">Common</span>'
+                : '<span class="badge bg-outline-secondary">Not Common</span>';
+            $row.find('td').eq(1).text(brand.name);
+            $row.find('td').eq(2).html(logoHtml);
+            $row.find('td').eq(3).html(`<span class="badge bg-primary-transparent">${brand.code}</span>`);
+            $row.find('td').eq(4).text(strLimit(brand.description, 50));
+            $row.find('td').eq(5).html(`${statusBadge} ${commonBadge}`);
+            $row.find('.btn-delete').data('name', brand.name);
+        }
 
         // Auto-generate code from name
         $('#name').on('input', function () {
@@ -342,7 +393,7 @@
 
                     deleteModalEl.hide();
                     showToast(res.message, 'success');
-                    setTimeout(() => location.reload(), 800);
+                    table.row('#brand-row-' + id).remove().draw(false);
                 },
                 error: function (xhr) {
                     showToast(getErrorMessage(xhr, 'Failed to delete brand.'), 'danger');
@@ -385,7 +436,16 @@
 
                     brandModal.hide();
                     showToast(res.message, 'success');
-                    setTimeout(() => location.reload(), 800);
+                    resetForm();
+
+                    if (id) {
+                        updateExistingRow(res.data);
+                        table.draw(false);
+                    } else {
+                        const rowNum = table.data().count() + 1;
+                        const $newRow = $(buildBrandRow(res.data, rowNum));
+                        table.row.add($newRow[0]).draw(false);
+                    }
                 },
                 error: function (xhr) {
                     if (xhr.status === 422) {
