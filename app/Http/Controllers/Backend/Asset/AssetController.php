@@ -13,13 +13,114 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Carbon;
 use Mainul\CustomHelperFunctions\Helpers\CustomHelper;
+use Yajra\DataTables\Facades\DataTables;
 
 class AssetController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        if ($request->ajax()) {
+            $query = Asset::query()
+                ->leftJoin('asset_types', 'asset_types.id', '=', 'assets.asset_type_id')
+                ->leftJoin('stores', 'stores.id', '=', 'assets.store_id')
+                ->select([
+                    'assets.id',
+                    'assets.name',
+                    'assets.asset_code',
+                    'assets.default_image',
+                    'assets.store_id',
+                    'assets.asset_type_id',
+                    'assets.has_kv_slot',
+                    'assets.has_self',
+                    'assets.total_self',
+                    'assets.is_common_asset',
+                    'assets.status',
+                    'asset_types.name as asset_type_name',
+                    'stores.title as store_title',
+                    'stores.code as store_code',
+                ])
+                ->when($request->filled('store_id'), fn ($q) => $q->where('assets.store_id', $request->integer('store_id')))
+                ->when($request->filled('asset_type_id'), fn ($q) => $q->where('assets.asset_type_id', $request->integer('asset_type_id')))
+                ->latest('assets.id');
+
+            return DataTables::eloquent($query)
+                ->addIndexColumn()
+                ->addColumn('image', function ($asset) {
+                    if ($asset->default_image) {
+                        $src = asset($asset->default_image);
+                        $alt = e($asset->name);
+
+                        return "<img class=\"asset-thumb\" src=\"{$src}\" alt=\"{$alt}\">";
+                    }
+
+                    return '<div class="asset-thumb-empty"><i class="ri-image-line"></i></div>';
+                })
+                ->addColumn('name_display', function ($asset) {
+                    $name = '<div class="fw-semibold">'.e($asset->name).'</div>';
+                    $badges = [];
+
+                    if ((int) $asset->has_kv_slot === 1) {
+                        $badges[] = '<span class="badge bg-warning-transparent">KV Slot</span>';
+                    }
+
+                    if ((int) $asset->has_self === 1) {
+                        $totalSelf = (int) ($asset->total_self ?? 0);
+                        $badges[] = '<span class="badge bg-info-transparent">'.$totalSelf.' Shelf</span>';
+                    }
+
+                    if ($badges === []) {
+                        return $name;
+                    }
+
+                    return $name.'<div class="mt-1">'.implode(' ', $badges).'</div>';
+                })
+                ->addColumn('code_display', fn ($asset) => '<code>'.e($asset->asset_code).'</code>')
+                ->addColumn('asset_type_display', fn ($asset) => e($asset->asset_type_name ?? '—'))
+                ->addColumn('store_display', function ($asset) {
+                    if ((int) $asset->is_common_asset === 1) {
+                        return '<span class="badge bg-primary-transparent">Common</span>';
+                    }
+
+                    return e($asset->store_title ?? '—');
+                })
+                ->addColumn('status_badge', function ($asset) {
+                    if ((int) $asset->status === 1) {
+                        return '<span class="badge bg-success-transparent">Active</span>';
+                    }
+
+                    return '<span class="badge bg-danger-transparent">Inactive</span>';
+                })
+                ->addColumn('actions', function ($asset) {
+                    $id = (int) $asset->id;
+                    $name = e($asset->name);
+
+                    return <<<HTML
+<div class="btn-list">
+    <button class="btn btn-icon btn-sm btn-info-light btn-wave btn-view" data-id="{$id}" title="View">
+        <i class="ri-eye-line"></i>
+    </button>
+    <button class="btn btn-icon btn-sm btn-primary-light btn-wave btn-edit" data-id="{$id}" title="Edit">
+        <i class="ri-edit-box-line"></i>
+    </button>
+    <button class="btn btn-icon btn-sm btn-danger-light btn-wave btn-delete" data-id="{$id}" data-name="{$name}" title="Delete">
+        <i class="ri-delete-bin-line"></i>
+    </button>
+</div>
+HTML;
+                })
+                ->rawColumns([
+                    'image',
+                    'name_display',
+                    'code_display',
+                    'asset_type_display',
+                    'store_display',
+                    'status_badge',
+                    'actions',
+                ])
+                ->toJson();
+        }
+
         return view('backend.asset-management.assets', [
-            'assets'     => Asset::with(['assetType:id,name', 'store:id,title,code'])->latest()->get(),
             'assetTypes' => AssetType::orderBy('name')->get(['id', 'name', 'need_asset_image', 'need_asset_planogram', 'has_asset_self', 'is_digital', 'total_self', 'has_kv_space']),
             'stores'     => Store::orderBy('title')->get(['id', 'title', 'code']),
         ]);

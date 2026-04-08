@@ -11,16 +11,31 @@
                 <div class="card custom-card">
                     <div class="card-body py-2">
                         <div class="row g-2 align-items-center">
-                            <div class="col-auto">
-                                <label class="col-form-label fw-medium fs-13">Filter by Store</label>
+                            <div class="col-md-4">
+                                <div class="">
+                                    <label class="col-form-label fw-medium fs-13">Filter by Store</label>
+                                </div>
+                                <div class="">
+                                    <select id="shortByStore" class="form-select form-select-sm select-ele">
+                                        <option value="">All Stores</option>
+                                        @foreach($stores as $store)
+                                            <option value="{{ $store->id }}">{{ $store->title }} ({{ $store->code }})</option>
+                                        @endforeach
+                                    </select>
+                                </div>
                             </div>
                             <div class="col-md-4">
-                                <select id="shortByStore" class="form-select form-select-sm select-ele">
-                                    <option value="">All Stores</option>
-                                    @foreach($stores as $store)
-                                        <option value="{{ $store->id }}">{{ $store->title }} ({{ $store->code }})</option>
-                                    @endforeach
-                                </select>
+                                <div class="">
+                                    <label class="col-form-label fw-medium fs-13">Filter by Asset Category</label>
+                                </div>
+                                <div class="">
+                                    <select id="shortByAssetType" class="form-select form-select-sm select-ele">
+                                        <option value="">All Categories</option>
+                                        @foreach($assetTypes as $assetType)
+                                            <option value="{{ $assetType->id }}">{{ $assetType->name }} </option>
+                                        @endforeach
+                                    </select>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -34,13 +49,16 @@
                 <div class="card custom-card">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <div class="card-title">Asset Management</div>
+                        <a href="{{ route('asset-types.index') }}" class="btn btn-sm btn-secondary btn-wave">
+                            <i class="ri-pages-line me-1"></i> Asset Category
+                        </a>
                         <button type="button" class="btn btn-sm btn-primary btn-wave" id="btn-add-asset">
                             <i class="ri-add-line me-1"></i> Add Asset
                         </button>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
-                            <table id="data-table" class="table table-bordered text-nowrap w-100">
+                            <table id="data-table" class="table table-bordered text-nowrap w-100" data-datatable-manual="true">
                                 <thead>
                                     <tr>
                                         <th>#</th>
@@ -49,74 +67,12 @@
                                         <th>Code</th>
                                         <th>Type</th>
                                         <th>Store</th>
-                                        <th>Price</th>
+{{--                                        <th>Price</th>--}}
                                         <th>Status</th>
                                         <th width="110">Actions</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                @foreach($assets as $asset)
-                                    <tr data-store-id="{{ $asset->store_id ?? '' }}">
-                                        <td>{{ $loop->iteration }}</td>
-                                        <td>
-                                            @if($asset->default_image)
-                                                <img class="asset-thumb" src="{{ asset($asset->default_image) }}" alt="{{ $asset->name }}">
-                                            @else
-                                                <div class="asset-thumb-empty"><i class="ri-image-line"></i></div>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            <div class="fw-semibold">{{ $asset->name }}</div>
-                                            <div class="mt-1">
-                                                @if((int) $asset->has_kv_slot === 1)
-                                                    <span class="badge bg-warning-transparent">KV Slot</span>
-                                                @endif
-                                                @if((int) $asset->has_self === 1)
-                                                    <span class="badge bg-info-transparent">{{ $asset->total_self ?? 0 }} Shelf</span>
-                                                @endif
-                                            </div>
-                                        </td>
-                                        <td><code>{{ $asset->asset_code }}</code></td>
-                                        <td>{{ $asset->assetType?->name ?? '—' }}</td>
-                                        <td>
-                                            @if((int) $asset->is_common_asset === 1)
-                                                <span class="badge bg-primary-transparent">Common</span>
-                                            @else
-                                                {{ $asset->store?->title ?? '—' }}
-                                            @endif
-                                        </td>
-                                        <td>
-                                            <div>{{ !is_null($asset->asset_price) ? '৳ '.number_format($asset->asset_price, 2) : '—' }}</div>
-                                            @if(!is_null($asset->minimum_fee))
-                                                <small class="text-muted">Min: ৳ {{ number_format($asset->minimum_fee, 2) }}</small>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            @if((int) $asset->status === 1)
-                                                <span class="badge bg-success-transparent">Active</span>
-                                            @else
-                                                <span class="badge bg-danger-transparent">Inactive</span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            <div class="btn-list">
-                                                <button class="btn btn-icon btn-sm btn-info-light btn-wave btn-view"
-                                                    data-id="{{ $asset->id }}" title="View">
-                                                    <i class="ri-eye-line"></i>
-                                                </button>
-                                                <button class="btn btn-icon btn-sm btn-primary-light btn-wave btn-edit"
-                                                    data-id="{{ $asset->id }}" title="Edit">
-                                                    <i class="ri-edit-box-line"></i>
-                                                </button>
-                                                <button class="btn btn-icon btn-sm btn-danger-light btn-wave btn-delete"
-                                                    data-id="{{ $asset->id }}" data-name="{{ $asset->name }}" title="Delete">
-                                                    <i class="ri-delete-bin-line"></i>
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                @endforeach
-                                </tbody>
+                                <tbody></tbody>
                             </table>
                         </div>
                     </div>
@@ -152,12 +108,15 @@
                             <div class="row g-3">
                                 <div class="col-md-6">
                                     <label for="asset_type_id" class="form-label">Asset Category <span class="text-danger">*</span></label>
-                                    <select class="form-select" id="asset_type_id" name="asset_type_id">
-                                        <option value="">— Select Type —</option>
-                                        @foreach($assetTypes as $assetType)
-                                            <option value="{{ $assetType->id }}">{{ $assetType->name }}</option>
-                                        @endforeach
-                                    </select>
+                                    <div class="input-group">
+                                        <select class="form-select" id="asset_type_id" name="asset_type_id">
+                                            <option value="">— Select Type —</option>
+                                            @foreach($assetTypes as $assetType)
+                                                <option value="{{ $assetType->id }}">{{ $assetType->name }}</option>
+                                            @endforeach
+                                        </select>
+                                        <span class="input-group-text open-asset-castegory-modal" style="cursor: pointer">+</span>
+                                    </div>
                                     <div class="invalid-feedback" id="error-asset_type_id"></div>
                                 </div>
                                 <div class="col-md-6">
@@ -169,7 +128,7 @@
                                         @endforeach
                                     </select>
                                     <div class="invalid-feedback" id="error-store_id"></div>
-                                    <div class="form-text" id="store-help-text">Disabled when asset is marked as Common.</div>
+{{--                                    <div class="form-text" id="store-help-text">Disabled when asset is marked as Common.</div>--}}
                                 </div>
                                 <div class="col-md-12 d-none" id="asset-code-row">
                                     <div class="alert alert-primary-transparent d-flex align-items-center gap-2 py-2 mb-0">
@@ -334,6 +293,203 @@
         </div>
     </div>
 
+    {{-- ── Asset Category modal ───────────────────────────────────────────────────────── --}}
+    <div class="modal fade" id="addAssetCategoryModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h6 class="modal-title fw-semibold">
+                        <i class="ri-eye-line me-2 text-info"></i>Add Asset Category
+                    </h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="assetCategoryForm" enctype="multipart/form-data" style="display:flex;flex-direction:column;flex:1;overflow:hidden;min-height:0;">
+                    @csrf
+                    <input type="hidden" id="asset_category_id" value="">
+
+                    <div class="modal-body">
+
+                        {{-- ── Section: Basic Information ── --}}
+                        <div class="form-section mb-4">
+                            <p class="form-section-label"><i class="ri-information-line me-1"></i>Basic Information</p>
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <label for="asset-category-name" class="form-label">
+                                        Asset Category Name <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="text" class="form-control" id="asset-category-name" name="name"
+                                           placeholder="e.g. Billboard, LED Screen, Banner">
+                                    <div class="invalid-feedback" id="asset-category-error-name"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- ── Section: Dimensions ── --}}
+                        <div class="form-section mb-4">
+                            <div class="d-flex align-items-center justify-content-between pb-2 mb-3 border-bottom">
+                                <p class="form-section-label mb-0 border-0 pb-0"><i class="ri-ruler-line me-1"></i>Dimensions</p>
+                                <div class="form-check form-switch mb-0">
+                                    <input class="form-check-input form-checked-success" type="checkbox"
+                                           role="switch" id="asset-category-has_default_dimension" name="has_default_dimension">
+                                    <label class="form-check-label fw-medium fs-12" for="asset-category-has_default_dimension">Has Default Dimension</label>
+                                </div>
+                            </div>
+                            <div id="asset-category-dimension-fields" style="display:none;">
+                                <div class="row g-3">
+                                    <div class="col-6 col-md-4">
+                                        <label for="asset-category-height" class="form-label">Height</label>
+                                        <input type="number" step="0.01" min="0" class="form-control"
+                                               id="asset-category-height" name="height" placeholder="0">
+                                        <div class="invalid-feedback" id="asset-category-error-height"></div>
+                                    </div>
+                                    <div class="col-6 col-md-4">
+                                        <label for="asset-category-width" class="form-label">Width</label>
+                                        <input type="number" step="0.01" min="0" class="form-control"
+                                               id="asset-category-width" name="width" placeholder="0">
+                                        <div class="invalid-feedback" id="asset-category-error-width"></div>
+                                    </div>
+                                    <div class="col-6 col-md-4">
+                                        <label for="asset-category-dimension_unit_name" class="form-label">Unit</label>
+                                        <select class="form-select" id="asset-category-dimension_unit_name" name="dimension_unit_name">
+                                            <option value="">— Select —</option>
+                                            <option value="px">px</option>
+                                            <option value="in">in (inch)</option>
+                                            <option value="ft">ft (feet)</option>
+                                            <option value="cm">cm</option>
+                                            <option value="mm">mm</option>
+                                            <option value="m">m (meter)</option>
+                                            <option value="yd">yd (yard)</option>
+                                        </select>
+                                        <div class="invalid-feedback" id="asset-category-error-dimension_unit_name"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <p id="asset-category-dimension-hint" class="text-muted fs-12 mb-0">Enable <strong>Has Default Dimension</strong> to set height, width and depth.</p>
+                        </div>
+
+                        {{-- ── Section: Storage & Image ── --}}
+                        <div class="form-section mb-4">
+                            <p class="form-section-label"><i class="ri-image-line me-1"></i>Storage & Image</p>
+                            <div class="row g-3 align-items-start">
+                                <div class="col-12 d-none">
+                                    <label class="form-label">Default Image</label>
+                                    <div class="image-upload-zone" id="asset-category-imageUploadZone">
+                                        <div id="asset-category-upload-placeholder" class="upload-placeholder-inner">
+                                            <i class="ri-upload-cloud-2-line fs-2 text-muted"></i>
+                                            <p class="mb-1 text-muted fs-12 mt-1">Click or drag image here</p>
+                                            <p class="mb-0 fs-11" style="color:#adb5bd">JPG, JPEG, PNG, WEBP &mdash; Max 2 MB</p>
+                                        </div>
+                                        <img id="asset-category-default-image-preview" class="d-none" src="" alt="Preview">
+                                        <input type="file" class="d-none" id="asset-category-default_image" name="default_image"
+                                               accept=".jpg,.jpeg,.png,.webp">
+                                    </div>
+                                    <div class="invalid-feedback d-block" id="asset-category-error-default_image"></div>
+                                    <div id="asset-category-remove-image-wrap" class="d-none mt-1">
+                                        <button type="button" class="btn btn-sm btn-danger-light" id="asset-category-btn-remove-image">
+                                            <i class="ri-delete-bin-line me-1"></i>Remove Image
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        {{-- ── Section: Options ── --}}
+                        <div class="form-section">
+                            <p class="form-section-label"><i class="ri-settings-3-line me-1"></i>Options</p>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <div class="switch-option-card">
+                                        <div class="form-check form-switch mb-0">
+                                            <input class="form-check-input form-checked-success" type="checkbox"
+                                                   role="switch" id="asset-category-status" checked>
+                                            <label class="form-check-label fw-medium" for="asset-category-status">Active Status</label>
+                                        </div>
+                                        <small class="text-muted d-block mt-1">Enable this asset type in the system</small>
+                                        <div class="invalid-feedback" id="asset-category-error-status"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="switch-option-card">
+                                        <div class="form-check form-switch mb-0">
+                                            <input class="form-check-input form-checked-info" type="checkbox"
+                                                   role="switch" id="asset-category-is_digital">
+                                            <label class="form-check-label fw-medium" for="asset-category-is_digital">Digital Asset</label>
+                                        </div>
+                                        <small class="text-muted d-block mt-1">Mark as a non-physical digital type</small>
+                                        <div class="invalid-feedback" id="asset-category-error-is_digital"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="switch-option-card">
+                                        <div class="form-check form-switch mb-0">
+                                            <input class="form-check-input form-checked-warning" type="checkbox"
+                                                   role="switch" id="asset-category-has_kv_space" checked>
+                                            <label class="form-check-label fw-medium" for="asset-category-has_kv_space">Has KV Space</label>
+                                        </div>
+                                        <small class="text-muted d-block mt-1">Supports key-value metadata storage</small>
+                                        <div class="invalid-feedback" id="asset-category-error-has_kv_space"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="switch-option-card">
+                                        <div class="form-check form-switch mb-0">
+                                            <input class="form-check-input form-checked-primary" type="checkbox"
+                                                   role="switch" id="asset-category-need_asset_image">
+                                            <label class="form-check-label fw-medium" for="asset-category-need_asset_image">Need Asset Image</label>
+                                        </div>
+                                        <small class="text-muted d-block mt-1">Asset requires an image upload</small>
+                                        <div class="invalid-feedback" id="asset-category-error-need_asset_image"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="switch-option-card">
+                                        <div class="form-check form-switch mb-0">
+                                            <input class="form-check-input form-checked-secondary" type="checkbox"
+                                                   role="switch" id="asset-category-need_asset_planogram">
+                                            <label class="form-check-label fw-medium" for="asset-category-need_asset_planogram">Need Planogram</label>
+                                        </div>
+                                        <small class="text-muted d-block mt-1">Asset requires a planogram layout</small>
+                                        <div class="invalid-feedback" id="asset-category-error-need_asset_planogram"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="switch-option-card">
+                                        <div class="form-check form-switch mb-0">
+                                            <input class="form-check-input form-checked-teal" type="checkbox"
+                                                   role="switch" id="asset-category-has_asset_self">
+                                            <label class="form-check-label fw-medium" for="asset-category-has_asset_self">Has Asset Self</label>
+                                        </div>
+                                        <small class="text-muted d-block mt-1">Asset contains self-managed sections</small>
+                                        <div class="invalid-feedback" id="asset-category-error-has_asset_self"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 d-none" id="asset-category-total-self-wrap">
+                                    <label for="asset-category-total_self" class="form-label">Total Shelf</label>
+                                    <input type="number" min="0" class="form-control"
+                                           id="asset-category-total_self" name="total_self" placeholder="0">
+                                    <div class="invalid-feedback" id="asset-category-error-total_self"></div>
+                                    <div class="form-text">Number of shelf units</div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>{{-- /modal-body --}}
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">
+                            <i class="ri-close-line me-1"></i>Cancel
+                        </button>
+                        <button type="submit" class="btn btn-primary" id="btn-save-asset-category">
+                            <span class="btn-text"><i class="ri-save-line me-1"></i>Save</span>
+                            <span class="spinner-border spinner-border-sm d-none" id="btn-spinner-asset-category"></span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     {{-- ── View Modal ───────────────────────────────────────────────────────── --}}
     <div class="modal fade" id="viewModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
@@ -486,20 +642,49 @@
         $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
 
         const apiUrl = id => base_url + 'assets' + (id ? '/' + id : '');
+        const assetCategoryModal = new bootstrap.Modal(document.getElementById('addAssetCategoryModal'));
+        const assetCategoryApiUrl = id => base_url + 'asset-types' + (id ? '/' + id : '');
 
-        // ── DataTable store filter ─────────────────────────────────────────────
-        const dataTable = $('#data-table').DataTable();
-        let selectedStoreFilter = '';
-
-        $.fn.dataTable.ext.search.push(function (settings, data, dataIndex) {
-            if (settings.nTable !== $('#data-table')[0] || !selectedStoreFilter) return true;
-            const rowStoreId = String($(dataTable.row(dataIndex).node()).attr('data-store-id') || '');
-            return rowStoreId === selectedStoreFilter;
+        // ── Server-side DataTable ──────────────────────────────────────────────
+        const dataTable = $('#data-table').DataTable({
+            processing: true,
+            serverSide: true,
+            deferRender: true,
+            searchDelay: 500,
+            order: [],
+            dom: '<"d-flex justify-content-between align-items-center mb-3"<"d-flex align-items-center"l><"d-flex align-items-center gap-2"f>>rt<"d-flex justify-content-between align-items-center mt-3"ip>',
+            language: {
+                searchPlaceholder: "Search data...",
+                sSearch: "",
+                lengthMenu: "Show _MENU_ entries",
+                info: "Showing _START_ to _END_ of _TOTAL_ data",
+                infoEmpty: "No data found",
+                zeroRecords: "No matching records found",
+                paginate: { previous: "<i class='ri-arrow-left-s-line'></i>", next: "<i class='ri-arrow-right-s-line'></i>" }
+            },
+            pageLength: 10,
+            lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
+            ajax: {
+                url: @json(route('assets.index')),
+                data: function (d) {
+                    d.store_id = $('#shortByStore').val();
+                    d.asset_type_id = $('#shortByAssetType').val();
+                }
+            },
+            columns: [
+                { data: 'DT_RowIndex', name: 'DT_RowIndex', searchable: false, orderable: false },
+                { data: 'image', name: 'assets.default_image', searchable: false, orderable: false },
+                { data: 'name_display', name: 'assets.name' },
+                { data: 'code_display', name: 'assets.asset_code' },
+                { data: 'asset_type_display', name: 'asset_types.name' },
+                { data: 'store_display', name: 'stores.title' },
+                { data: 'status_badge', name: 'assets.status', searchable: false, orderable: false },
+                { data: 'actions', name: 'actions', searchable: false, orderable: false },
+            ],
         });
 
-        $('#shortByStore').on('change', function () {
-            selectedStoreFilter = String($(this).val() || '');
-            dataTable.draw();
+        $('#shortByStore, #shortByAssetType').on('change', function () {
+            dataTable.ajax.reload();
         });
 
         // ── Utility helpers ───────────────────────────────────────────────────
@@ -526,6 +711,11 @@
         function clearErrors() {
             $('.is-invalid').removeClass('is-invalid');
             $('.invalid-feedback').text('');
+        }
+
+        function clearAssetCategoryErrors() {
+            $('#addAssetCategoryModal .is-invalid').removeClass('is-invalid');
+            $('#addAssetCategoryModal .invalid-feedback').text('');
         }
 
         // ── Image Upload Zone ──────────────────────────────────────────────────
@@ -595,6 +785,22 @@
             ]);
         @endphp
         const assetTypeFlags = {!! json_encode($assetTypeFlagsData) !!};
+
+        function upsertAssetTypeOption($select, value, label) {
+            const optionValue = String(value ?? '');
+            if (!optionValue) return;
+
+            const $existingOption = $select.find('option').filter(function () {
+                return String(this.value) === optionValue;
+            });
+
+            if ($existingOption.length) {
+                $existingOption.text(label);
+                return;
+            }
+
+            $select.append(new Option(label, optionValue));
+        }
 
         function applyMediaFields(typeId) {
             const flags        = typeId ? (assetTypeFlags[typeId] || {}) : {};
@@ -674,6 +880,192 @@
                 $('#error-total_self').text('');
             }
         }
+
+        function toggleAssetCategoryDimensionFields(show) {
+            $('#asset-category-dimension-fields').toggle(show);
+            $('#asset-category-dimension-hint').toggle(!show);
+        }
+
+        function toggleAssetCategoryTotalShelf(show) {
+            $('#asset-category-total-self-wrap').toggleClass('d-none', !show);
+            if (!show) {
+                $('#asset-category-total_self').val('');
+            }
+        }
+
+        function clearAssetCategoryImagePreview() {
+            $('#asset-category-upload-placeholder').show();
+            $('#asset-category-default-image-preview').addClass('d-none').attr('src', '');
+            $('#asset-category-remove-image-wrap').addClass('d-none');
+            const input = document.getElementById('asset-category-default_image');
+            if (input) input.value = '';
+        }
+
+        function setAssetCategoryImagePreview(file) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                $('#asset-category-upload-placeholder').hide();
+                $('#asset-category-default-image-preview').attr('src', e.target.result).removeClass('d-none');
+                $('#asset-category-remove-image-wrap').removeClass('d-none');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function resetAssetCategoryForm() {
+            const form = document.getElementById('assetCategoryForm');
+            if (!form) return;
+
+            form.reset();
+            $('#asset_category_id').val('');
+            $('#asset-category-status').prop('checked', true);
+            $('#asset-category-is_digital').prop('checked', false);
+            $('#asset-category-has_kv_space').prop('checked', true);
+            $('#asset-category-has_default_dimension').prop('checked', false);
+            $('#asset-category-need_asset_image').prop('checked', false);
+            $('#asset-category-need_asset_planogram').prop('checked', false);
+            $('#asset-category-has_asset_self').prop('checked', false);
+            $('#asset-category-dimension_unit_name').val('');
+            toggleAssetCategoryDimensionFields(false);
+            toggleAssetCategoryTotalShelf(false);
+            clearAssetCategoryImagePreview();
+            clearAssetCategoryErrors();
+        }
+
+        $('#asset-category-has_default_dimension').on('change', function () {
+            toggleAssetCategoryDimensionFields(this.checked);
+        });
+
+        $('#asset-category-has_asset_self').on('change', function () {
+            toggleAssetCategoryTotalShelf(this.checked);
+        });
+
+        $('#asset-category-imageUploadZone').on('click', function (e) {
+            if ($(e.target).closest('#asset-category-btn-remove-image').length === 0) {
+                $('#asset-category-default_image').trigger('click');
+            }
+        });
+
+        $('#asset-category-default_image').on('change', function () {
+            if (this.files[0]) {
+                setAssetCategoryImagePreview(this.files[0]);
+            }
+        });
+
+        $('#asset-category-btn-remove-image').on('click', function (e) {
+            e.stopPropagation();
+            clearAssetCategoryImagePreview();
+        });
+
+        $('#assetCategoryForm').on('submit', function (e) {
+            e.preventDefault();
+            clearAssetCategoryErrors();
+
+            if ($('#asset-category-has_default_dimension').is(':checked')) {
+                let hasError = false;
+
+                if (!String($('#asset-category-height').val() || '').trim()) {
+                    $('#asset-category-height').addClass('is-invalid');
+                    $('#asset-category-error-height').text('Height is required when Default Dimension is enabled.');
+                    hasError = true;
+                }
+
+                if (!String($('#asset-category-width').val() || '').trim()) {
+                    $('#asset-category-width').addClass('is-invalid');
+                    $('#asset-category-error-width').text('Width is required when Default Dimension is enabled.');
+                    hasError = true;
+                }
+
+                if (!$('#asset-category-dimension_unit_name').val()) {
+                    $('#asset-category-dimension_unit_name').addClass('is-invalid');
+                    $('#asset-category-error-dimension_unit_name').text('Unit is required when Default Dimension is enabled.');
+                    hasError = true;
+                }
+
+                if (hasError) return;
+            }
+
+            const id = $('#asset_category_id').val();
+            const formData = new FormData(this);
+
+            [
+                ['status', 'asset-category-status'],
+                ['is_digital', 'asset-category-is_digital'],
+                ['has_kv_space', 'asset-category-has_kv_space'],
+                ['has_default_dimension', 'asset-category-has_default_dimension'],
+                ['need_asset_image', 'asset-category-need_asset_image'],
+                ['need_asset_planogram', 'asset-category-need_asset_planogram'],
+                ['has_asset_self', 'asset-category-has_asset_self'],
+            ].forEach(([field, idName]) => {
+                formData.set(field, $(`#${idName}`).is(':checked') ? 1 : 0);
+            });
+
+            if (!$('#asset-category-has_asset_self').is(':checked')) {
+                formData.delete('total_self');
+            }
+
+            if (id) {
+                formData.append('_method', 'PUT');
+            }
+
+            const $btn = $('#btn-save-asset-category');
+            setBtnLoading($btn, true);
+            $('#btn-spinner-asset-category').removeClass('d-none');
+
+            $.ajax({
+                url: assetCategoryApiUrl(id || null),
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: res => {
+                    const assetType = res.data || {};
+
+                    if (assetType.id && assetType.name) {
+                        upsertAssetTypeOption($('#asset_type_id'), assetType.id, assetType.name);
+                        upsertAssetTypeOption($('#shortByAssetType'), assetType.id, assetType.name);
+
+                        assetTypeFlags[String(assetType.id)] = {
+                            need_asset_image: Number(assetType.need_asset_image ?? 0),
+                            need_asset_planogram: Number(assetType.need_asset_planogram ?? 0),
+                            has_asset_self: Number(assetType.has_asset_self ?? 0),
+                            is_digital: Number(assetType.is_digital ?? 0),
+                            total_self: Number(assetType.total_self ?? 0),
+                            has_kv_space: Number(assetType.has_kv_space ?? 0),
+                        };
+
+                        $('#asset_type_id').val(String(assetType.id)).trigger('change');
+                    }
+
+                    assetCategoryModal.hide();
+                    resetAssetCategoryForm();
+                    showToast(res.message, 'success');
+                },
+                error: xhr => {
+                    if (xhr.status === 422) {
+                        $.each(xhr.responseJSON.errors || {}, (field, messages) => {
+                            $(`#asset-category-${field}`).addClass('is-invalid');
+                            $(`#asset-category-error-${field}`).text(messages[0]);
+                        });
+                    } else {
+                        showToast('Failed to save asset type.', 'danger');
+                    }
+                },
+                complete: () => {
+                    setBtnLoading($btn, false);
+                    $('#btn-spinner-asset-category').addClass('d-none');
+                    $btn.find('.btn-text').html('<i class="ri-save-line me-1"></i>Save');
+                }
+            });
+        });
+
+        $(document).on('click', '.open-asset-castegory-modal', function () {
+            resetAssetCategoryForm();
+            assetCategoryModal.show();
+        });
+
+        $('#addAssetCategoryModal').on('hidden.bs.modal', function () {
+            resetAssetCategoryForm();
+        });
 
         // ── Form: open / reset ─────────────────────────────────────────────────
         function openFormModal(mode) {
@@ -798,7 +1190,7 @@
                 success: res => {
                     deleteModalEl.hide();
                     showToast(res.message, 'success');
-                    setTimeout(() => location.reload(), 800);
+                    dataTable.ajax.reload(null, false);
                 },
                 error:    () => showToast('Failed to delete asset.', 'danger'),
                 complete: () => { setBtnLoading($btn, false); $btn.find('.btn-text').text('Delete'); }
@@ -833,7 +1225,7 @@
                 success: res => {
                     assetModal.hide();
                     showToast(res.message, 'success');
-                    setTimeout(() => location.reload(), 800);
+                    dataTable.ajax.reload(null, false);
                 },
                 error: xhr => {
                     if (xhr.status === 422) {
