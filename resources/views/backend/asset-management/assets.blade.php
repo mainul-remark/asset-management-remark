@@ -47,14 +47,16 @@
         <div class="row">
             <div class="col-sm-12 col-md-11 col-lg-10 col-xl-9 mx-auto">
                 <div class="card custom-card">
-                    <div class="card-header d-flex justify-content-between align-items-center">
+                    <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
                         <div class="card-title">Asset Management</div>
-                        <a href="{{ route('asset-types.index') }}" class="btn btn-sm btn-secondary btn-wave">
-                            <i class="ri-pages-line me-1"></i> Asset Category
-                        </a>
-                        <button type="button" class="btn btn-sm btn-primary btn-wave" id="btn-add-asset">
-                            <i class="ri-add-line me-1"></i> Add Asset
-                        </button>
+                        <div class="d-flex flex-wrap align-items-center gap-2 ms-auto">
+                            <a href="{{ route('asset-types.index') }}" class="btn btn-sm btn-secondary btn-wave">
+                                <i class="ri-pages-line me-1"></i> Asset Category
+                            </a>
+                            <button type="button" class="btn btn-sm btn-primary btn-wave" id="btn-add-asset">
+                                <i class="ri-add-line me-1"></i> Add Asset
+                            </button>
+                        </div>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
@@ -120,8 +122,8 @@
                                     <div class="invalid-feedback" id="error-asset_type_id"></div>
                                 </div>
                                 <div class="col-md-6">
-                                    <label for="store_id" class="form-label">Store</label>
-                                    <select class="form-select select-ele" id="store_id" name="store_id">
+                                    <label for="store_id" class="form-label">Store <span class="text-danger">*</span></label>
+                                    <select class="form-select select-ele" id="store_id" required name="store_id">
                                         <option value="">— Select Store —</option>
                                         @foreach($stores as $store)
                                             <option value="{{ $store->id }}">{{ $store->title }} ({{ $store->code }})</option>

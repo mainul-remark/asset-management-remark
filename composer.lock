@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "9efbb1b84b4e4c4174f210d32ab0687f",
+    "content-hash": "667badc46357954275b73ec4f52cedd5",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -8778,16 +8778,16 @@
         },
         {
             "name": "laravel/boost",
-            "version": "v2.4.1",
+            "version": "v2.4.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/laravel/boost.git",
-                "reference": "f6241df9fd81a86d79a051851177d4ffe3e28506"
+                "reference": "74fedf18048d382e04eded004abe2ad1ee1d9a97"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/laravel/boost/zipball/f6241df9fd81a86d79a051851177d4ffe3e28506",
-                "reference": "f6241df9fd81a86d79a051851177d4ffe3e28506",
+                "url": "https://api.github.com/repos/laravel/boost/zipball/74fedf18048d382e04eded004abe2ad1ee1d9a97",
+                "reference": "74fedf18048d382e04eded004abe2ad1ee1d9a97",
                 "shasum": ""
             },
             "require": {
@@ -8840,7 +8840,7 @@
                 "issues": "https://github.com/laravel/boost/issues",
                 "source": "https://github.com/laravel/boost"
             },
-            "time": "2026-03-25T16:37:40+00:00"
+            "time": "2026-04-07T14:34:49+00:00"
         },
         {
             "name": "laravel/mcp",

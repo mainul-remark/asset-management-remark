@@ -9,7 +9,7 @@ class AssetRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        return false;
     }
 
     public function rules(): array
@@ -24,7 +24,7 @@ class AssetRequest extends FormRequest
             'asset_type_id'  => ['required', 'exists:asset_types,id'],
             'name'           => ['required', 'string', 'max:255'],
             'default_image'  => [!$isUpdate && $needImage ? 'required' : 'nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
-            'store_id'       => ['nullable', 'exists:stores,id'],
+            'store_id'       => ['required', 'nullable', 'exists:stores,id'],
             'has_kv_slot'    => ['nullable', 'boolean'],
             'minimum_fee'    => ['nullable', 'numeric', 'min:0'],
             'asset_price'    => ['nullable', 'numeric', 'min:0'],
