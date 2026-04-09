@@ -133,4 +133,9 @@ class Asset extends Model
     {
         return $this->hasMany(VisualMerchandising::class);
     }
+
+    public function assignAssetToBrands()
+    {
+        return $this->hasMany(AssignAssetToBrand::class);
+    }
 }

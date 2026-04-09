@@ -19,6 +19,8 @@ use App\Http\Controllers\Backend\KV\KeyVisualSizesController;
 use App\Http\Controllers\Backend\KV\KeyVisualFilesController;
 use App\Http\Controllers\Backend\Asset\AssignKvToAssetController;
 
+use App\Http\Controllers\Backend\Asset\AssignAssetToBrandController;
+
 Route::get('/', function () {
     if (auth()->check())
         return redirect('/dashboard');
@@ -59,6 +61,11 @@ Route::middleware([
     Route::prefix('store')->group(function () {
         Route::get('/assign-assets', [AssetController::class, 'assignAssets'])->name('assets.assign-assets');
     });
+
+    Route::prefix('asset')->group(function () {
+        Route::get('/assign-asset-to-brand', [AssignAssetToBrandController::class, 'index'])->name('assets.assign-asset-to-brand');
+    });
+
     Route::prefix('kv')->group(function () {
         Route::get('/assign-kv-to-asset', [AssignKvToAssetController::class, 'index'])->name('key-visuals.assign-kvs');
         Route::post('/assign-kv-to-asset', [AssignKvToAssetController::class, 'store'])->name('key-visuals.assign-kvs.store');

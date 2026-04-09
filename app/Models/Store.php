@@ -133,4 +133,9 @@ class Store extends Model
     {
         return $this->hasMany(AssignAssetToStore::class);
     }
+
+    public function visualMerchandisings()
+    {
+        return $this->hasMany(VisualMerchandising::class);
+    }
 }

@@ -46,4 +46,9 @@ class KeyVisualFiles extends Model
     {
         return $this->belongsTo(KeyVisual::class, 'key_visual_id');
     }
+
+    public function assignKvToAssets()
+    {
+        return $this->hasMany(AssignKvToAsset::class);
+    }
 }

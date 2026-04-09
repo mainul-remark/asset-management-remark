@@ -107,4 +107,14 @@ class KeyVisual extends Model
     {
         return $this->belongsToMany(Category::class);
     }
+
+    public function assignKvToAssets()
+    {
+        return $this->hasMany(AssignKvToAsset::class);
+    }
+
+    public function allKeyVisualFiles()
+    {
+        return $this->hasMany(KeyVisualFiles::class);
+    }
 }

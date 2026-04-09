@@ -271,6 +271,44 @@ class User extends Authenticatable
         }
     }
 
+    public function assignedStore()
+    {
+        return $this->hasOne(Store::class, 'store_manager_id');
+    }
 
+    public function assignAssetToStores()
+    {
+        return $this->hasMany(AssignAssetToStore::class, 'assigned_by_user_id');
+    }
+
+    public function brands()
+    {
+        return $this->hasMany(Brand::class, 'created_by');
+    }
+
+    public function assignKvToAssetsInstalledBy()
+    {
+        return $this->hasMany(AssignKvToAsset::class, 'installed_by');
+    }
+
+    public function assignKvToAssetsAssignedBy()
+    {
+        return $this->hasMany(AssignKvToAsset::class, 'assigned_by');
+    }
+
+    public function categories()
+    {
+        return $this->hasMany(Category::class, 'created_by');
+    }
+
+    public function visualMerchandisings()
+    {
+        return $this->hasMany(VisualMerchandising::class, 'creator_id');
+    }
+
+    public function assignAssetToBrands()
+    {
+        return $this->hasMany(AssignAssetToBrand::class, 'assigned_by_user_id');
+    }
 
 }

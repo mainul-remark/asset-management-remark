@@ -72,4 +72,14 @@ class Category extends Model
 
         return static::updateOrCreate(['id' => $category?->id], $data);
     }
+
+    public function createdBy()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function keyVisuals()
+    {
+        return $this->belongsToMany(KeyVisual::class);
+    }
 }

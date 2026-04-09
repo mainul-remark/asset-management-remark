@@ -26,4 +26,9 @@ class District extends Model
     {
         return $this->hasMany(Thana::class);
     }
+
+    public function stores()
+    {
+        return $this->hasMany(Store::class);
+    }
 }

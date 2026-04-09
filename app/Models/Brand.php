@@ -60,4 +60,8 @@ class Brand extends Model
         return $this->belongsToMany(KeyVisual::class);
     }
 
+    public function assignAssetToBrands()
+    {
+        return $this->hasMany(AssignAssetToBrand::class);
+    }
 }

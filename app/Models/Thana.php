@@ -21,4 +21,9 @@ class Thana extends Model
     {
         return $this->belongsTo(District::class);
     }
+
+    public function stores()
+    {
+        return $this->hasMany(Store::class);
+    }
 }

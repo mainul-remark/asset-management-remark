@@ -132,4 +132,10 @@ class VisualMerchandising extends Model
     {
         return $this->hasMany(VisualMerchandisingFile::class);
     }
+
+    public function createdBy()
+    {
+        return $this->belongsTo(User::class, 'creator_id');
+    }
+
 }
