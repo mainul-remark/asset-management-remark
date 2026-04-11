@@ -15,6 +15,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Collection;
 use Throwable;
 
 class AssignAssetToBrandController extends Controller
@@ -80,14 +81,30 @@ class AssignAssetToBrandController extends Controller
         ]);
 
         $perPage = (int) ($validated['per_page'] ?? 15);
-        $paginator = AssignAssetToBrand::filteredQuery($validated)
-            ->latest('id')
+        $paginator = AssignAssetToBrand::filteredAssetQuery($validated)
+            ->orderByDesc('latest_assignment_id')
             ->paginate($perPage)
             ->appends($request->query());
 
+        $assetIds = $paginator->getCollection()
+            ->pluck('asset_id')
+            ->filter()
+            ->map(fn ($assetId) => (int) $assetId)
+            ->values();
+
+        $assignmentsByAsset = $assetIds->isEmpty()
+            ? collect()
+            : AssignAssetToBrand::filteredQuery($validated)
+                ->whereIn('asset_id', $assetIds->all())
+                ->latest('id')
+                ->get()
+                ->groupBy('asset_id');
+
         return response()->json([
             'data' => $paginator->getCollection()
-                ->map(fn (AssignAssetToBrand $assignment) => $this->transformAssignment($assignment))
+                ->map(fn ($row) => $this->transformAssignmentGroup(
+                    $assignmentsByAsset->get((int) $row->asset_id, collect())
+                ))
                 ->values(),
             'meta' => [
                 'current_page' => $paginator->currentPage(),
@@ -222,6 +239,90 @@ class AssignAssetToBrandController extends Controller
         }
     }
 
+    private function transformAssignmentGroup(Collection $assignments): array
+    {
+        $orderedAssignments = $assignments
+            ->sortByDesc('id')
+            ->values();
+
+        /** @var AssignAssetToBrand|null $primaryAssignment */
+        $primaryAssignment = $orderedAssignments->first();
+
+        if (!$primaryAssignment) {
+            return [];
+        }
+
+        $brands = $orderedAssignments
+            ->map(function (AssignAssetToBrand $assignment): ?array {
+                if (!$assignment->brand) {
+                    return null;
+                }
+
+                return [
+                    'id' => $assignment->brand->id,
+                    'name' => $assignment->brand->name,
+                    'code' => $assignment->brand->code,
+                ];
+            })
+            ->filter()
+            ->unique('id')
+            ->sortBy(fn (array $brand) => strtolower($brand['name'] ?? ''))
+            ->values();
+
+        $statusSummary = $this->summarizeAssignmentValues(
+            $orderedAssignments,
+            fn (AssignAssetToBrand $assignment) => (int) $assignment->status
+        );
+        $chargeSummary = $this->summarizeAssignmentValues(
+            $orderedAssignments,
+            fn (AssignAssetToBrand $assignment) => $assignment->asset_charge !== null
+                ? (float) $assignment->asset_charge
+                : null
+        );
+        $closeDateSummary = $this->summarizeAssignmentValues(
+            $orderedAssignments,
+            fn (AssignAssetToBrand $assignment) => optional($assignment->close_date)->format('Y-m-d')
+        );
+
+        return [
+            'id' => $primaryAssignment->id,
+            'primary_assignment_id' => $primaryAssignment->id,
+            'assignment_ids' => $orderedAssignments->pluck('id')->map(fn ($id) => (int) $id)->values(),
+            'assignment_count' => $orderedAssignments->count(),
+            'brand_id' => $brands->count() === 1 ? $brands->first()['id'] : null,
+            'brand_ids' => $brands->pluck('id')->map(fn ($id) => (int) $id)->values(),
+            'brand_names' => $brands->pluck('name')->filter()->implode(', '),
+            'brands' => $brands->values(),
+            'brand' => $brands->count() === 1 ? $brands->first() : null,
+            'asset_id' => $primaryAssignment->asset_id,
+            'assigned_by_user_id' => $primaryAssignment->assigned_by_user_id,
+            'asset_charge' => $chargeSummary['value'],
+            'has_mixed_asset_charge' => $chargeSummary['is_mixed'],
+            'close_date' => $closeDateSummary['value'],
+            'has_mixed_close_date' => $closeDateSummary['is_mixed'],
+            'status' => $statusSummary['value'],
+            'status_label' => $statusSummary['is_mixed']
+                ? 'Mixed'
+                : ((int) $statusSummary['value'] === 1 ? 'Active' : 'Inactive'),
+            'has_mixed_status' => $statusSummary['is_mixed'],
+            'is_asset_assigned_currently' => $orderedAssignments
+                ->contains(fn (AssignAssetToBrand $assignment) => (int) $assignment->is_asset_assigned_currently === 1)
+                ? 1
+                : 0,
+            'currently_assigned_brand_count' => $orderedAssignments
+                ->filter(fn (AssignAssetToBrand $assignment) => (int) $assignment->is_asset_assigned_currently === 1)
+                ->count(),
+            'created_at' => optional($primaryAssignment->created_at)->format('Y-m-d'),
+            'asset' => $primaryAssignment->asset ? $this->transformAsset($primaryAssignment->asset) : null,
+            'assigned_by' => $primaryAssignment->assignedBy ? [
+                'id' => $primaryAssignment->assignedBy->id,
+                'name' => $primaryAssignment->assignedBy->name,
+            ] : null,
+            'can_edit' => $orderedAssignments->count() === 1,
+            'can_delete' => $orderedAssignments->count() === 1,
+        ];
+    }
+
     private function transformAssignment(AssignAssetToBrand $assignment): array
     {
         $asset = $assignment->asset;
@@ -246,6 +347,19 @@ class AssignAssetToBrandController extends Controller
                 'id' => $assignment->assignedBy->id,
                 'name' => $assignment->assignedBy->name,
             ] : null,
+        ];
+    }
+
+    private function summarizeAssignmentValues(Collection $assignments, callable $resolver): array
+    {
+        $values = $assignments
+            ->map($resolver)
+            ->uniqueStrict()
+            ->values();
+
+        return [
+            'value' => $values->count() === 1 ? $values->first() : null,
+            'is_mixed' => $values->count() > 1,
         ];
     }
 

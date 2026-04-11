@@ -66,8 +66,26 @@ class AssignAssetToBrand extends Model
 
     public static function filteredQuery(array $filters = []): Builder
     {
-        return static::query()
-            ->with(static::detailRelations())
+        return static::applyFilters(
+            static::query()->with(static::detailRelations()),
+            $filters
+        );
+    }
+
+    public static function filteredAssetQuery(array $filters = []): Builder
+    {
+        return static::applyFilters(
+            static::query()
+                ->select('asset_id')
+                ->selectRaw('MAX(id) as latest_assignment_id')
+                ->groupBy('asset_id'),
+            $filters
+        );
+    }
+
+    private static function applyFilters(Builder $query, array $filters = []): Builder
+    {
+        return $query
             ->when(!empty($filters['division_id']), function (Builder $query) use ($filters) {
                 $query->whereHas('asset.store', fn (Builder $q) => $q->where('division_id', $filters['division_id']));
             })

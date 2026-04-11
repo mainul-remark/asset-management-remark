@@ -112,6 +112,19 @@ class AssignAssetToBrandCrudTest extends TestCase
                 ],
                 [
                     'id' => 2,
+                    'asset_id' => 1,
+                    'brand_id' => 2,
+                    'assigned_by_user_id' => 1,
+                    'asset_charge' => 100,
+                    'close_date' => null,
+                    'status' => 1,
+                    'is_asset_assigned_currently' => 1,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                    'deleted_at' => null,
+                ],
+                [
+                    'id' => 3,
                     'asset_id' => 2,
                     'brand_id' => 2,
                     'assigned_by_user_id' => 1,
@@ -125,14 +138,20 @@ class AssignAssetToBrandCrudTest extends TestCase
                 ],
             ]);
 
-            $filterResponse = $this->withoutMiddleware()->getJson('/asset/assign-asset-to-brand/filter?per_page=1&page=1');
+            $filterResponse = $this->withoutMiddleware()->getJson('/asset/assign-asset-to-brand/filter?per_page=2&page=1');
 
             $filterResponse->assertOk();
-            $filterResponse->assertJsonCount(1, 'data');
+            $filterResponse->assertJsonCount(2, 'data');
             $filterResponse->assertJsonPath('meta.total', 2);
             $filterResponse->assertJsonPath('meta.current_page', 1);
-            $filterResponse->assertJsonPath('meta.last_page', 2);
+            $filterResponse->assertJsonPath('meta.last_page', 1);
             $filterResponse->assertJsonPath('data.0.is_asset_assigned_currently', 0);
+            $filterResponse->assertJsonPath('data.1.asset_id', 1);
+            $filterResponse->assertJsonPath('data.1.assignment_count', 2);
+            $filterResponse->assertJsonPath('data.1.can_edit', false);
+            $filterResponse->assertJsonPath('data.1.can_delete', false);
+            $filterResponse->assertJsonPath('data.1.brand_names', 'Apex, Remark');
+            $filterResponse->assertJsonCount(2, 'data.1.brands');
 
             $assetOptionsResponse = $this->withoutMiddleware()->getJson('/asset/assign-asset-to-brand/assets?division_id=1&asset_type_id=1');
 

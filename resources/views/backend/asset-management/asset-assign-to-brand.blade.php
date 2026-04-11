@@ -99,7 +99,7 @@
                                 <thead>
                                 <tr>
                                     <th width="60">SL</th>
-                                    <th>Brand</th>
+                                    <th>Brands</th>
                                     <th>Asset</th>
                                     <th>Store</th>
                                     <th>Charge</th>
@@ -254,7 +254,7 @@
                     <div class="row g-3">
                         <div class="col-md-6">
                             <div class="detail-card h-100">
-                                <div class="detail-label">Brand</div>
+                                <div class="detail-label">Brands</div>
                                 <div class="detail-value" id="view-brand">-</div>
                             </div>
                         </div>
@@ -484,7 +484,11 @@
             }
 
             function formatCurrency(value) {
-                const amount = Number(value ?? 0);
+                if (value === null || value === undefined || value === '') {
+                    return '-';
+                }
+
+                const amount = Number(value);
 
                 if (Number.isNaN(amount)) {
                     return '-';
@@ -496,10 +500,66 @@
                 }).format(amount);
             }
 
-            function statusBadge(status) {
+            function statusBadge(status, isMixed = false) {
+                if (isMixed) {
+                    return '<span class="badge bg-warning-transparent text-warning">Mixed</span>';
+                }
+
                 const isActive = Number(status) === 1;
 
                 return `<span class="badge ${isActive ? 'bg-success-transparent text-success' : 'bg-danger-transparent text-danger'}">${isActive ? 'Active' : 'Inactive'}</span>`;
+            }
+
+            function brandSummary(item) {
+                const brands = item?.brands || [];
+
+                if (!brands.length) {
+                    return '-';
+                }
+
+                return brands.map(function (brand) {
+                    return brand.code
+                        ? `${brand.name} (${brand.code})`
+                        : brand.name;
+                }).join(', ');
+            }
+
+            function brandBadges(item) {
+                const brands = item?.brands || [];
+
+                if (!brands.length) {
+                    return '<span class="text-muted">-</span>';
+                }
+
+                return brands.map(function (brand) {
+                    const label = brand.code
+                        ? `${brand.name} (${brand.code})`
+                        : brand.name;
+
+                    return `<span class="badge bg-primary-transparent text-primary">${escapeHtml(label)}</span>`;
+                }).join(' ');
+            }
+
+            function formatAggregatedCharge(item) {
+                if (item?.has_mixed_asset_charge) {
+                    return 'Multiple';
+                }
+
+                return formatCurrency(item?.asset_charge);
+            }
+
+            function formatAggregatedDate(value, isMixed = false) {
+                if (isMixed) {
+                    return 'Multiple';
+                }
+
+                return formatDate(value);
+            }
+
+            function findCurrentAssignment(id) {
+                return currentAssignments.find(function (assignment) {
+                    return String(assignment.id) === String(id);
+                }) || null;
             }
 
             function assetOptionText(asset) {
@@ -757,16 +817,36 @@
                 items.forEach(function (item, index) {
                     const asset = item.asset || {};
                     const store = asset.store || null;
-                    const brand = item.brand || {};
                     const serial = (meta.from || 1) + index;
+                    const actionButtons = item.can_edit || item.can_delete
+                        ? `
+                            ${item.can_edit ? `
+                                <button type="button" class="btn btn-icon btn-sm btn-primary-light btn-wave btn-edit" data-id="${item.id}" title="Edit">
+                                    <i class="ri-edit-box-line"></i>
+                                </button>
+                            ` : ''}
+                            ${item.can_delete ? `
+                                <button type="button" class="btn btn-icon btn-sm btn-danger-light btn-wave btn-delete" data-id="${item.id}" title="Delete">
+                                    <i class="ri-delete-bin-line"></i>
+                                </button>
+                            ` : ''}
+                        `
+                        : `
+                            <button type="button" class="btn btn-icon btn-sm btn-primary-light btn-wave btn-edit" data-id="${item.id}" title="Filter by a single brand to edit this asset assignment.">
+                                <i class="ri-edit-box-line"></i>
+                            </button>
+                            <button type="button" class="btn btn-icon btn-sm btn-danger-light btn-wave btn-delete" data-id="${item.id}" title="Filter by a single brand to delete one assignment row.">
+                                <i class="ri-delete-bin-line"></i>
+                            </button>
+                        `;
 
                     const row = `
                         <tr>
                             <td>${serial}</td>
                             <td>
                                 <div class="assignment-table-cell">
-                                    <div class="primary-line">${escapeHtml(brand.name || '-')}</div>
-                                    <div class="secondary-line">${escapeHtml(brand.code || '-')}</div>
+                                    <div class="primary-line">${brandBadges(item)}</div>
+                                    <div class="secondary-line">${escapeHtml(`${item.assignment_count || 0} brand(s)`)}</div>
                                 </div>
                             </td>
                             <td>
@@ -783,26 +863,21 @@
                                     <div class="secondary-line">${escapeHtml([store?.division?.name, store?.district?.name].filter(Boolean).join(', ') || (asset.is_common_asset ? 'Common asset' : '-'))}</div>
                                 </div>
                             </td>
-                            <td>${escapeHtml(formatCurrency(item.asset_charge))}</td>
+                            <td>${escapeHtml(formatAggregatedCharge(item))}</td>
                             <td>
                                 <div class="assignment-table-cell">
                                     <div class="primary-line">${escapeHtml(formatDate(item.created_at))}</div>
                                     <div class="secondary-line">${escapeHtml(item.assigned_by?.name || '-')}</div>
                                 </div>
                             </td>
-                            <td>${escapeHtml(formatDate(item.close_date))}</td>
-                            <td>${statusBadge(item.status)}</td>
+                            <td>${escapeHtml(formatAggregatedDate(item.close_date, item.has_mixed_close_date))}</td>
+                            <td>${statusBadge(item.status, item.has_mixed_status)}</td>
                             <td>
                                 <div class="btn-list">
                                     <button type="button" class="btn btn-icon btn-sm btn-info-light btn-wave btn-view" data-id="${item.id}" title="View">
                                         <i class="ri-eye-line"></i>
                                     </button>
-                                    <button type="button" class="btn btn-icon btn-sm btn-primary-light btn-wave btn-edit" data-id="${item.id}" title="Edit">
-                                        <i class="ri-edit-box-line"></i>
-                                    </button>
-                                    <button type="button" class="btn btn-icon btn-sm btn-danger-light btn-wave btn-delete" data-id="${item.id}" title="Delete">
-                                        <i class="ri-delete-bin-line"></i>
-                                    </button>
+                                    ${actionButtons}
                                 </div>
                             </td>
                         </tr>
@@ -811,8 +886,8 @@
                     $tbody.append(row);
                 });
 
-                $('#result-count').text(`${meta.total} assignment(s)`);
-                $('#pagination-summary').text(`Showing ${meta.from} to ${meta.to} of ${meta.total} assignments`);
+                $('#result-count').text(`${meta.total} asset(s)`);
+                $('#pagination-summary').text(`Showing ${meta.from} to ${meta.to} of ${meta.total} assets`);
             }
 
             function renderPagination(meta) {
@@ -912,26 +987,27 @@
             }
 
             function fillViewModal(data) {
-                $('#view-brand').text(data.brand?.name ? `${data.brand.name}${data.brand.code ? ' (' + data.brand.code + ')' : ''}` : '-');
-                $('#view-status').html(statusBadge(data.status));
+                $('#view-brand').text(brandSummary(data));
+                $('#view-status').html(statusBadge(data.status, data.has_mixed_status));
                 $('#view-asset').text(data.asset ? assetOptionText(data.asset) : '-');
                 $('#view-store').text(storeLabel(data.asset?.store));
                 $('#view-asset-type').text(data.asset?.asset_type?.name || '-');
-                $('#view-charge').text(formatCurrency(data.asset_charge));
+                $('#view-charge').text(formatAggregatedCharge(data));
                 $('#view-assigned-by').text(data.assigned_by?.name || '-');
                 $('#view-created-at').text(formatDate(data.created_at));
-                $('#view-close-date').text(formatDate(data.close_date));
+                $('#view-close-date').text(formatAggregatedDate(data.close_date, data.has_mixed_close_date));
             }
 
             function loadAssignmentForView(id) {
-                $.get(endpoint(routes.show, id))
-                    .done(function (data) {
-                        fillViewModal(data);
-                        viewAssignmentModal.show();
-                    })
-                    .fail(function () {
-                        showToast('Failed to load assignment details.', 'danger');
-                    });
+                const item = findCurrentAssignment(id);
+
+                if (!item) {
+                    showToast('Failed to load assignment details.', 'danger');
+                    return;
+                }
+
+                fillViewModal(item);
+                viewAssignmentModal.show();
             }
 
             function loadAssignmentForEdit(id) {
@@ -1078,18 +1154,38 @@
             });
 
             $(document).on('click', '.btn-edit', function () {
-                loadAssignmentForEdit($(this).data('id'));
+                const item = findCurrentAssignment($(this).data('id'));
+
+                if (!item) {
+                    showToast('Failed to load assignment for editing.', 'danger');
+                    return;
+                }
+
+                if (!item.can_edit) {
+                    showToast('Filter by a single brand first to edit one assignment row.', 'danger');
+                    return;
+                }
+
+                loadAssignmentForEdit(item.id);
             });
 
             $(document).on('click', '.btn-delete', function () {
                 const assignmentId = $(this).data('id');
-                const item = currentAssignments.find(function (assignment) {
-                    return String(assignment.id) === String(assignmentId);
-                });
+                const item = findCurrentAssignment(assignmentId);
+
+                if (!item) {
+                    showToast('Failed to load assignment for deletion.', 'danger');
+                    return;
+                }
+
+                if (!item.can_delete) {
+                    showToast('Filter by a single brand first to delete one assignment row.', 'danger');
+                    return;
+                }
 
                 $('#delete-assignment-id').val(assignmentId);
                 $('#delete-message').html(
-                    `Remove <strong>${escapeHtml(item?.asset?.name || 'this asset')}</strong> from <strong>${escapeHtml(item?.brand?.name || 'this brand')}</strong>?`
+                    `Remove <strong>${escapeHtml(item?.asset?.name || 'this asset')}</strong> from <strong>${escapeHtml(brandSummary(item))}</strong>?`
                 );
                 deleteModal.show();
             });
