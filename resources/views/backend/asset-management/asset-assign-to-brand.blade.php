@@ -143,34 +143,6 @@
                 <form id="assignmentForm">
                     <input type="hidden" id="assignment_id">
                     <div class="modal-body pt-3">
-                        <div class="section-card mb-3">
-                            <div class="section-card-header">
-                                <i class="ri-price-tag-3-line me-1"></i> Brand & Asset
-                            </div>
-                            <div class="section-card-body">
-                                <div class="row g-3">
-                                    <div class="col-md-6">
-                                        <label for="modal-brand" class="form-label">Brands <span class="text-danger">*</span></label>
-                                        <select id="modal-brand" name="brand_ids[]" class="form-select select-ele" multiple>
-                                            @foreach($brands as $brand)
-                                                <option value="{{ $brand->id }}">{{ $brand->name }}{{ $brand->code ? ' (' . $brand->code . ')' : '' }}</option>
-                                            @endforeach
-                                        </select>
-                                        <div class="form-text" id="modal-brand-help">Select one or more brands for this asset.</div>
-                                        <div class="invalid-feedback" id="error-brand_id"></div>
-                                        <div class="invalid-feedback" id="error-brand_ids"></div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label for="modal-asset" class="form-label">Asset <span class="text-danger">*</span></label>
-                                        <select id="modal-asset" name="asset_id" class="form-select">
-                                            <option value=""></option>
-                                        </select>
-                                        <div class="form-text">Search by name or asset code. Use the helper filters below to narrow the asset list.</div>
-                                        <div class="invalid-feedback" id="error-asset_id"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
 
                         <div class="section-card mb-3">
                             <div class="section-card-header">
@@ -212,30 +184,48 @@
                             </div>
                         </div>
 
+                        <div class="section-card mb-3">
+                            <div class="section-card-header">
+                                <i class="ri-price-tag-3-line me-1"></i> Brand & Asset
+                            </div>
+                            <div class="section-card-body">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label for="modal-brand" class="form-label">Brands <span class="text-danger">*</span></label>
+                                        <select id="modal-brand" name="brand_ids[]" class="form-select select-ele" multiple>
+                                            @foreach($brands as $brand)
+                                                <option value="{{ $brand->id }}">{{ $brand->name }}{{ $brand->code ? ' (' . $brand->code . ')' : '' }}</option>
+                                            @endforeach
+                                        </select>
+                                        <div class="form-text" id="modal-brand-help">Select one or more brands for this asset.</div>
+                                        <div class="invalid-feedback" id="error-brand_id"></div>
+                                        <div class="invalid-feedback" id="error-brand_ids"></div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="modal-asset" class="form-label">Asset <span class="text-danger">*</span></label>
+                                        <select id="modal-asset" name="asset_id" class="form-select">
+                                            <option value=""></option>
+                                        </select>
+                                        <div class="form-text">Search by name or asset code. Use the helper filters above to narrow the asset list.</div>
+                                        <div class="invalid-feedback" id="error-asset_id"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="section-card">
                             <div class="section-card-header">
                                 <i class="ri-file-list-3-line me-1"></i> Assignment Details
                             </div>
                             <div class="section-card-body">
                                 <div class="row g-3">
-                                    <div class="col-md-4">
-                                        <label for="modal-asset-charge" class="form-label">Asset Charge</label>
-                                        <input type="number" step="0.01" min="0" id="modal-asset-charge" name="asset_charge" class="form-control" placeholder="0.00">
-                                        <div class="invalid-feedback" id="error-asset_charge"></div>
-                                    </div>
-                                    <div class="col-md-4">
+                                    <div class="col-md-6">
                                         <label for="modal-status" class="form-label">Status <span class="text-danger">*</span></label>
                                         <select id="modal-status" name="status" class="form-select">
                                             <option value="1">Active</option>
                                             <option value="0">Inactive</option>
                                         </select>
                                         <div class="invalid-feedback" id="error-status"></div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label for="modal-close-date" class="form-label">Close Date</label>
-                                        <input type="date" id="modal-close-date" name="close_date" class="form-control">
-                                        <div class="form-text" id="close-date-help">Required only when the assignment status is inactive.</div>
-                                        <div class="invalid-feedback" id="error-close_date"></div>
                                     </div>
                                 </div>
                             </div>
@@ -559,8 +549,6 @@
                         brand_id: '#modal-brand',
                         brand_ids: '#modal-brand',
                         asset_id: '#modal-asset',
-                        asset_charge: '#modal-asset-charge',
-                        close_date: '#modal-close-date',
                         status: '#modal-status',
                     };
                     const selector = fieldMap[normalizedField];
@@ -750,16 +738,6 @@
                 $('#btn-confirm-delete .btn-text').toggleClass('d-none', isLoading);
             }
 
-            function syncCloseDateState() {
-                const isInactive = String($('#modal-status').val()) === '0';
-                $('#modal-close-date').prop('required', isInactive);
-                $('#close-date-help').text(
-                    isInactive
-                        ? 'Close date is required when the assignment status is inactive.'
-                        : 'Close date is optional while the assignment is active.'
-                );
-            }
-
             function renderTable(items, meta) {
                 const $tbody = $('#assignment-tbody');
                 $tbody.empty();
@@ -930,7 +908,6 @@
                 $('#modal-asset-type').val('').trigger('change.select2');
                 syncDistrictAndStoreOptions('modal');
                 clearRemoteAssetSelection($('#modal-asset'));
-                syncCloseDateState();
                 clearErrors();
             }
 
@@ -968,8 +945,6 @@
                         $('#assignment_id').val(data.id);
                         $('#modal-brand').val(data.brand_id ? [String(data.brand_id)] : []).trigger('change');
                         $('#modal-status').val(String(data.status ?? 1));
-                        $('#modal-asset-charge').val(data.asset_charge ?? '');
-                        $('#modal-close-date').val(data.close_date || '');
 
                         const asset = data.asset || null;
                         const store = asset?.store || null;
@@ -981,7 +956,6 @@
                         $('#modal-store').val(store?.id ? String(store.id) : '').trigger('change.select2');
                         $('#modal-asset-type').val(asset?.asset_type_id ? String(asset.asset_type_id) : '').trigger('change.select2');
                         setRemoteAssetSelection($('#modal-asset'), asset);
-                        syncCloseDateState();
                         assignmentModal.show();
                     })
                     .fail(function () {
@@ -1020,8 +994,6 @@
             $('#modal-store, #modal-asset-type').on('change', function () {
                 clearRemoteAssetSelection($('#modal-asset'));
             });
-
-            $('#modal-status').on('change', syncCloseDateState);
 
             $('#modal-brand').on('change', function () {
                 clearSelect2Validation($(this));
@@ -1062,8 +1034,6 @@
 
                 const payload = {
                     asset_id: $('#modal-asset').val(),
-                    asset_charge: $('#modal-asset-charge').val(),
-                    close_date: $('#modal-close-date').val(),
                     status: $('#modal-status').val(),
                 };
 

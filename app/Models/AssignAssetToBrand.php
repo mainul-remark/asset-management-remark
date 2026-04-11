@@ -94,7 +94,8 @@ class AssignAssetToBrand extends Model
             $request,
             $data,
             (int) $data['brand_id'],
-            $assignedByUserId
+            $assignedByUserId,
+            $assignment
         );
 
         if ($assignment) {
@@ -136,18 +137,18 @@ class AssignAssetToBrand extends Model
         return (int) $assignedByUserId;
     }
 
-    private static function buildPayload($request, array $data, int $brandId, int $assignedByUserId): array
+    private static function buildPayload($request, array $data, int $brandId, int $assignedByUserId, ?self $assignment = null): array
     {
         return [
             'asset_id' => (int) $data['asset_id'],
             'brand_id' => $brandId,
             'assigned_by_user_id' => $assignedByUserId,
-            'asset_charge' => $request->filled('asset_charge')
+            'asset_charge' => $request->filled('asset_charge') && array_key_exists('asset_charge', $data)
                 ? number_format((float) $data['asset_charge'], 2, '.', '')
-                : '0.00',
-            'close_date' => $request->filled('close_date')
+                : ($assignment?->asset_charge ?? '0.00'),
+            'close_date' => $request->filled('close_date') && array_key_exists('close_date', $data)
                 ? Carbon::parse($data['close_date'])->toDateString()
-                : null,
+                : $assignment?->close_date,
             'status' => (int) $data['status'],
         ];
     }

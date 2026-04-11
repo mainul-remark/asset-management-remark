@@ -25,7 +25,10 @@ class AssignAssetToBrandCrudTest extends TestCase
         $this->assertStringContainsString('id="assignmentForm"', $blade);
         $this->assertStringContainsString('id="viewAssignmentModal"', $blade);
         $this->assertStringContainsString('id="pagination-links"', $blade);
+        $this->assertStringContainsString('id="modal-asset"', $blade);
         $this->assertStringContainsString("route('assets.assign-asset-to-brand.assets')", $blade);
+        $this->assertStringNotContainsString('id="modal-asset-charge"', $blade);
+        $this->assertStringNotContainsString('id="modal-close-date"', $blade);
     }
 
     public function test_store_endpoint_validates_and_persists_multiple_assignments_for_one_asset(): void
@@ -37,23 +40,18 @@ class AssignAssetToBrandCrudTest extends TestCase
             $invalidResponse = $this->withoutMiddleware()->postJson('/asset/assign-asset-to-brand', [
                 'brand_ids' => [],
                 'asset_id' => '',
-                'asset_charge' => -10,
                 'status' => 0,
-                'close_date' => '',
             ]);
 
             $invalidResponse->assertStatus(422);
             $invalidResponse->assertJsonValidationErrors([
                 'brand_ids',
                 'asset_id',
-                'asset_charge',
-                'close_date',
             ]);
 
             $validResponse = $this->withoutMiddleware()->postJson('/asset/assign-asset-to-brand', [
                 'brand_ids' => [1, 2],
                 'asset_id' => 1,
-                'asset_charge' => 1500.50,
                 'status' => 1,
             ]);
 
@@ -62,6 +60,8 @@ class AssignAssetToBrandCrudTest extends TestCase
             $validResponse->assertJsonPath('created_count', 2);
             $validResponse->assertJsonCount(2, 'data');
             $validResponse->assertJsonPath('data.0.asset.asset_code', '50000001');
+            $validResponse->assertJsonPath('data.0.asset_charge', 0);
+            $validResponse->assertJsonPath('data.0.close_date', null);
             $validResponse->assertJsonPath('data.0.status', 1);
             $validResponse->assertJsonPath('data.0.is_asset_assigned_currently', 1);
 
@@ -70,6 +70,8 @@ class AssignAssetToBrandCrudTest extends TestCase
                 'asset_id' => 1,
                 'assigned_by_user_id' => 1,
                 'status' => 1,
+                'asset_charge' => 0,
+                'close_date' => null,
                 'is_asset_assigned_currently' => 1,
             ]);
 
@@ -78,6 +80,8 @@ class AssignAssetToBrandCrudTest extends TestCase
                 'asset_id' => 1,
                 'assigned_by_user_id' => 1,
                 'status' => 1,
+                'asset_charge' => 0,
+                'close_date' => null,
                 'is_asset_assigned_currently' => 1,
             ]);
         } finally {
@@ -155,7 +159,7 @@ class AssignAssetToBrandCrudTest extends TestCase
                 'brand_id' => 1,
                 'assigned_by_user_id' => 1,
                 'asset_charge' => 100,
-                'close_date' => null,
+                'close_date' => '2026-04-01',
                 'status' => 1,
                 'is_asset_assigned_currently' => 1,
                 'created_at' => now(),
@@ -169,29 +173,31 @@ class AssignAssetToBrandCrudTest extends TestCase
             $showResponse->assertJsonPath('id', 1);
             $showResponse->assertJsonPath('brand.name', 'Apex');
             $showResponse->assertJsonPath('asset.asset_code', '50000001');
+            $showResponse->assertJsonPath('asset_charge', 100);
+            $showResponse->assertJsonPath('close_date', '2026-04-01');
             $showResponse->assertJsonPath('is_asset_assigned_currently', 1);
 
             $updateResponse = $this->withoutCrudGuards()->putJson('/asset/assign-asset-to-brand/1', [
                 'brand_id' => 2,
                 'asset_id' => 1,
-                'asset_charge' => 999.99,
                 'status' => 0,
-                'close_date' => '2026-04-09',
             ]);
 
             $updateResponse->assertOk();
             $updateResponse->assertJsonPath('success', true);
             $updateResponse->assertJsonPath('data.brand.name', 'Remark');
-            $updateResponse->assertJsonPath('data.asset_charge', 999.99);
+            $updateResponse->assertJsonPath('data.asset_charge', 100);
             $updateResponse->assertJsonPath('data.status', 0);
             $updateResponse->assertJsonPath('data.is_asset_assigned_currently', 0);
-            $updateResponse->assertJsonPath('data.close_date', '2026-04-09');
+            $updateResponse->assertJsonPath('data.close_date', '2026-04-01');
 
             $this->assertDatabaseHas('assign_asset_to_brands', [
                 'id' => 1,
                 'brand_id' => 2,
                 'asset_id' => 1,
                 'status' => 0,
+                'asset_charge' => 100,
+                'close_date' => '2026-04-01',
                 'is_asset_assigned_currently' => 0,
             ]);
         } finally {

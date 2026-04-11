@@ -43,8 +43,6 @@ class AssignAssetToBrandRequest extends FormRequest
                     $query->whereNull('deleted_at')->where('status', 1);
                 }),
             ],
-            'asset_charge' => ['nullable', 'numeric', 'min:0'],
-            'close_date' => ['nullable', 'date', Rule::requiredIf(fn () => (int) $this->input('status', 1) === 0)],
             'status' => ['required', 'in:0,1'],
         ];
 
@@ -70,10 +68,6 @@ class AssignAssetToBrandRequest extends FormRequest
             'brand_ids.*.exists' => 'One or more selected brands are invalid or inactive.',
             'asset_id.required' => 'Please select an asset.',
             'asset_id.exists' => 'The selected asset is invalid or inactive.',
-            'asset_charge.numeric' => 'Asset charge must be a valid number.',
-            'asset_charge.min' => 'Asset charge cannot be negative.',
-            'close_date.required' => 'Close date is required when the assignment is inactive.',
-            'close_date.date' => 'Close date must be a valid date.',
             'status.required' => 'Please select an assignment status.',
             'status.in' => 'Assignment status must be Active or Inactive.',
         ];

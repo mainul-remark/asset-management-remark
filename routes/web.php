@@ -28,8 +28,6 @@ Route::get('/', function () {
         return redirect('/login');
 })->name('/');
 
-
-
 Route::middleware([
     'auth:sanctum',
     config('jetstream.auth_session'),
@@ -100,13 +98,6 @@ Route::middleware([
     Route::get('get-assets-by-type/{assetType}', [AssetController::class, 'getAssetsByType'])->name('get.assets-by-type');
     Route::get('assign-assets/filter', [AssetController::class, 'assignAssetsFilter'])->name('assets.assign-assets.filter');
 
-});
-
-Route::get('/t', function () {
-    foreach (\App\Models\Brand::all() as $brand) {
-        $brand->created_by = 1;
-        $brand->save();
-    }
 });
 
 Route::get('/phpinfo', function () {return phpinfo();});
