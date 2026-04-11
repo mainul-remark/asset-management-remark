@@ -56,6 +56,10 @@ Route::middleware([
         'visual-merchandising-files'=> VisualMerchandisingFileController::class,
     ]);
 
+    Route::prefix('vm')->name('vm.')->group(function () {
+        Route::get('/vm-issues', [VisualMerchandisingController::class, 'userWiseVmIssues'])->name('vm-issues');
+    });
+
     Route::prefix('store')->group(function () {
         Route::get('/assign-assets', [AssetController::class, 'assignAssets'])->name('assets.assign-assets');
     });
@@ -97,6 +101,9 @@ Route::middleware([
     // Assign assets filter
     Route::get('get-assets-by-type/{assetType}', [AssetController::class, 'getAssetsByType'])->name('get.assets-by-type');
     Route::get('assign-assets/filter', [AssetController::class, 'assignAssetsFilter'])->name('assets.assign-assets.filter');
+
+
+
 
 });
 

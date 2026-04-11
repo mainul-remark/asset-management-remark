@@ -8,7 +8,10 @@ use App\Models\Asset;
 use App\Models\Store;
 use App\Models\VisualMerchandising;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Mainul\CustomHelperFunctions\Facades\ViewHelper;
+use Mainul\CustomHelperFunctions\Helpers\CustomHelper;
 
 class VisualMerchandisingController extends Controller
 {
@@ -173,5 +176,36 @@ class VisualMerchandisingController extends Controller
         }
 
         return 'file';
+    }
+
+    public function userWiseVmIssues(Request $request)
+    {
+        return view('backend.asset-management.vm-issues-theme', [
+            'vmIssues' => VisualMerchandising::query()
+                ->with([
+                    'store:id,title,code',
+                    'asset:id,name,asset_code,store_id,is_common_asset,asset_type_id',
+                    'asset.assetType:id,name',
+                    'creator:id,name,email',
+                    'visualMerchandisingFiles' => fn ($q) => $q->latest('id'),
+                ])
+                ->where('creator_id', CustomHelper::loggedUser()->id)
+                ->latest()
+                ->get(),
+            'stores' => Store::query()
+                ->whereNull('deleted_at')
+                ->orderBy('title')
+                ->get(['id', 'title', 'code', 'status']),
+            'assets' => Asset::query()
+                ->with([
+                    'store:id,title,code',
+                    'assetType:id,name',
+                    'assignAssetToStores:id,asset_id,store_id',
+                ])
+                ->whereNull('deleted_at')
+                ->orderBy('name')
+                ->get(['id', 'name', 'asset_code', 'store_id', 'is_common_asset', 'status', 'asset_type_id']),
+            'issueFixStatuses' => VisualMerchandisingRequest::ISSUE_FIX_STATUSES,
+        ]);
     }
 }
