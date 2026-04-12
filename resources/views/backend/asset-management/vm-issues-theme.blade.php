@@ -141,7 +141,7 @@
             <table class="table inst-table mb-0" id="vm-issues-table">
                 <thead>
                 <tr>
-                    <th style="width:36px;"><input type="checkbox" class="form-check-input" id="select-all"></th>
+{{--                    <th style="width:36px;"><input type="checkbox" class="form-check-input" id="select-all"></th>--}}
                     <th>Store</th>
                     <th>Asset</th>
                     <th>Issue</th>
@@ -164,7 +164,7 @@
                         };
                     @endphp
                     <tr data-vm-id="{{ $vm->id }}" data-fix-status="{{ $vm->issue_fix_status }}" data-store-id="{{ $vm->store_id }}">
-                        <td><input type="checkbox" class="form-check-input row-check"></td>
+{{--                        <td><input type="checkbox" class="form-check-input row-check"></td>--}}
                         <td>
                             <div class="inst-store-name">{{ $vm->store?->title ?? 'N/A' }}</div>
                             <div class="inst-store-meta">{{ $vm->store?->code ?? '' }}</div>
@@ -793,9 +793,9 @@
         $('#filter-search, #filter-status, #filter-store').on('input change', applyFilters);
 
         /* -------- Select-all checkbox -------- */
-        $('#select-all').on('change', function () {
-            $('#vm-issues-tbody .row-check').prop('checked', $(this).prop('checked'));
-        });
+        // $('#select-all').on('change', function () {
+        //     $('#vm-issues-tbody .row-check').prop('checked', $(this).prop('checked'));
+        // });
 
         /* -------- Open Add modal -------- */
         $('#btn-add-vm').on('click', function () { openFormModal('add'); vmModal.show(); });
