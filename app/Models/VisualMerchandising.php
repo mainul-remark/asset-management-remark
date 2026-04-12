@@ -10,12 +10,15 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Mainul\CustomHelperFunctions\Helpers\CustomHelper;
 use RuntimeException;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 class VisualMerchandising extends Model
 {
     use HasFactory;
     use Searchable;
     use SoftDeletes;
+    use LogsActivity;
 
     protected $fillable = [
         'store_id',
@@ -29,6 +32,20 @@ class VisualMerchandising extends Model
     protected $searchableFields = ['*'];
 
     protected $table = 'visual_merchandisings';
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly([
+                'store_id',
+                'asset_id',
+                'creator_id',
+                'issue_text',
+                'issue_fix_status',
+                'status',
+            ]);
+        // Chain fluent methods for configuration options
+    }
 
     protected static function booted(): void
     {

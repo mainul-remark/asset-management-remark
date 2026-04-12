@@ -45,7 +45,7 @@
     <div class="d-flex flex-wrap justify-content-between align-items-start mb-2">
         <div>
             <h1 class="page-title mb-1">Damaged Asset Tracker</h1>
-            <p class="text-muted fs-13 mb-0">Track and manage your reported visual merchandising issues.</p>
+            <p class="text-muted fs-13 mb-0">Track and manage your reported Assets issues.</p>
         </div>
         <div class="page-header-actions d-flex gap-2 flex-wrap">
             <button class="btn btn-outline-secondary btn-sm"><i class="bi bi-clipboard-data me-1"></i>Export Report</button>
@@ -125,7 +125,7 @@
             </div>
             <div class="col-6 col-md-4">
                 <label class="inst-filter-label">Store</label>
-                <select class="form-select form-select-sm" id="filter-store">
+                <select class="form-select form-select-sm select-ele" id="filter-store">
                     <option value="">All stores</option>
                     @foreach($stores as $store)
                         <option value="{{ $store->id }}">{{ $store->title }}</option>
@@ -202,6 +202,21 @@
                         </td>
                         <td>
                             <div class="d-flex gap-1">
+                                @php
+                                    $vmNextStatus =  $vm->issue_fix_status;
+                                    if ($vm->issue_fix_status == 'pending')
+                                        $vmNextStatus = 'reviewed';
+                                    elseif ($vm->issue_fix_status == 'reviewed')
+                                        $vmNextStatus = 'assigned';
+                                    elseif ($vm->issue_fix_status == 'assigned')
+                                        $vmNextStatus = 'processing';
+                                    elseif ($vm->issue_fix_status == 'processing')
+                                        $vmNextStatus = 'solved';
+                                @endphp
+
+                                @if($vmNextStatus != 'solved')
+                                    <button class="btn-action change-vm-status" data-id="{{ $vm->id }}" data-fix-status="{{ $vmNextStatus }}" title="Status {{ $vm->issue_fix_status }}"><i class="bi bi-arrow-repeat"></i></button>
+                                @endif
                                 <button class="btn-action btn-view-vm" data-id="{{ $vm->id }}" title="View"><i class="bi bi-eye"></i></button>
                                 <button class="btn-action btn-edit-vm" data-id="{{ $vm->id }}" title="Edit"><i class="bi bi-pencil"></i></button>
                                 <button class="btn-action text-danger btn-delete-vm" data-id="{{ $vm->id }}" data-name="{{ $vm->asset?->name ?? 'VM Issue' }}" title="Delete"><i class="bi bi-trash"></i></button>
@@ -257,23 +272,8 @@
                                 <div class="form-text">Asset options are filtered by the selected store.</div>
                                 <div class="invalid-feedback" id="error-asset_id"></div>
                             </div>
-                            <div class="col-md-6">
-                                <label for="issue_fix_status" class="form-label">Fix Status <span class="text-danger">*</span></label>
-                                <select class="form-select" id="issue_fix_status" name="issue_fix_status">
-                                    @foreach($issueFixStatuses as $s)
-                                        <option value="{{ $s }}">{{ ucfirst($s) }}</option>
-                                    @endforeach
-                                </select>
-                                <div class="invalid-feedback" id="error-issue_fix_status"></div>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="status" class="form-label">Status</label>
-                                <select class="form-select" id="status" name="status">
-                                    <option value="1">Active</option>
-                                    <option value="0">Inactive</option>
-                                </select>
-                                <div class="invalid-feedback" id="error-status"></div>
-                            </div>
+                            <input type="hidden" id="issue_fix_status" name="issue_fix_status" value="pending">
+                            <input type="hidden" id="status" name="status" value="1">
                             <div class="col-12">
                                 <label for="issue_text" class="form-label">Issue Details <span class="text-danger">*</span></label>
                                 <textarea class="form-control" id="issue_text" name="issue_text" rows="5" placeholder="Describe the visual merchandising issue in detail."></textarea>
@@ -402,6 +402,23 @@
         .btn-action { background: none; border: 1px solid var(--default-border); border-radius: .4rem; padding: 4px 7px; font-size: .85rem; color: var(--text-muted); transition: background .15s, color .15s; cursor: pointer; }
         .btn-action:hover { background: rgb(var(--light-rgb)); color: var(--default-text-color); }
         .btn-action.text-danger:hover { background: rgba(220,53,69,.1); color: #dc3545; }
+        /*custom css*/
+        #filter-store + .select2-container .select2-selection--single {
+            height: 31px !important;
+            min-height: 31px !important;
+            display: flex !important;
+            align-items: center !important;
+        }
+        #filter-store + .select2-container .select2-selection__rendered {
+            line-height: normal !important;
+            padding-top: 0 !important;
+            padding-bottom: 0 !important;
+            flex: 1;
+        }
+        #filter-store + .select2-container .select2-selection__arrow {
+            height: 31px !important;
+            top: 0 !important;
+        }
     </style>
 @endpush
 
@@ -453,6 +470,7 @@
             return isNaN(d) ? v : d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
         }
         function escapeHtml(v) { return $('<div>').text(v ?? '').html(); }
+        function stripTags(v) { return $('<div>').html(v ?? '').text(); }
         function nl2br(v) { return escapeHtml(v).replace(/\n/g, '<br>'); }
         function truncate(v, n = 80) { const t = String(v ?? ''); return t.length <= n ? t : t.slice(0, n - 1).trimEnd() + '…'; }
 
@@ -609,7 +627,7 @@
 
             return `
                 <div class="vm-media-card">
-                    ${allowRemove ? `<button type="button" class="btn btn-sm btn-danger-light vm-media-remove" ${removeHandler}>Remove</button>` : ''}
+                    ${allowRemove ? `<button type="button" class="btn btn-sm btn-danger vm-media-remove" ${removeHandler}><i class="bi bi-trash"></i></button>` : ''}
                     <div class="vm-media-frame">${preview}</div>
                     <div class="vm-media-body">
                         <div class="vm-media-name">${escapeHtml(fileName)}</div>
@@ -677,6 +695,12 @@
             renderExistingFilePreviews(); renderSelectedFilePreviews();
         }
 
+        /* -------- Next status helper (mirrors PHP logic) -------- */
+        function nextFixStatus(current) {
+            const map = { pending: 'reviewed', reviewed: 'assigned', assigned: 'processing', processing: 'solved' };
+            return map[current] || current;
+        }
+
         /* -------- Build table row -------- */
         function buildTableRow(vmData) {
             const files = Array.isArray(vmData.visual_merchandising_files) ? vmData.visual_merchandising_files : [];
@@ -710,12 +734,13 @@
                         <div class="fw-semibold" style="font-size:.85rem;">${escapeHtml(assetName)}</div>
                         <div class="inst-store-meta">${escapeHtml(assetType)}${assetCode ? ' · ' + assetCode : ''}</div>
                     </td>
-                    <td><div class="vm-issue-copy">${escapeHtml(truncate(vmData.issue_text, 80))}</div></td>
+                    <td><div class="vm-issue-copy">${escapeHtml(truncate(stripTags(vmData.issue_text), 80))}</div></td>
                     <td>${fixStatusBadge(vmData.issue_fix_status)}</td>
                     <td>${filesHtml}</td>
                     <td><div class="inst-date">${formatDate(vmData.created_at)}</div></td>
                     <td>
                         <div class="d-flex gap-1">
+                            ${ vmData.issue_fix_status != 'solved' ? `<button class="btn-action change-vm-status" data-id="${vmData.id}" data-fix-status="${escapeHtml(nextFixStatus(status))}" title="Status ${escapeHtml(status)}"><i class="bi bi-arrow-repeat"></i></button>` : `` }
                             <button class="btn-action btn-view-vm" data-id="${vmData.id}" title="View"><i class="bi bi-eye"></i></button>
                             <button class="btn-action btn-edit-vm" data-id="${vmData.id}" title="Edit"><i class="bi bi-pencil"></i></button>
                             <button class="btn-action text-danger btn-delete-vm" data-id="${vmData.id}" data-name="${escapeHtml(assetName)}" title="Delete"><i class="bi bi-trash"></i></button>
@@ -799,7 +824,7 @@
                     $('#view-asset').text(assetLabel);
                     $('#view-issue-fix-status').html(fixStatusBadge(data.issue_fix_status));
                     $('#view-status').html(statusBadge(data.status));
-                    $('#view-issue-text').html(nl2br(data.issue_text || 'N/A'));
+                    $('#view-issue-text').html(data.issue_text || 'N/A');
                     $('#view-created-at').text(formatDate(data.created_at));
                     $('#view-updated-at').text(formatDate(data.updated_at));
                     const files = Array.isArray(data.visual_merchandising_files) ? data.visual_merchandising_files : [];
@@ -876,6 +901,15 @@
         $('#vmModal').on('hidden.bs.modal', resetForm);
 
         $('#btn-save').data('default-text', 'Save');
+
+        $(document).on('click', '.change-vm-status', function () {
+            sendAjaxRequest(`vm/change-vm-issue-status/${$(this).data('id')}/${$(this).data('fix-status')}`, 'POST', {}).then(function (response) {
+                showToast(response.message, response.success ? 'success' : 'danger');
+                if (response.success && response.vm) {
+                    upsertTableRow(response.vm);
+                }
+            })
+        })
     });
     </script>
 @endpush

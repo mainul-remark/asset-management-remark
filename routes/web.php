@@ -58,6 +58,7 @@ Route::middleware([
 
     Route::prefix('vm')->name('vm.')->group(function () {
         Route::get('/vm-issues', [VisualMerchandisingController::class, 'userWiseVmIssues'])->name('vm-issues');
+        Route::post('/change-vm-issue-status/{visualMerchandising}/{issueStatus}', [VisualMerchandisingController::class, 'changeVmIssueStatus'])->name('change-vm-issue-status');
     });
 
     Route::prefix('store')->group(function () {

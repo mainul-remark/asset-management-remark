@@ -208,4 +208,27 @@ class VisualMerchandisingController extends Controller
             'issueFixStatuses' => VisualMerchandisingRequest::ISSUE_FIX_STATUSES,
         ]);
     }
+
+    public function changeVmIssueStatus(Request $request, VisualMerchandising $visualMerchandising, $issueStatus = 'pending')
+    {
+        try {
+            $visualMerchandising->update(['issue_fix_status' => $issueStatus]);
+            $visualMerchandising->load([
+                'store:id,title,code',
+                'asset:id,name,asset_code,store_id,is_common_asset,asset_type_id',
+                'asset.assetType:id,name',
+                'visualMerchandisingFiles' => fn ($q) => $q->latest('id'),
+            ]);
+            return response()->json([
+                'success' => true,
+                'message' => 'Issue status changed successfully.',
+                'vm'      => $this->serializeVisualMerchandising($visualMerchandising),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ]);
+        }
+    }
 }
