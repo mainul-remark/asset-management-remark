@@ -58,6 +58,7 @@ Route::middleware([
 
     Route::prefix('vm')->name('vm.')->group(function () {
         Route::get('/vm-issues', [VisualMerchandisingController::class, 'userWiseVmIssues'])->name('vm-issues');
+        Route::get('/vm-issues/datatable', [VisualMerchandisingController::class, 'vmIssuesDatatable'])->name('vm-issues.datatable');
         Route::post('/change-vm-issue-status/{visualMerchandising}/{issueStatus}', [VisualMerchandisingController::class, 'changeVmIssueStatus'])->name('change-vm-issue-status');
     });
 
@@ -188,8 +189,3 @@ Route::get('/optimize-clear', function () {return \Mainul\CustomHelperFunctions\
 //        return $th->getMessage();
 //    }
 //});
-Route::get('/has-kv', function (){
-    \App\Models\Asset::whereNotIn('id', [1,2])
-        ->update(['has_kv_slot' => 1]);
-
-});

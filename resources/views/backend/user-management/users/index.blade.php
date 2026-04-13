@@ -65,42 +65,42 @@
 
             </div>
         </div>
-        <div class="row mb-4">
-            <div class="col-xl-7 mx-auto">
-                <div class="card">
-                    <div class="card-body">
-                        <form id="filter_form" class="form-inline justify-content-center">
-                            <div class="row">
-                                <div class="col-md-4">
-                                    <div class="input-group">
-                                        <span class="input-group-text text-muted"><i class="ri-calendar-line"></i></span>
-                                        <input type="text" name="from_date"  max="{{date('Y-m-d H:i:s')}}"  class="form-control py-2" id="from_date" placeholder="From date">
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="input-group">
-                                        <span class="input-group-text text-muted"><i class="ri-calendar-line"></i></span>
-                                        <input type="text" name="to_date"  max="{{date('Y-m-d H:i:s')}}"  class="form-control py-2" id="to_date" placeholder="To date">
-                                    </div>
-                                </div>
+{{--        <div class="row mb-4">--}}
+{{--            <div class="col-xl-7 mx-auto">--}}
+{{--                <div class="card">--}}
+{{--                    <div class="card-body">--}}
+{{--                        <form id="filter_form" class="form-inline justify-content-center">--}}
+{{--                            <div class="row">--}}
+{{--                                <div class="col-md-4">--}}
+{{--                                    <div class="input-group">--}}
+{{--                                        <span class="input-group-text text-muted"><i class="ri-calendar-line"></i></span>--}}
+{{--                                        <input type="text" name="from_date"  max="{{date('Y-m-d H:i:s')}}"  class="form-control py-2" id="from_date" placeholder="From date">--}}
+{{--                                    </div>--}}
+{{--                                </div>--}}
+{{--                                <div class="col-md-4">--}}
+{{--                                    <div class="input-group">--}}
+{{--                                        <span class="input-group-text text-muted"><i class="ri-calendar-line"></i></span>--}}
+{{--                                        <input type="text" name="to_date"  max="{{date('Y-m-d H:i:s')}}"  class="form-control py-2" id="to_date" placeholder="To date">--}}
+{{--                                    </div>--}}
+{{--                                </div>--}}
 
-                                <div class="col-md-3">
-                                    <div class="btn-group" role="group" aria-label="Filter actions">
-                                        <button type="submit" class="btn btn-outline-primary " id="filterBtn" title="Filter">
-                                            <i class="ri-search-line"></i> Filter
-                                        </button>
-                                        <button type="button" class="btn btn-outline-secondary  ajax_reload" id="resetBtn" title="Refresh">
-                                            <i class="ri-refresh-line"></i>
-                                        </button>
-                                    </div>
-                                </div>
+{{--                                <div class="col-md-3">--}}
+{{--                                    <div class="btn-group" role="group" aria-label="Filter actions">--}}
+{{--                                        <button type="submit" class="btn btn-outline-primary " id="filterBtn" title="Filter">--}}
+{{--                                            <i class="ri-search-line"></i> Filter--}}
+{{--                                        </button>--}}
+{{--                                        <button type="button" class="btn btn-outline-secondary  ajax_reload" id="resetBtn" title="Refresh">--}}
+{{--                                            <i class="ri-refresh-line"></i>--}}
+{{--                                        </button>--}}
+{{--                                    </div>--}}
+{{--                                </div>--}}
 
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
+{{--                            </div>--}}
+{{--                        </form>--}}
+{{--                    </div>--}}
+{{--                </div>--}}
+{{--            </div>--}}
+{{--        </div>--}}
 
         <div class="row">
             <div class="col-xl-12">

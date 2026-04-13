@@ -3,6 +3,12 @@
 @section('title', 'VM Issues')
 
 @php
+    $total    = $vmIssues->count();
+    $pending  = $vmIssues->where('issue_fix_status', 'pending')->count();
+    $inProgress = $vmIssues->whereIn('issue_fix_status', ['reviewed', 'assigned', 'processing'])->count();
+    $solved   = $vmIssues->where('issue_fix_status', 'solved')->count();
+    $rate     = $total > 0 ? round($solved / $total * 100) : 0;
+
     $assetDirectory = $assets->map(function ($asset) {
         return [
             'id'                  => $asset->id,
@@ -55,7 +61,7 @@
             <div class="stat-card">
                 <div>
                     <div class="stat-label">Total Issues</div>
-                    <div class="stat-value" id="stat-total">0</div>
+                    <div class="stat-value" id="stat-total">{{ $total }}</div>
                 </div>
                 <div class="stat-icon ms-auto" style="background:#eef1f6;color:#2c3e6b;"><i class="bi bi-globe"></i></div>
             </div>
@@ -64,7 +70,7 @@
             <div class="inst-stat-card-planned">
                 <div>
                     <div class="stat-label">Pending</div>
-                    <div class="stat-value" id="stat-pending">0</div>
+                    <div class="stat-value" id="stat-pending">{{ $pending }}</div>
                 </div>
                 <div class="stat-icon ms-auto" style="background:#fff3e0;color:#e65100;"><i class="bi bi-hourglass-split"></i></div>
             </div>
@@ -73,7 +79,7 @@
             <div class="inst-stat-card-installed">
                 <div>
                     <div class="stat-label">In Progress</div>
-                    <div class="stat-value" id="stat-inprogress">0</div>
+                    <div class="stat-value" id="stat-inprogress">{{ $inProgress }}</div>
                 </div>
                 <div class="stat-icon ms-auto" style="background:#e8f5e9;color:#2e7d32;"><i class="bi bi-arrow-repeat"></i></div>
             </div>
@@ -82,7 +88,7 @@
             <div class="inst-stat-card-verified">
                 <div>
                     <div class="stat-label">Solved</div>
-                    <div class="stat-value" id="stat-solved">0</div>
+                    <div class="stat-value" id="stat-solved">{{ $solved }}</div>
                 </div>
                 <div class="stat-icon ms-auto" style="background:#e8f5e9;color:#2e7d32;"><i class="bi bi-check-circle"></i></div>
             </div>
@@ -91,7 +97,7 @@
             <div class="stat-card">
                 <div>
                     <div class="stat-label">Completion Rate</div>
-                    <div class="stat-value" id="stat-rate">0%</div>
+                    <div class="stat-value" id="stat-rate">{{ $rate }}%</div>
                 </div>
                 <div class="stat-icon ms-auto" style="background:#ede7f6;color:#5e35b1;"><i class="bi bi-share"></i></div>
             </div>
@@ -145,7 +151,87 @@
                     <th style="width:100px;">Actions</th>
                 </tr>
                 </thead>
-                <tbody id="vm-issues-tbody"></tbody>
+                <tbody id="vm-issues-tbody">
+                @forelse($vmIssues as $vm)
+                    @php
+                        $firstFile = $vm->visualMerchandisingFiles->first();
+                        $fixStatusClass = match ($vm->issue_fix_status) {
+                            'reviewed'   => 'info',
+                            'assigned'   => 'primary',
+                            'processing' => 'warning',
+                            'solved'     => 'success',
+                            default      => 'secondary',
+                        };
+                    @endphp
+                    <tr data-vm-id="{{ $vm->id }}" data-fix-status="{{ $vm->issue_fix_status }}" data-store-id="{{ $vm->store_id }}">
+{{--                        <td><input type="checkbox" class="form-check-input row-check"></td>--}}
+                        <td>
+                            <div class="inst-store-name">{{ $vm->store?->title ?? 'N/A' }}</div>
+                            <div class="inst-store-meta">{{ $vm->store?->code ?? '' }}</div>
+                        </td>
+                        <td>
+                            <div class="fw-semibold" style="font-size:0.85rem;">{{ $vm->asset?->name ?? 'N/A' }}</div>
+                            <div class="inst-store-meta">{{ $vm->asset?->assetType?->name ?? '' }} {{ $vm->asset?->asset_code ? '· '.$vm->asset->asset_code : '' }}</div>
+                        </td>
+                        <td>
+                            <div class="vm-issue-copy">{{ \Illuminate\Support\Str::limit(strip_tags($vm->issue_text), 80) }}</div>
+                        </td>
+                        <td>
+                            <span class="badge bg-{{ $fixStatusClass }}-transparent">{{ ucfirst($vm->issue_fix_status) }}</span>
+                        </td>
+                        <td>
+                            @if($firstFile)
+                                @php
+                                    $ext = strtolower(pathinfo($firstFile->file_path, PATHINFO_EXTENSION));
+                                    $isImg = \Illuminate\Support\Str::startsWith(strtolower($firstFile->file_type ?? ''), 'image/') || in_array($ext, ['jpeg','jpg','png','gif','svg','webp']);
+                                @endphp
+                                @if($isImg)
+                                    <div class="inst-photo-thumb"><img src="{{ asset($firstFile->file_path) }}" alt="file"></div>
+                                @else
+                                    <span class="badge bg-light text-dark"><i class="bi bi-camera-video me-1"></i>Video</span>
+                                @endif
+                                @if($vm->visualMerchandisingFiles->count() > 1)
+                                    <small class="text-muted d-block mt-1">+{{ $vm->visualMerchandisingFiles->count() - 1 }} more</small>
+                                @endif
+                            @else
+                                <span class="inst-no-photos">No files</span>
+                            @endif
+                        </td>
+                        <td>
+                            <div class="inst-date">{{ optional($vm->created_at)->format('d M Y') }}</div>
+                        </td>
+                        <td>
+                            <div class="d-flex gap-1">
+                                @php
+                                    $vmNextStatus =  $vm->issue_fix_status;
+                                    if ($vm->issue_fix_status == 'pending')
+                                        $vmNextStatus = 'reviewed';
+                                    elseif ($vm->issue_fix_status == 'reviewed')
+                                        $vmNextStatus = 'assigned';
+                                    elseif ($vm->issue_fix_status == 'assigned')
+                                        $vmNextStatus = 'processing';
+                                    elseif ($vm->issue_fix_status == 'processing')
+                                        $vmNextStatus = 'solved';
+                                @endphp
+
+                                @if($vmNextStatus != 'solved')
+                                    <button class="btn-action change-vm-status" data-id="{{ $vm->id }}" data-fix-status="{{ $vmNextStatus }}" title="Status {{ $vm->issue_fix_status }}"><i class="bi bi-arrow-repeat"></i></button>
+                                @endif
+                                <button class="btn-action btn-view-vm" data-id="{{ $vm->id }}" title="View"><i class="bi bi-eye"></i></button>
+                                <button class="btn-action btn-edit-vm" data-id="{{ $vm->id }}" title="Edit"><i class="bi bi-pencil"></i></button>
+                                <button class="btn-action text-danger btn-delete-vm" data-id="{{ $vm->id }}" data-name="{{ $vm->asset?->name ?? 'VM Issue' }}" title="Delete"><i class="bi bi-trash"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                @empty
+                    <tr id="empty-row">
+                        <td colspan="8" class="text-center text-muted py-4">
+                            <i class="bi bi-inbox fs-3 d-block mb-2"></i>
+                            No VM issues reported yet. Click <strong>New VM Issue</strong> to add one.
+                        </td>
+                    </tr>
+                @endforelse
+                </tbody>
             </table>
         </div>
     </div>
@@ -316,45 +402,6 @@
         .btn-action { background: none; border: 1px solid var(--default-border); border-radius: .4rem; padding: 4px 7px; font-size: .85rem; color: var(--text-muted); transition: background .15s, color .15s; cursor: pointer; }
         .btn-action:hover { background: rgb(var(--light-rgb)); color: var(--default-text-color); }
         .btn-action.text-danger:hover { background: rgba(220,53,69,.1); color: #dc3545; }
-        /* DataTables Bootstrap 5 layout */
-        #vm-issues-table_wrapper .dataTables_info {
-            padding: 12px 16px;
-            font-size: .83rem;
-            color: var(--text-muted);
-        }
-        #vm-issues-table_wrapper .dataTables_paginate {
-            padding: 8px 16px;
-        }
-        #vm-issues-table_wrapper .dataTables_paginate .paginate_button {
-            border-radius: .4rem !important;
-            padding: 4px 10px !important;
-            margin: 0 2px !important;
-            font-size: .83rem;
-            border: 1px solid var(--default-border) !important;
-            background: transparent !important;
-            color: var(--default-text-color) !important;
-            cursor: pointer;
-        }
-        #vm-issues-table_wrapper .dataTables_paginate .paginate_button:hover {
-            background: rgb(var(--light-rgb)) !important;
-            color: var(--default-text-color) !important;
-            border-color: var(--default-border) !important;
-        }
-        #vm-issues-table_wrapper .dataTables_paginate .paginate_button.current,
-        #vm-issues-table_wrapper .dataTables_paginate .paginate_button.current:hover {
-            background: rgb(var(--primary-rgb)) !important;
-            color: #fff !important;
-            border-color: rgb(var(--primary-rgb)) !important;
-        }
-        #vm-issues-table_wrapper .dataTables_paginate .paginate_button.disabled,
-        #vm-issues-table_wrapper .dataTables_paginate .paginate_button.disabled:hover {
-            opacity: .45;
-            cursor: default;
-        }
-        #vm-issues-table_wrapper .dataTables_processing {
-            font-size: .83rem;
-            color: var(--text-muted);
-        }
         /*custom css*/
         #filter-store + .select2-container .select2-selection--single {
             height: 31px !important;
@@ -377,7 +424,6 @@
 
 @push('scripts')
     @include('backend.includes.plugins.select2')
-    @include('backend.includes.plugins.datatable')
     <script src="https://cdn.ckeditor.com/4.22.1/standard/ckeditor.js"></script>
     <script>
     $(function () {
@@ -449,12 +495,13 @@
         }
 
         /* -------- Stats -------- */
-        function refreshStats(data) {
-            const total      = data.length;
-            const pending    = data.filter(r => r.issue_fix_status === 'pending').length;
-            const inProgress = data.filter(r => ['reviewed','assigned','processing'].includes(r.issue_fix_status)).length;
-            const solved     = data.filter(r => r.issue_fix_status === 'solved').length;
-            const rate       = total > 0 ? Math.round(solved / total * 100) : 0;
+        function refreshStats() {
+            const rows = $('#vm-issues-tbody tr[data-vm-id]');
+            const total = rows.length;
+            const pending = rows.filter('[data-fix-status="pending"]').length;
+            const inProgress = rows.filter('[data-fix-status="reviewed"],[data-fix-status="assigned"],[data-fix-status="processing"]').length;
+            const solved = rows.filter('[data-fix-status="solved"]').length;
+            const rate = total > 0 ? Math.round(solved / total * 100) : 0;
             $('#stat-total').text(total);
             $('#stat-pending').text(pending);
             $('#stat-inprogress').text(inProgress);
@@ -648,67 +695,107 @@
             renderExistingFilePreviews(); renderSelectedFilePreviews();
         }
 
-        /* -------- DataTable init -------- */
-        const vmTable = $('#vm-issues-table').DataTable({
-            processing: true,
-            serverSide: true,
-            searching: false,
-            ajax: {
-                url: '{{ route('vm.vm-issues.datatable') }}',
-                data: function (d) {
-                    d.fix_status = $('#filter-status').val();
-                    d.store_id   = $('#filter-store').val();
-                    d.search_text = $('#filter-search').val();
+        /* -------- Next status helper (mirrors PHP logic) -------- */
+        function nextFixStatus(current) {
+            const map = { pending: 'reviewed', reviewed: 'assigned', assigned: 'processing', processing: 'solved' };
+            return map[current] || current;
+        }
+
+        /* -------- Build table row -------- */
+        function buildTableRow(vmData) {
+            const files = Array.isArray(vmData.visual_merchandising_files) ? vmData.visual_merchandising_files : [];
+            const firstFile = files[0] || null;
+            const storeName = vmData.store?.title || 'N/A';
+            const storeCode = vmData.store?.code || '';
+            const assetName = vmData.asset?.name || 'N/A';
+            const assetType = vmData.asset?.asset_type?.name || '';
+            const assetCode = vmData.asset?.asset_code || '';
+            const status = String(vmData.issue_fix_status || 'pending').toLowerCase();
+
+            let filesHtml = '<span class="inst-no-photos">No files</span>';
+            if (firstFile) {
+                const pt = firstFile.preview_type || filePreviewType(firstFile.file_type, firstFile.file_name || '');
+                if (pt === 'image' && firstFile.file_url) {
+                    filesHtml = `<div class="inst-photo-thumb"><img src="${firstFile.file_url}" alt="file"></div>`;
+                } else if (pt === 'video') {
+                    filesHtml = `<span class="badge bg-light text-dark"><i class="bi bi-camera-video me-1"></i>Video</span>`;
                 }
-            },
-            columns: [
-                { data: 'store_name',      name: 'store_name', render: function(data, type, row) {
-                    return `<div class="inst-store-name">${data}</div><div class="inst-store-meta">${row.store_code || ''}</div>`;
-                }},
-                { data: 'asset_name',      name: 'asset_name', render: function(data, type, row) {
-                    return `<div class="fw-semibold" style="font-size:.85rem;">${data}</div><div class="inst-store-meta">${row.asset_type || ''}${row.asset_code ? ' · '+row.asset_code : ''}</div>`;
-                }},
-                { data: 'issue_preview',   name: 'issue_preview', render: function(data) {
-                    return `<div class="vm-issue-copy">${data}</div>`;
-                }},
-                { data: 'fix_status_badge',name: 'fix_status_badge', orderable: false },
-                { data: 'file_preview',    name: 'file_preview',    orderable: false },
-                { data: 'created_at',      name: 'created_at', render: function(data) {
-                    return `<div class="inst-date">${data ? new Date(data).toLocaleDateString('en-GB', {day:'2-digit',month:'short',year:'numeric'}) : ''}</div>`;
-                }},
-                { data: 'actions', name: 'actions', orderable: false, searchable: false },
-            ],
-            order: [[5, 'desc']],
-            pageLength: 10,
-            lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
-            dom: 'rtip',
-            pagingType: 'simple_numbers',
-            language: {
-                emptyTable: 'No VM issues reported yet.',
-                processing: 'Loading...',
-                info: 'Showing _START_ to _END_ of _TOTAL_ entries',
-                infoEmpty: 'No entries found',
-                paginate: {
-                    previous: '<i class="ri-arrow-left-s-line"></i>',
-                    next: '<i class="ri-arrow-right-s-line"></i>'
-                }
-            },
-            drawCallback: function(settings) {
-                const api = this.api();
-                const data = api.data().toArray();
-                refreshStats(data);
+                if (files.length > 1) filesHtml += `<small class="text-muted d-block mt-1">+${files.length - 1} more</small>`;
             }
-        });
 
-        function reloadTable() { vmTable.ajax.reload(null, false); }
+            return `
+                <tr data-vm-id="${vmData.id}" data-fix-status="${escapeHtml(status)}" data-store-id="${vmData.store_id || ''}">
+                    <td><input type="checkbox" class="form-check-input row-check"></td>
+                    <td>
+                        <div class="inst-store-name">${escapeHtml(storeName)}</div>
+                        <div class="inst-store-meta">${escapeHtml(storeCode)}</div>
+                    </td>
+                    <td>
+                        <div class="fw-semibold" style="font-size:.85rem;">${escapeHtml(assetName)}</div>
+                        <div class="inst-store-meta">${escapeHtml(assetType)}${assetCode ? ' · ' + assetCode : ''}</div>
+                    </td>
+                    <td><div class="vm-issue-copy">${escapeHtml(truncate(stripTags(vmData.issue_text), 80))}</div></td>
+                    <td>${fixStatusBadge(vmData.issue_fix_status)}</td>
+                    <td>${filesHtml}</td>
+                    <td><div class="inst-date">${formatDate(vmData.created_at)}</div></td>
+                    <td>
+                        <div class="d-flex gap-1">
+                            ${ vmData.issue_fix_status != 'solved' ? `<button class="btn-action change-vm-status" data-id="${vmData.id}" data-fix-status="${escapeHtml(nextFixStatus(status))}" title="Status ${escapeHtml(status)}"><i class="bi bi-arrow-repeat"></i></button>` : `` }
+                            <button class="btn-action btn-view-vm" data-id="${vmData.id}" title="View"><i class="bi bi-eye"></i></button>
+                            <button class="btn-action btn-edit-vm" data-id="${vmData.id}" title="Edit"><i class="bi bi-pencil"></i></button>
+                            <button class="btn-action text-danger btn-delete-vm" data-id="${vmData.id}" data-name="${escapeHtml(assetName)}" title="Delete"><i class="bi bi-trash"></i></button>
+                        </div>
+                    </td>
+                </tr>`;
+        }
 
-        /* -------- Filters → reload table -------- */
-        let filterTimer;
-        $('#filter-search').on('input', function () {
-            clearTimeout(filterTimer);
-            filterTimer = setTimeout(reloadTable, 400);
-        });
-        $('#filter-status, #filter-store').on('change', reloadTable);
+        function upsertTableRow(vmData) {
+            const $existing = $(`#vm-issues-tbody tr[data-vm-id="${vmData.id}"]`);
+            const newHtml = buildTableRow(vmData);
+            if ($existing.length) {
+                $existing.replaceWith(newHtml);
+            } else {
+                $('#empty-row').remove();
+                $('#vm-issues-tbody').prepend(newHtml);
+            }
+            refreshStats();
+        }
+
+        function removeTableRow(vmId) {
+            $(`#vm-issues-tbody tr[data-vm-id="${vmId}"]`).remove();
+            if ($('#vm-issues-tbody tr[data-vm-id]').length === 0) {
+                $('#vm-issues-tbody').html(`
+                    <tr id="empty-row">
+                        <td colspan="8" class="text-center text-muted py-4">
+                            <i class="bi bi-inbox fs-3 d-block mb-2"></i>
+                            No VM issues reported yet. Click <strong>New VM Issue</strong> to add one.
+                        </td>
+                    </tr>`);
+            }
+            refreshStats();
+        }
+
+        /* -------- Inline filter -------- */
+        function applyFilters() {
+            const search = $('#filter-search').val().toLowerCase();
+            const statusFilter = $('#filter-status').val();
+            const storeFilter = $('#filter-store').val();
+
+            $('#vm-issues-tbody tr[data-vm-id]').each(function () {
+                const $tr = $(this);
+                const text = $tr.text().toLowerCase();
+                const matchSearch = !search || text.includes(search);
+                const matchStatus = !statusFilter || $tr.data('fix-status') === statusFilter;
+                const matchStore = !storeFilter || String($tr.data('store-id')) === storeFilter;
+                $tr.toggle(matchSearch && matchStatus && matchStore);
+            });
+        }
+        $('#filter-search, #filter-status, #filter-store').on('input change', applyFilters);
+
+        /* -------- Select-all checkbox -------- */
+        // $('#select-all').on('change', function () {
+        //     $('#vm-issues-tbody .row-check').prop('checked', $(this).prop('checked'));
+        // });
 
         /* -------- Open Add modal -------- */
         $('#btn-add-vm').on('click', function () { openFormModal('add'); vmModal.show(); });
@@ -766,7 +853,7 @@
             $.ajax({
                 url: apiUrl(vmId), type: 'DELETE',
                 success: function (res) {
-                    reloadTable();
+                    removeTableRow(vmId);
                     deleteModal.hide();
                     showToast(res.message || 'Deleted successfully.', 'success');
                 },
@@ -796,7 +883,7 @@
             $.ajax({
                 url: apiUrl(vmId || ''), type: 'POST', data: formData, processData: false, contentType: false,
                 success: function (res) {
-                    reloadTable();
+                    upsertTableRow(res.data || null);
                     vmModal.hide();
                     showToast(res.message || 'Saved successfully.', 'success');
                 },
@@ -818,7 +905,9 @@
         $(document).on('click', '.change-vm-status', function () {
             sendAjaxRequest(`vm/change-vm-issue-status/${$(this).data('id')}/${$(this).data('fix-status')}`, 'POST', {}).then(function (response) {
                 showToast(response.message, response.success ? 'success' : 'danger');
-                if (response.success) reloadTable();
+                if (response.success && response.vm) {
+                    upsertTableRow(response.vm);
+                }
             })
         })
     });
