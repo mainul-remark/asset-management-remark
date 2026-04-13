@@ -316,44 +316,51 @@
         .btn-action { background: none; border: 1px solid var(--default-border); border-radius: .4rem; padding: 4px 7px; font-size: .85rem; color: var(--text-muted); transition: background .15s, color .15s; cursor: pointer; }
         .btn-action:hover { background: rgb(var(--light-rgb)); color: var(--default-text-color); }
         .btn-action.text-danger:hover { background: rgba(220,53,69,.1); color: #dc3545; }
-        /* DataTables Bootstrap 5 layout */
+        /* DataTables - minimal styles to match existing design */
         #vm-issues-table_wrapper .dataTables_info {
-            padding: 12px 16px;
             font-size: .83rem;
             color: var(--text-muted);
         }
-        #vm-issues-table_wrapper .dataTables_paginate {
-            padding: 8px 16px;
-        }
         #vm-issues-table_wrapper .dataTables_paginate .paginate_button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 30px;
+            height: 30px;
+            padding: 0 8px !important;
             border-radius: .4rem !important;
-            padding: 4px 10px !important;
-            margin: 0 2px !important;
-            font-size: .83rem;
             border: 1px solid var(--default-border) !important;
             background: transparent !important;
             color: var(--default-text-color) !important;
+            font-size: .82rem;
+            margin: 0 2px !important;
             cursor: pointer;
+            box-sizing: border-box;
         }
         #vm-issues-table_wrapper .dataTables_paginate .paginate_button:hover {
             background: rgb(var(--light-rgb)) !important;
-            color: var(--default-text-color) !important;
             border-color: var(--default-border) !important;
+            color: var(--default-text-color) !important;
         }
         #vm-issues-table_wrapper .dataTables_paginate .paginate_button.current,
         #vm-issues-table_wrapper .dataTables_paginate .paginate_button.current:hover {
             background: rgb(var(--primary-rgb)) !important;
-            color: #fff !important;
             border-color: rgb(var(--primary-rgb)) !important;
+            color: #fff !important;
         }
         #vm-issues-table_wrapper .dataTables_paginate .paginate_button.disabled,
         #vm-issues-table_wrapper .dataTables_paginate .paginate_button.disabled:hover {
-            opacity: .45;
+            opacity: .4;
             cursor: default;
+            background: transparent !important;
         }
         #vm-issues-table_wrapper .dataTables_processing {
             font-size: .83rem;
             color: var(--text-muted);
+            padding: 12px;
+        }
+        #vm-issues-table_wrapper .vm-dt-bottom {
+            border-top: 1px solid var(--default-border);
         }
         /*custom css*/
         #filter-store + .select2-container .select2-selection--single {
@@ -377,7 +384,8 @@
 
 @push('scripts')
     @include('backend.includes.plugins.select2')
-    @include('backend.includes.plugins.datatable')
+    <script src="{{ asset('/') }}backend/build/cdn.datatables.net/1.12.1/js/jquery.dataTables.min.js"></script>
+    <script src="{{ asset('/') }}backend/build/cdn.datatables.net/1.12.1/js/dataTables.bootstrap5.min.js"></script>
     <script src="https://cdn.ckeditor.com/4.22.1/standard/ckeditor.js"></script>
     <script>
     $(function () {
@@ -681,7 +689,7 @@
             order: [[5, 'desc']],
             pageLength: 10,
             lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
-            dom: 'rtip',
+            dom: '<"vm-dt-bottom d-flex justify-content-between align-items-center flex-wrap gap-2 px-3 py-2"ip>rt<"vm-dt-bottom d-flex justify-content-between align-items-center flex-wrap gap-2 px-3 py-2"ip>',
             pagingType: 'simple_numbers',
             language: {
                 emptyTable: 'No VM issues reported yet.',
