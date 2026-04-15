@@ -316,43 +316,50 @@
         .btn-action { background: none; border: 1px solid var(--default-border); border-radius: .4rem; padding: 4px 7px; font-size: .85rem; color: var(--text-muted); transition: background .15s, color .15s; cursor: pointer; }
         .btn-action:hover { background: rgb(var(--light-rgb)); color: var(--default-text-color); }
         .btn-action.text-danger:hover { background: rgba(220,53,69,.1); color: #dc3545; }
-        /* DataTables - minimal styles to match existing design */
+        /* DataTables - pagination & info */
         #vm-issues-table_wrapper .dataTables_info {
             font-size: .83rem;
             color: var(--text-muted);
+            line-height: 30px;
         }
-        #vm-issues-table_wrapper .dataTables_paginate .paginate_button {
+        #vm-issues-table_wrapper .pagination {
+            margin: 0;
+            gap: 3px;
+        }
+        #vm-issues-table_wrapper .pagination .page-item .page-link {
             display: inline-flex;
             align-items: center;
             justify-content: center;
             min-width: 30px;
             height: 30px;
-            padding: 0 8px !important;
+            padding: 0 8px;
             border-radius: .4rem !important;
-            border: 1px solid var(--default-border) !important;
-            background: transparent !important;
-            color: var(--default-text-color) !important;
+            border: 1px solid var(--default-border);
+            background: transparent;
+            color: var(--default-text-color);
             font-size: .82rem;
-            margin: 0 2px !important;
-            cursor: pointer;
-            box-sizing: border-box;
+            line-height: 1;
+            box-shadow: none;
         }
-        #vm-issues-table_wrapper .dataTables_paginate .paginate_button:hover {
-            background: rgb(var(--light-rgb)) !important;
-            border-color: var(--default-border) !important;
-            color: var(--default-text-color) !important;
+        #vm-issues-table_wrapper .pagination .page-item .page-link:hover {
+            background: rgb(var(--light-rgb));
+            border-color: var(--default-border);
+            color: var(--default-text-color);
         }
-        #vm-issues-table_wrapper .dataTables_paginate .paginate_button.current,
-        #vm-issues-table_wrapper .dataTables_paginate .paginate_button.current:hover {
-            background: rgb(var(--primary-rgb)) !important;
-            border-color: rgb(var(--primary-rgb)) !important;
-            color: #fff !important;
+        #vm-issues-table_wrapper .pagination .page-item.active .page-link {
+            background: rgb(var(--primary-rgb));
+            border-color: rgb(var(--primary-rgb));
+            color: #fff;
         }
-        #vm-issues-table_wrapper .dataTables_paginate .paginate_button.disabled,
-        #vm-issues-table_wrapper .dataTables_paginate .paginate_button.disabled:hover {
+        #vm-issues-table_wrapper .pagination .page-item.disabled .page-link {
             opacity: .4;
-            cursor: default;
-            background: transparent !important;
+            background: transparent;
+            border-color: var(--default-border);
+            color: var(--default-text-color);
+        }
+        #vm-issues-table_wrapper .pagination .page-item .page-link i {
+            font-size: 1rem;
+            line-height: 1;
         }
         #vm-issues-table_wrapper .dataTables_processing {
             font-size: .83rem;
