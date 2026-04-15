@@ -454,8 +454,8 @@
                             <label for="brand_ids" class="form-label fw-medium">Brand <span class="text-danger">*</span></label>
                             <div class="input-group">
                                 <select class="form-select kv-select2-brand" id="brand_ids" name="brand_ids[]"
-                                    data-selected-brand-code="">
-                                    <option value="">  Select Brand  </option>
+                                    data-selected-brand-code="" multiple>
+                                    <option value="" disabled>  Select Brand  </option>
                                     @foreach($brands as $brand)
                                         <option value="{{ $brand->id }}" data-brand-code="{{ $brand->code }}">
                                             {{ $brand->name }} ({{ $brand->code }})
@@ -473,8 +473,8 @@
                             <label for="category_ids" class="form-label fw-medium">Category <span class="text-danger">*</span></label>
                             <div class="input-group">
                                 <select class="form-select kv-select2-category" id="category_ids" name="category_ids[]"
-                                    data-selected-category-code="">
-                                    <option value=""><-- Select Category --></option>
+                                    data-selected-category-code="" multiple>
+                                    <option value="" disabled><-- Select Category --></option>
                                     @foreach($categories as $category)
                                         <option value="{{ $category->id }}" data-category-code="{{ $category->code }}">
                                             {{ $category->name }} ({{ $category->code }})

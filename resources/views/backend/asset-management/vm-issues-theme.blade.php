@@ -42,7 +42,9 @@
             <p class="text-muted fs-13 mb-0">Track and manage your reported Assets issues.</p>
         </div>
         <div class="page-header-actions d-flex gap-2 flex-wrap">
-            <button class="btn btn-outline-secondary btn-sm"><i class="bi bi-clipboard-data me-1"></i>Export Report</button>
+            <a href="{{ route('vm.vm-issues.export') }}" id="btn-export" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-file-earmark-excel me-1"></i>Export Report
+            </a>
             <button class="btn btn-warning btn-sm text-white" id="btn-add-vm">
                 <i class="bi bi-plus me-1"></i>New VM Issue
             </button>
@@ -716,6 +718,20 @@
         });
 
         function reloadTable() { vmTable.ajax.reload(null, false); }
+
+        /* -------- Sync export URL with active filters -------- */
+        const exportBase = '{{ route('vm.vm-issues.export') }}';
+        function syncExportUrl() {
+            const params = new URLSearchParams();
+            const fixStatus = $('#filter-status').val();
+            const storeId   = $('#filter-store').val();
+            if (fixStatus) params.set('fix_status', fixStatus);
+            if (storeId)   params.set('store_id',   storeId);
+            const query = params.toString();
+            $('#btn-export').attr('href', exportBase + (query ? '?' + query : ''));
+        }
+        syncExportUrl();
+        $('#filter-status, #filter-store').on('change', syncExportUrl);
 
         /* -------- Filters → reload table -------- */
         let filterTimer;

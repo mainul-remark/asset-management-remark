@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Backend\Asset;
 
 use App\DataTables\VmIssuesDataTable;
+use App\Exports\VmIssues\VmIssuesExport;
+use Maatwebsite\Excel\Facades\Excel;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Backend\Asset\VisualMerchandisingRequest;
 use App\Models\Asset;
@@ -197,6 +199,20 @@ class VisualMerchandisingController extends Controller
                 ->get(['id', 'name', 'asset_code', 'store_id', 'is_common_asset', 'status', 'asset_type_id']),
             'issueFixStatuses' => VisualMerchandisingRequest::ISSUE_FIX_STATUSES,
         ]);
+    }
+
+    public function exportVmIssues(Request $request)
+    {
+        $filename = 'vm-issues-' . now()->format('Y-m-d_H-i-s') . '.xlsx';
+
+        return Excel::download(
+            new VmIssuesExport(
+                creatorId: CustomHelper::loggedUser()->id,
+                fixStatus: $request->filled('fix_status') ? $request->fix_status : null,
+                storeId:   $request->filled('store_id')   ? (int) $request->store_id : null,
+            ),
+            $filename
+        );
     }
 
     public function vmIssuesDatatable(Request $request, VmIssuesDataTable $dataTable)

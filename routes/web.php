@@ -59,6 +59,7 @@ Route::middleware([
     Route::prefix('vm')->name('vm.')->group(function () {
         Route::get('/vm-issues', [VisualMerchandisingController::class, 'userWiseVmIssues'])->name('vm-issues');
         Route::get('/vm-issues/datatable', [VisualMerchandisingController::class, 'vmIssuesDatatable'])->name('vm-issues.datatable');
+        Route::get('/vm-issues/export', [VisualMerchandisingController::class, 'exportVmIssues'])->name('vm-issues.export');
         Route::post('/change-vm-issue-status/{visualMerchandising}/{issueStatus}', [VisualMerchandisingController::class, 'changeVmIssueStatus'])->name('change-vm-issue-status');
     });
 

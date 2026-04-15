@@ -187,6 +187,8 @@
     <script>
     $(document).ready(function () {
         const assignAssetsDatatableUrl = @json(route('assets.assign-assets.datatable'));
+        const initialDistrictOptions = $('#filter-district').html();
+        const initialStoreOptions = $('#filter-store').html();
 
         function showToast(message, type) {
             $(`<div class="toast align-items-center text-bg-${type} border-0 show position-fixed top-0 end-0 m-3" style="z-index:9999" role="alert">
@@ -208,11 +210,22 @@
                 $store.html(`<option value="">${placeholders.store}</option>`)
                     .val('')
                     .trigger('change.select2')
-                    .prop('disabled', true);
+                    .prop('disabled', false);
             }
 
             if (!divisionId) {
-                $district.prop('disabled', true);
+                $district.html(initialDistrictOptions)
+                    .val('')
+                    .trigger('change.select2')
+                    .prop('disabled', false);
+
+                if ($store) {
+                    $store.html(initialStoreOptions)
+                        .val('')
+                        .trigger('change.select2')
+                        .prop('disabled', false);
+                }
+
                 return;
             }
 
@@ -233,7 +246,10 @@
                 .trigger('change.select2');
 
             if (!districtId) {
-                $store.prop('disabled', true);
+                $store.html(initialStoreOptions)
+                    .val('')
+                    .trigger('change.select2')
+                    .prop('disabled', false);
                 return;
             }
 
@@ -446,8 +462,23 @@
         });
 
         $('#btn-reset').on('click', function () {
-            $('#filter-division').val('').trigger('change').trigger('change.select2');
-            $('#filter-asset-type').val('').trigger('change').trigger('change.select2');
+            $('#filter-division').val('').trigger('change.select2');
+            $('#filter-district')
+                .html(initialDistrictOptions)
+                .val('')
+                .trigger('change.select2')
+                .prop('disabled', false);
+            $('#filter-store')
+                .html(initialStoreOptions)
+                .val('')
+                .trigger('change.select2')
+                .prop('disabled', false);
+            $('#filter-asset-type').val('').trigger('change.select2');
+            $('#filter-asset')
+                .html('<option value="">Select Category First</option>')
+                .val('')
+                .trigger('change.select2')
+                .prop('disabled', true);
             assignTable.search('');
             $('#assign-table_filter input[type="search"]').val('');
             $('#result-count').text('');
