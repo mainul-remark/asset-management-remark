@@ -24,14 +24,20 @@
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label fs-12 mb-1">District</label>
-                                <select id="filter-district" class="form-select form-select-sm select-ele" disabled>
-                                    <option value="">Select Division First</option>
+                                <select id="filter-district" class="form-select form-select-sm select-ele">
+                                    <option value="">Select District</option>
+                                    @foreach($districts as $district)
+                                        <option value="{{ $district->id }}">{{ $district->name }}</option>
+                                    @endforeach
                                 </select>
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label fs-12 mb-1">Store</label>
-                                <select id="filter-store" class="form-select form-select-sm select-ele" disabled>
-                                    <option value="">Select District First</option>
+                                <select id="filter-store" class="form-select form-select-sm select-ele">
+                                    <option value="">Select Store</option>
+                                    @foreach($stores as $store)
+                                        <option value="{{ $store->id }}">{{ $store->title }} ({{ $store->code }})</option>
+                                    @endforeach
                                 </select>
                             </div>
                             <div class="col-md-4">
@@ -77,21 +83,17 @@
                             <table id="assign-table" class="table table-bordered text-nowrap w-100 mb-0">
                                 <thead>
                                 <tr>
-                                    <th width="50">SL</th>
+                                    <th width="60">SL</th>
                                     <th>Store</th>
-                                    <th>#</th>
+                                    <th width="60">#</th>
                                     <th>Asset</th>
                                     <th>Category</th>
                                     <th>Assign Date</th>
                                     <th>Assigned By</th>
                                 </tr>
                                 </thead>
-                                <tbody id="assign-tbody"></tbody>
+                                <tbody></tbody>
                             </table>
-                        </div>
-                        <div id="empty-state" class="text-center py-4 text-muted d-none">
-                            <i class="ri-inbox-line fs-2 d-block mb-2"></i>
-                            <span class="fs-13">No assigned assets found for the current filters.</span>
                         </div>
                     </div>
                 </div>
@@ -102,53 +104,90 @@
 
 @push('styles')
 <style>
-.store-cell {
-    vertical-align: middle !important;
-    background: rgba(var(--primary-rgb), .03) !important;
-    border-right: 2px solid rgba(var(--primary-rgb), .12) !important;
+#assign-table tbody td {
+    vertical-align: middle;
 }
-.store-cell .store-name {
-    font-weight: 600;
-    font-size: 0.82rem;
-    color: var(--default-text-color);
-    display: flex;
-    align-items: center;
-    gap: 5px;
+#assign-table tbody tr:hover {
+    background: rgba(var(--primary-rgb), .03);
 }
-.store-cell .store-name i {
-    color: rgb(var(--primary-rgb));
-    font-size: 0.95rem;
-}
-.store-cell .store-location {
-    font-size: 0.72rem;
-    color: var(--text-muted);
-    margin-top: 2px;
-    display: flex;
-    align-items: center;
-    gap: 3px;
-}
-.store-cell .store-count {
-    font-size: 0.7rem;
-    color: var(--text-muted);
-    margin-top: 4px;
-}
-.sl-cell {
+#assign-table .sl-cell {
     vertical-align: middle !important;
     text-align: center;
     font-weight: 600;
     color: var(--text-muted);
     font-size: 0.8rem;
 }
-#assign-table tbody tr:hover {
-    background: rgba(var(--primary-rgb), .03);
+#assign-table .store-cell {
+    vertical-align: middle !important;
+    background: rgba(var(--primary-rgb), .03) !important;
+    border-right: 2px solid rgba(var(--primary-rgb), .12) !important;
+}
+#assign-table .group-item-cell {
+    text-align: center;
+    font-weight: 600;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+}
+#assign-table .asset-name {
+    font-weight: 600;
+    color: var(--default-text-color);
+}
+#assign-table .asset-code {
+    display: inline-block;
+    margin-top: 2px;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+}
+#assign-table_wrapper .dataTables_processing {
+    border-radius: 10px;
+    border: 1px solid rgba(var(--primary-rgb), .15);
+    box-shadow: 0 10px 25px rgba(15, 23, 42, .08);
+    background: var(--custom-white, #fff);
+    z-index: 20;
+}
+.store-group-heading {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.store-group-name {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+    color: var(--default-text-color);
+}
+.store-group-name i {
+    color: rgb(var(--primary-rgb));
+    font-size: 1rem;
+}
+.store-group-code {
+    font-size: 0.74rem;
+    font-weight: 500;
+    color: var(--text-muted);
+}
+.store-group-location {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.74rem;
+    color: var(--text-muted);
+}
+.store-count {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    margin-top: 4px;
 }
 </style>
 @endpush
 
 @push('scripts')
+    @include('backend.includes.plugins.datatable')
     @include('backend.includes.plugins.select2')
     <script>
     $(document).ready(function () {
+        const assignAssetsDatatableUrl = @json(route('assets.assign-assets.datatable'));
+
         function showToast(message, type) {
             $(`<div class="toast align-items-center text-bg-${type} border-0 show position-fixed top-0 end-0 m-3" style="z-index:9999" role="alert">
                 <div class="d-flex">
@@ -230,6 +269,99 @@
             });
         }
 
+        function collectFilters() {
+            const params = {};
+            const fields = {
+                division_id: '#filter-division',
+                district_id: '#filter-district',
+                store_id: '#filter-store',
+                asset_type_id: '#filter-asset-type',
+                asset_id: '#filter-asset'
+            };
+
+            Object.entries(fields).forEach(function ([key, selector]) {
+                const value = $(selector).val();
+                if (value) {
+                    params[key] = value;
+                }
+            });
+
+            return params;
+        }
+
+        function setFilterButtonLoading(isLoading) {
+            const $button = $('#btn-filter');
+
+            $button.prop('disabled', isLoading)
+                .html(
+                    isLoading
+                        ? '<span class="spinner-border spinner-border-sm me-1"></span> Searching...'
+                        : '<i class="ri-search-line me-1"></i> Search'
+                );
+        }
+
+        function renderStoreGroupRows(api) {
+            const $tbody = $('#assign-table tbody');
+            const rows = api.rows({ page: 'current' }).nodes().to$();
+
+            rows.each(function () {
+                const $cells = $(this).children('td');
+
+                $cells.eq(0).show().removeAttr('rowspan').removeClass('sl-cell');
+                $cells.eq(1).show().removeAttr('rowspan').removeClass('store-cell');
+                $cells.eq(2).removeClass('group-item-cell').text('');
+            });
+
+            let storeSerial = 0;
+            let previousGroup = null;
+            let groupStartRow = null;
+            let groupSize = 0;
+
+            function finalizeGroup() {
+                if (!groupStartRow || groupSize === 0) {
+                    return;
+                }
+
+                const startData = api.row(groupStartRow).data();
+                const $cells = $(groupStartRow).children('td');
+
+                $cells.eq(0)
+                    .attr('rowspan', groupSize)
+                    .addClass('sl-cell')
+                    .text(storeSerial);
+
+                $cells.eq(1)
+                    .attr('rowspan', groupSize)
+                    .addClass('store-cell')
+                    .html(`${startData.store_summary || ''}<div class="store-count">${groupSize} asset${groupSize > 1 ? 's' : ''} assigned</div>`);
+            }
+
+            api.rows({ page: 'current' }).every(function () {
+                const rowData = this.data();
+                const $cells = $(this.node()).children('td');
+
+                if (!rowData) {
+                    return;
+                }
+
+                if (rowData.store_group !== previousGroup) {
+                    finalizeGroup();
+                    storeSerial++;
+                    previousGroup = rowData.store_group;
+                    groupStartRow = this.node();
+                    groupSize = 1;
+                    $cells.eq(2).addClass('group-item-cell').text(1);
+                } else {
+                    groupSize++;
+                    $cells.eq(0).hide();
+                    $cells.eq(1).hide();
+                    $cells.eq(2).addClass('group-item-cell').text(groupSize);
+                }
+            });
+
+            finalizeGroup();
+        }
+
         const filterPlaceholders = {
             district: 'Select Division First',
             districtAll: 'All Districts',
@@ -251,129 +383,77 @@
             cascadeTypeToAsset($(this).val(), $('#filter-asset'), filterPlaceholders);
         });
 
-        $('#btn-filter').on('click', loadData);
+        const assignTable = $('#assign-table').DataTable({
+            processing: true,
+            serverSide: true,
+            deferRender: true,
+            searchDelay: 500,
+            stateSave: true,
+            orderFixed: [[1, 'asc']],
+            order: [[3, 'asc']],
+            pageLength: 25,
+            lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
+            dom: '<"d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3"<"d-flex align-items-center"l><"d-flex align-items-center gap-2"f>>rt<"d-flex justify-content-between align-items-center mt-3"ip>',
+            language: {
+                processing: 'Loading...',
+                searchPlaceholder: 'Search assigned assets...',
+                sSearch: '',
+                lengthMenu: 'Show _MENU_ entries',
+                info: 'Showing _START_ to _END_ of _TOTAL_ assigned assets',
+                infoEmpty: 'No assigned assets found',
+                zeroRecords: 'No matching assigned assets found',
+                paginate: {
+                    previous: "<i class='ri-arrow-left-s-line'></i>",
+                    next: "<i class='ri-arrow-right-s-line'></i>"
+                }
+            },
+            ajax: {
+                url: assignAssetsDatatableUrl,
+                data: function (d) {
+                    Object.assign(d, collectFilters());
+                },
+                error: function (xhr) {
+                    const message = xhr.status === 422
+                        ? xhr.responseJSON?.message || 'The selected filter values are not valid.'
+                        : 'Failed to load assigned assets.';
+
+                    showToast(message, 'danger');
+                    setFilterButtonLoading(false);
+                }
+            },
+            columns: [
+                { data: 'DT_RowIndex', name: 'DT_RowIndex', searchable: false, orderable: false, className: 'text-center text-muted fw-semibold' },
+                { data: 'store_summary', name: 'stores.title' },
+                { data: null, name: 'group_item_index', searchable: false, orderable: false, defaultContent: '' },
+                { data: 'asset_display', name: 'assets.name' },
+                { data: 'category_display', name: 'asset_types.name' },
+                { data: 'assign_date_display', name: 'assign_asset_to_stores.assign_date', className: 'text-nowrap' },
+                { data: 'assigned_by_display', name: 'users.name' }
+            ],
+            drawCallback: function () {
+                const api = this.api();
+                const info = api.page.info();
+
+                renderStoreGroupRows(api);
+                $('#result-count').text(`${info.recordsDisplay} asset(s)`);
+                setFilterButtonLoading(false);
+            }
+        });
+
+        $('#btn-filter').on('click', function () {
+            setFilterButtonLoading(true);
+            assignTable.ajax.reload(null, true);
+        });
 
         $('#btn-reset').on('click', function () {
             $('#filter-division').val('').trigger('change').trigger('change.select2');
             $('#filter-asset-type').val('').trigger('change').trigger('change.select2');
-            loadData();
+            assignTable.search('');
+            $('#assign-table_filter input[type="search"]').val('');
+            $('#result-count').text('');
+            setFilterButtonLoading(true);
+            assignTable.ajax.reload(null, true);
         });
-
-        function loadData() {
-            const params = {};
-            const fields = {
-                division_id: '#filter-division',
-                district_id: '#filter-district',
-                store_id: '#filter-store',
-                asset_type_id: '#filter-asset-type',
-                asset_id: '#filter-asset'
-            };
-
-            Object.entries(fields).forEach(function ([key, selector]) {
-                const value = $(selector).val();
-                if (value) {
-                    params[key] = value;
-                }
-            });
-
-            const $button = $('#btn-filter');
-            $button.prop('disabled', true)
-                .html('<span class="spinner-border spinner-border-sm me-1"></span> Searching...');
-
-            $.get(base_url + 'assign-assets/filter', params)
-                .done(function (data) {
-                    renderTable(data);
-                })
-                .fail(function () {
-                    $('#assign-tbody').empty();
-                    $('#assign-table').hide();
-                    $('#empty-state').removeClass('d-none').show();
-                    $('#result-count').text('');
-                    showToast('Failed to load assigned assets.', 'danger');
-                })
-                .always(function () {
-                    $button.prop('disabled', false)
-                        .html('<i class="ri-search-line me-1"></i> Search');
-                });
-        }
-
-        function renderTable(data) {
-            const $tbody = $('#assign-tbody');
-            $tbody.empty();
-
-            if (!data.length) {
-                $('#assign-table').hide();
-                $('#empty-state').removeClass('d-none').show();
-                $('#result-count').text('');
-                return;
-            }
-
-            $('#assign-table').show();
-            $('#empty-state').hide();
-
-            data.sort(function (left, right) {
-                return (left.store?.title || '').localeCompare(right.store?.title || '');
-            });
-
-            const groups = {};
-            data.forEach(function (item) {
-                const storeId = item.store_id || 0;
-                if (!groups[storeId]) {
-                    groups[storeId] = [];
-                }
-                groups[storeId].push(item);
-            });
-
-            let storeSerial = 0;
-
-            Object.values(groups).forEach(function (items) {
-                storeSerial++;
-
-                const store = items[0].store || {};
-                const location = [store.division?.name, store.district?.name]
-                    .filter(Boolean)
-                    .join(', ');
-                const storeLabel = store.title || 'Unassigned';
-                const storeCode = store.code ? `(${store.code})` : '';
-
-                items.forEach(function (item, index) {
-                    const asset = item.asset || {};
-                    const dateLabel = item.assign_date
-                        ? new Date(item.assign_date).toLocaleDateString('en-GB', {
-                            day: '2-digit',
-                            month: 'short',
-                            year: 'numeric'
-                        })
-                        : '-';
-
-                    let row = '<tr>';
-
-                    if (index === 0) {
-                        const span = items.length;
-                        row += `<td class="sl-cell" rowspan="${span}">${storeSerial}</td>`;
-                        row += `<td class="store-cell" rowspan="${span}">
-                            <div class="store-name"><i class="ri-store-2-line"></i> ${storeLabel} <span class="text-muted fw-normal fs-11">${storeCode}</span></div>
-                            ${location ? `<div class="store-location"><i class="ri-map-pin-2-line"></i> ${location}</div>` : ''}
-                            <div class="store-count">${span} asset${span > 1 ? 's' : ''} assigned</div>
-                        </td>`;
-                    }
-
-                    row += `<td class="text-muted">${index + 1}</td>`;
-                    row += `<td><div class="fw-semibold">${asset.name || '-'}</div><small class="text-muted">${asset.asset_code || ''}</small></td>`;
-                    row += `<td>${asset.asset_type?.name || '-'}</td>`;
-                    row += `<td>${dateLabel}</td>`;
-                    row += `<td>${item.assigned_by?.name || '-'}</td>`;
-                    row += '</tr>';
-
-                    $tbody.append(row);
-                });
-            });
-
-            const storeCount = Object.keys(groups).length;
-            $('#result-count').text(`${data.length} asset(s) in ${storeCount} store(s)`);
-        }
-
-        loadData();
     });
     </script>
 @endpush

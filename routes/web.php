@@ -58,11 +58,13 @@ Route::middleware([
 
     Route::prefix('vm')->name('vm.')->group(function () {
         Route::get('/vm-issues', [VisualMerchandisingController::class, 'userWiseVmIssues'])->name('vm-issues');
+        Route::get('/vm-issues/datatable', [VisualMerchandisingController::class, 'vmIssuesDatatable'])->name('vm-issues.datatable');
         Route::post('/change-vm-issue-status/{visualMerchandising}/{issueStatus}', [VisualMerchandisingController::class, 'changeVmIssueStatus'])->name('change-vm-issue-status');
     });
 
     Route::prefix('store')->group(function () {
-        Route::get('/assign-assets', [AssetController::class, 'assignAssets'])->name('assets.assign-assets');
+        Route::get('/assigned-assets', [AssetController::class, 'assignAssets'])->name('assets.assigned-assets');
+        Route::get('/assign-assets/datatable', [AssetController::class, 'assignAssetsDatatable'])->name('assets.assign-assets.datatable');
     });
 
     Route::prefix('asset')->group(function () {

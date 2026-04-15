@@ -94,7 +94,7 @@
                             <a href="{{ route('assets.index') }}" class="side-menu__item">Assets</a>
                         </li>
                         <li class="slide">
-                            <a href="{{ route('assets.assign-assets') }}" class="side-menu__item">Assigned Assets</a>
+                            <a href="{{ route('assets.assigned-assets') }}" class="side-menu__item">Assigned Assets</a>
                         </li>
                         <li class="slide">
 {{--                            <a href="{{ route('visual-merchandising-files.index') }}" class="side-menu__item">VM Issues</a>--}}

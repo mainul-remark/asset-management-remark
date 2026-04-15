@@ -7,6 +7,7 @@ use App\Http\Requests\Backend\Asset\AssetRequest;
 use App\Models\Asset;
 use App\Models\AssetType;
 use App\Models\AssignAssetToStore;
+use App\Models\District;
 use App\Models\Division;
 use App\Models\Store;
 use Illuminate\Http\Request;
@@ -96,6 +97,9 @@ class AssetController extends Controller
 
                     return <<<HTML
 <div class="btn-list">
+    <button class="btn btn-icon btn-sm btn-info-light btn-wave open-kv-assign-form" data-id="{$id}" title="View KV">
+        <i class="ri-eye-line"></i>
+    </button>
     <button class="btn btn-icon btn-sm btn-info-light btn-wave btn-view" data-id="{$id}" title="View">
         <i class="ri-eye-line"></i>
     </button>
@@ -192,11 +196,135 @@ HTML;
     {
         $data = [
             'divisions'  => Division::orderBy('name')->get(['id', 'name']),
+            'districts'  => District::orderBy('name')->get(['id', 'name']),
+            'stores'     => Store::orderBy('title')->get(['id', 'title', 'code']),
             'assetTypes' => AssetType::orderBy('name')->get(['id', 'name', 'need_asset_image', 'need_asset_planogram', 'has_asset_self', 'is_digital', 'total_self', 'has_kv_space']),
         ];
 
         return CustomHelper::returnDataForWebOrApi($data, 'backend.asset-management.asset-assign-to-store');
         return view( 'backend.asset-management.asset-assign-to-store');
+    }
+
+    public function assignAssetsDatatable(Request $request)
+    {
+        $filters = $this->validateAssignAssetFilters($request);
+
+        $query = AssignAssetToStore::query()
+            ->leftJoin('assets', 'assets.id', '=', 'assign_asset_to_stores.asset_id')
+            ->leftJoin('asset_types', 'asset_types.id', '=', 'assets.asset_type_id')
+            ->leftJoin('stores', 'stores.id', '=', 'assign_asset_to_stores.store_id')
+            ->leftJoin('divisions', 'divisions.id', '=', 'stores.division_id')
+            ->leftJoin('districts', 'districts.id', '=', 'stores.district_id')
+            ->leftJoin('users', 'users.id', '=', 'assign_asset_to_stores.assigned_by_user_id')
+            ->select([
+                'assign_asset_to_stores.id',
+                'assign_asset_to_stores.store_id',
+                'assign_asset_to_stores.assign_date',
+                'assets.name as asset_name',
+                'assets.asset_code',
+                'asset_types.name as asset_type_name',
+                'stores.title as store_title',
+                'stores.code as store_code',
+                'divisions.name as division_name',
+                'districts.name as district_name',
+                'users.name as assigned_by_name',
+            ])
+            ->whereNull('assets.deleted_at')
+            ->whereNull('stores.deleted_at')
+            ->when(! empty($filters['division_id']), fn ($q) => $q->where('stores.division_id', $filters['division_id']))
+            ->when(! empty($filters['district_id']), fn ($q) => $q->where('stores.district_id', $filters['district_id']))
+            ->when(! empty($filters['store_id']), fn ($q) => $q->where('assign_asset_to_stores.store_id', $filters['store_id']))
+            ->when(! empty($filters['asset_type_id']), fn ($q) => $q->where('assets.asset_type_id', $filters['asset_type_id']))
+            ->when(! empty($filters['asset_id']), fn ($q) => $q->where('assign_asset_to_stores.asset_id', $filters['asset_id']))
+            ->when(! empty($filters['assigned_from']), fn ($q) => $q->whereDate('assign_asset_to_stores.assign_date', '>=', $filters['assigned_from']))
+            ->when(! empty($filters['assigned_to']), fn ($q) => $q->whereDate('assign_asset_to_stores.assign_date', '<=', $filters['assigned_to']));
+
+        return DataTables::eloquent($query)
+            ->addIndexColumn()
+            ->addColumn('store_group', function ($row) {
+                $storeId = (int) ($row->store_id ?? 0);
+                $storeTitle = strtolower((string) ($row->store_title ?? 'unassigned'));
+
+                return "{$storeId}|{$storeTitle}";
+            })
+            ->addColumn('store_summary', function ($row) {
+                $storeName = e($row->store_title ?? 'Unassigned');
+                $storeCode = filled($row->store_code)
+                    ? '<span class="store-group-code">(' . e($row->store_code) . ')</span>'
+                    : '';
+
+                $location = collect([$row->division_name, $row->district_name])
+                    ->filter()
+                    ->implode(', ');
+
+                $locationHtml = $location !== ''
+                    ? '<div class="store-group-location"><i class="ri-map-pin-2-line"></i><span>' . e($location) . '</span></div>'
+                    : '';
+
+                return '<div class="store-group-heading">'
+                    . '<div class="store-group-name"><i class="ri-store-2-line"></i><span>' . $storeName . '</span>' . $storeCode . '</div>'
+                    . $locationHtml
+                    . '</div>';
+            })
+            ->addColumn('asset_display', function ($row) {
+                $name = e($row->asset_name ?? '-');
+                $code = filled($row->asset_code)
+                    ? '<small class="asset-code">' . e($row->asset_code) . '</small>'
+                    : '';
+
+                return '<div class="asset-name">' . $name . '</div>' . $code;
+            })
+            ->addColumn('category_display', fn ($row) => e($row->asset_type_name ?? '-'))
+            ->addColumn('assign_date_display', function ($row) {
+                if (! filled($row->assign_date)) {
+                    return '-';
+                }
+
+                $timestamp = strtotime((string) $row->assign_date);
+
+                return $timestamp !== false
+                    ? date('d M Y', $timestamp)
+                    : e((string) $row->assign_date);
+            })
+            ->addColumn('assigned_by_display', fn ($row) => e($row->assigned_by_name ?? '-'))
+            ->filterColumn('store_group', function ($query, $keyword) {
+                $query->where(function ($innerQuery) use ($keyword) {
+                    $like = "%{$keyword}%";
+
+                    $innerQuery->where('stores.title', 'like', $like)
+                        ->orWhere('stores.code', 'like', $like)
+                        ->orWhere('divisions.name', 'like', $like)
+                        ->orWhere('districts.name', 'like', $like);
+                });
+            })
+            ->filterColumn('asset_display', function ($query, $keyword) {
+                $query->where(function ($innerQuery) use ($keyword) {
+                    $like = "%{$keyword}%";
+
+                    $innerQuery->where('assets.name', 'like', $like)
+                        ->orWhere('assets.asset_code', 'like', $like);
+                });
+            })
+            ->filterColumn('store_summary', function ($query, $keyword) {
+                $query->where(function ($innerQuery) use ($keyword) {
+                    $like = "%{$keyword}%";
+
+                    $innerQuery->where('stores.title', 'like', $like)
+                        ->orWhere('stores.code', 'like', $like)
+                        ->orWhere('divisions.name', 'like', $like)
+                        ->orWhere('districts.name', 'like', $like);
+                });
+            })
+            ->filterColumn('category_display', fn ($query, $keyword) => $query->where('asset_types.name', 'like', "%{$keyword}%"))
+            ->filterColumn('assigned_by_display', fn ($query, $keyword) => $query->where('users.name', 'like', "%{$keyword}%"))
+            ->orderColumn('store_group', 'stores.title $1')
+            ->orderColumn('store_summary', 'stores.title $1')
+            ->orderColumn('asset_display', 'assets.name $1')
+            ->orderColumn('category_display', 'asset_types.name $1')
+            ->orderColumn('assign_date_display', 'assign_asset_to_stores.assign_date $1')
+            ->orderColumn('assigned_by_display', 'users.name $1')
+            ->rawColumns(['store_summary', 'asset_display'])
+            ->toJson();
     }
 
     public function nextName(Request $request)
@@ -233,15 +361,7 @@ HTML;
 
     public function assignAssetsFilter(Request $request)
     {
-        $request->validate([
-            'division_id'   => 'nullable|exists:divisions,id',
-            'district_id'   => 'nullable|exists:districts,id',
-            'store_id'      => 'nullable|exists:stores,id',
-            'asset_type_id' => 'nullable|exists:asset_types,id',
-            'asset_id'      => 'nullable|exists:assets,id',
-            'assigned_from' => 'nullable|date',
-            'assigned_to'   => 'nullable|date|after_or_equal:assigned_from',
-        ]);
+        $filters = $this->validateAssignAssetFilters($request);
 
         $query = AssignAssetToStore::with([
             'asset:id,name,asset_code,asset_type_id,asset_price,status',
@@ -252,28 +372,41 @@ HTML;
             'assignedBy:id,name',
         ]);
 
-        if ($request->filled('division_id')) {
-            $query->whereHas('store', fn ($q) => $q->where('division_id', $request->division_id));
+        if (! empty($filters['division_id'])) {
+            $query->whereHas('store', fn ($q) => $q->where('division_id', $filters['division_id']));
         }
-        if ($request->filled('district_id')) {
-            $query->whereHas('store', fn ($q) => $q->where('district_id', $request->district_id));
+        if (! empty($filters['district_id'])) {
+            $query->whereHas('store', fn ($q) => $q->where('district_id', $filters['district_id']));
         }
-        if ($request->filled('store_id')) {
-            $query->where('store_id', $request->store_id);
+        if (! empty($filters['store_id'])) {
+            $query->where('store_id', $filters['store_id']);
         }
-        if ($request->filled('asset_type_id')) {
-            $query->whereHas('asset', fn ($q) => $q->where('asset_type_id', $request->asset_type_id));
+        if (! empty($filters['asset_type_id'])) {
+            $query->whereHas('asset', fn ($q) => $q->where('asset_type_id', $filters['asset_type_id']));
         }
-        if ($request->filled('asset_id')) {
-            $query->where('asset_id', $request->asset_id);
+        if (! empty($filters['asset_id'])) {
+            $query->where('asset_id', $filters['asset_id']);
         }
-        if ($request->filled('assigned_from')) {
-            $query->whereDate('assign_date', '>=', $request->assigned_from);
+        if (! empty($filters['assigned_from'])) {
+            $query->whereDate('assign_date', '>=', $filters['assigned_from']);
         }
-        if ($request->filled('assigned_to')) {
-            $query->whereDate('assign_date', '<=', $request->assigned_to);
+        if (! empty($filters['assigned_to'])) {
+            $query->whereDate('assign_date', '<=', $filters['assigned_to']);
         }
 
         return response()->json($query->latest()->get());
+    }
+
+    private function validateAssignAssetFilters(Request $request): array
+    {
+        return $request->validate([
+            'division_id'   => 'nullable|exists:divisions,id',
+            'district_id'   => 'nullable|exists:districts,id',
+            'store_id'      => 'nullable|exists:stores,id',
+            'asset_type_id' => 'nullable|exists:asset_types,id',
+            'asset_id'      => 'nullable|exists:assets,id',
+            'assigned_from' => 'nullable|date',
+            'assigned_to'   => 'nullable|date|after_or_equal:assigned_from',
+        ]);
     }
 }

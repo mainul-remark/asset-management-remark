@@ -696,7 +696,7 @@
             order: [[5, 'desc']],
             pageLength: 10,
             lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
-            dom: '<"vm-dt-bottom d-flex justify-content-between align-items-center flex-wrap gap-2 px-3 py-2"ip>rt<"vm-dt-bottom d-flex justify-content-between align-items-center flex-wrap gap-2 px-3 py-2"ip>',
+            dom: 'rt<"vm-dt-bottom d-flex justify-content-between align-items-center flex-wrap gap-2 px-3 py-2"ip>',
             pagingType: 'simple_numbers',
             language: {
                 emptyTable: 'No VM issues reported yet.',

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Backend\Asset;
 
+use App\DataTables\VmIssuesDataTable;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Backend\Asset\VisualMerchandisingRequest;
 use App\Models\Asset;
@@ -181,17 +182,6 @@ class VisualMerchandisingController extends Controller
     public function userWiseVmIssues(Request $request)
     {
         return view('backend.asset-management.vm-issues-theme', [
-            'vmIssues' => VisualMerchandising::query()
-                ->with([
-                    'store:id,title,code',
-                    'asset:id,name,asset_code,store_id,is_common_asset,asset_type_id',
-                    'asset.assetType:id,name',
-                    'creator:id,name,email',
-                    'visualMerchandisingFiles' => fn ($q) => $q->latest('id'),
-                ])
-                ->where('creator_id', CustomHelper::loggedUser()->id)
-                ->latest()
-                ->get(),
             'stores' => Store::query()
                 ->whereNull('deleted_at')
                 ->orderBy('title')
@@ -207,6 +197,18 @@ class VisualMerchandisingController extends Controller
                 ->get(['id', 'name', 'asset_code', 'store_id', 'is_common_asset', 'status', 'asset_type_id']),
             'issueFixStatuses' => VisualMerchandisingRequest::ISSUE_FIX_STATUSES,
         ]);
+    }
+
+    public function vmIssuesDatatable(Request $request, VmIssuesDataTable $dataTable)
+    {
+        if ($request->filled('fix_status')) {
+            $dataTable->addScope(new \App\DataTables\Scopes\FixStatusScope($request->fix_status));
+        }
+        if ($request->filled('store_id')) {
+            $dataTable->addScope(new \App\DataTables\Scopes\StoreScope($request->store_id));
+        }
+
+        return $dataTable->ajax();
     }
 
     public function changeVmIssueStatus(Request $request, VisualMerchandising $visualMerchandising, $issueStatus = 'pending')
