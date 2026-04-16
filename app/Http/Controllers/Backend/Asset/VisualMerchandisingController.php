@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Backend\Asset;
 
 use App\DataTables\VmIssuesDataTable;
 use App\Exports\VmIssues\VmIssuesExport;
-use Maatwebsite\Excel\Facades\Excel;
+use App\HelperFiles\HelperFile;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Backend\Asset\VisualMerchandisingRequest;
 use App\Models\Asset;
@@ -13,7 +13,6 @@ use App\Models\VisualMerchandising;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Mainul\CustomHelperFunctions\Facades\ViewHelper;
 use Mainul\CustomHelperFunctions\Helpers\CustomHelper;
 
 class VisualMerchandisingController extends Controller
@@ -201,11 +200,11 @@ class VisualMerchandisingController extends Controller
         ]);
     }
 
-    public function exportVmIssues(Request $request)
+    public function exportVmIssues(Request $request): JsonResponse
     {
         $filename = 'vm-issues-' . now()->format('Y-m-d_H-i-s') . '.xlsx';
 
-        return Excel::download(
+        $key = HelperFile::exportExelOnQueue(
             new VmIssuesExport(
                 creatorId: CustomHelper::loggedUser()->id,
                 fixStatus: $request->filled('fix_status') ? $request->fix_status : null,
@@ -213,6 +212,18 @@ class VisualMerchandisingController extends Controller
             ),
             $filename
         );
+
+        return response()->json(['key' => $key]);
+    }
+
+    public function exportVmIssuesStatus(string $key): JsonResponse
+    {
+        return HelperFile::exportStatus($key, 'vm.vm-issues.export.download');
+    }
+
+    public function exportVmIssuesDownload(string $key)
+    {
+        return HelperFile::exportDownload($key);
     }
 
     public function vmIssuesDatatable(Request $request, VmIssuesDataTable $dataTable)

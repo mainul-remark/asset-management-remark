@@ -42,9 +42,11 @@
             <p class="text-muted fs-13 mb-0">Track and manage your reported Assets issues.</p>
         </div>
         <div class="page-header-actions d-flex gap-2 flex-wrap">
-            <a href="{{ route('vm.vm-issues.export') }}" id="btn-export" class="btn btn-outline-secondary btn-sm">
-                <i class="bi bi-file-earmark-excel me-1"></i>Export Report
-            </a>
+            <button type="button" id="btn-export" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-file-earmark-excel me-1" id="btn-export-icon"></i>
+                <span id="btn-export-text">Export Report</span>
+                <span class="spinner-border spinner-border-sm d-none ms-1" id="btn-export-spinner"></span>
+            </button>
             <button class="btn btn-warning btn-sm text-white" id="btn-add-vm">
                 <i class="bi bi-plus me-1"></i>New VM Issue
             </button>
@@ -719,19 +721,75 @@
 
         function reloadTable() { vmTable.ajax.reload(null, false); }
 
-        /* -------- Sync export URL with active filters -------- */
-        const exportBase = '{{ route('vm.vm-issues.export') }}';
-        function syncExportUrl() {
-            const params = new URLSearchParams();
+        /* -------- Queued Export -------- */
+        const exportUrl       = '{{ route('vm.vm-issues.export') }}';
+        const exportStatusUrl = (key) => base_url + 'vm/vm-issues/export/status/' + key;
+
+        let exportPollTimer = null;
+
+        function setExportLoading(loading) {
+            $('#btn-export').prop('disabled', loading);
+            $('#btn-export-spinner').toggleClass('d-none', !loading);
+            $('#btn-export-icon').toggleClass('d-none', loading);
+            $('#btn-export-text').text(loading ? 'Exporting…' : 'Export Report');
+        }
+
+        function triggerAutoDownload(downloadUrl) {
+            const a = document.createElement('a');
+            a.href = downloadUrl;
+            a.style.display = 'none';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        function pollExportStatus(key) {
+            exportPollTimer = setInterval(function () {
+                $.get(exportStatusUrl(key))
+                    .done(function (res) {
+                        if (res.status === 'done') {
+                            clearInterval(exportPollTimer);
+                            setExportLoading(false);
+                            triggerAutoDownload(res.download_url);
+                        } else if (res.status === 'failed' || res.status === 'expired') {
+                            clearInterval(exportPollTimer);
+                            setExportLoading(false);
+                            showToast(res.message || 'Export failed. Please try again.', 'danger');
+                        }
+                        // still 'pending' → keep polling
+                    })
+                    .fail(function () {
+                        clearInterval(exportPollTimer);
+                        setExportLoading(false);
+                        showToast('Failed to check export status.', 'danger');
+                    });
+            }, 2000);
+        }
+
+        $('#btn-export').on('click', function () {
+            if (exportPollTimer) return; // already running
+
+            const params = {};
             const fixStatus = $('#filter-status').val();
             const storeId   = $('#filter-store').val();
-            if (fixStatus) params.set('fix_status', fixStatus);
-            if (storeId)   params.set('store_id',   storeId);
-            const query = params.toString();
-            $('#btn-export').attr('href', exportBase + (query ? '?' + query : ''));
-        }
-        syncExportUrl();
-        $('#filter-status, #filter-store').on('change', syncExportUrl);
+            if (fixStatus) params.fix_status = fixStatus;
+            if (storeId)   params.store_id   = storeId;
+
+            setExportLoading(true);
+
+            $.ajax({
+                url: exportUrl,
+                type: 'POST',
+                data: $.extend({ _token: $('meta[name="csrf-token"]').attr('content') }, params),
+                success: function (res) {
+                    pollExportStatus(res.key);
+                },
+                error: function () {
+                    setExportLoading(false);
+                    showToast('Failed to start export. Please try again.', 'danger');
+                }
+            });
+        });
 
         /* -------- Filters → reload table -------- */
         let filterTimer;

@@ -59,7 +59,9 @@ Route::middleware([
     Route::prefix('vm')->name('vm.')->group(function () {
         Route::get('/vm-issues', [VisualMerchandisingController::class, 'userWiseVmIssues'])->name('vm-issues');
         Route::get('/vm-issues/datatable', [VisualMerchandisingController::class, 'vmIssuesDatatable'])->name('vm-issues.datatable');
-        Route::get('/vm-issues/export', [VisualMerchandisingController::class, 'exportVmIssues'])->name('vm-issues.export');
+        Route::post('/vm-issues/export', [VisualMerchandisingController::class, 'exportVmIssues'])->name('vm-issues.export');
+        Route::get('/vm-issues/export/status/{key}', [VisualMerchandisingController::class, 'exportVmIssuesStatus'])->name('vm-issues.export.status');
+        Route::get('/vm-issues/export/download/{key}', [VisualMerchandisingController::class, 'exportVmIssuesDownload'])->name('vm-issues.export.download');
         Route::post('/change-vm-issue-status/{visualMerchandising}/{issueStatus}', [VisualMerchandisingController::class, 'changeVmIssueStatus'])->name('change-vm-issue-status');
     });
 
@@ -112,6 +114,30 @@ Route::middleware([
 });
 
 Route::get('/phpinfo', function () {return phpinfo();});
+Route::get('/test-queue-spawn', function () {
+    $php    = PHP_BINARY;
+    $artisan = base_path('artisan');
+    $results = [];
+    $results['php_binary']    = $php;
+    $results['artisan_path']  = $artisan;
+    $results['exec_enabled']  = function_exists('exec');
+    $results['popen_enabled'] = function_exists('popen');
+    $results['os_family']     = PHP_OS_FAMILY;
+
+    // Test 1: popen with cmd /c start /B
+    $cmd1 = "cmd /c start /B \"\" \"{$php}\" \"{$artisan}\" queue:work --stop-when-empty >NUL 2>&1";
+    $results['cmd1'] = $cmd1;
+    $handle = popen($cmd1, 'r');
+    $results['popen_result'] = $handle !== false ? 'handle opened' : 'FAILED';
+    if ($handle) pclose($handle);
+
+    sleep(3);
+
+    // Check if job got picked up
+    $results['jobs_remaining'] = \Illuminate\Support\Facades\DB::table('jobs')->count();
+
+    return response()->json($results, 200, [], JSON_PRETTY_PRINT);
+});
 Route::get('/optimize-clear', function () {return \Mainul\CustomHelperFunctions\Helpers\CustomHelper::optimizeClear();});
 
 //Route::get('/store-sync', function (){
