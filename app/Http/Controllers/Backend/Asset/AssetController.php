@@ -142,6 +142,8 @@ HTML;
             if ($asset->store_id) {
                 AssignAssetToStore::assignAssetsToStoreLog($asset);
             }
+            if ($asset)
+                $asset->assetTypes()->sync($request->asset_type_id);
             return $asset;
         });
 
@@ -174,6 +176,8 @@ HTML;
             if ($asset->store_id && $asset->store_id != $oldStoreId) {
                 AssignAssetToStore::assignAssetsToStoreLog($asset);
             }
+            if ($asset)
+                $asset->assetTypes()->sync($request->asset_type_id);
             return $asset;
         });
 

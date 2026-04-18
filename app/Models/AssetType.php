@@ -83,4 +83,9 @@ class AssetType extends Model
     {
         return $this->hasMany(KeyVisual::class);
     }
+
+    public function assignedAssets()
+    {
+        return $this->belongsToMany(Asset::class);
+    }
 }

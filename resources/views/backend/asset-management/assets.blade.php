@@ -111,7 +111,7 @@
                                 <div class="col-md-6">
                                     <label for="asset_type_id" class="form-label">Asset Category <span class="text-danger">*</span></label>
                                     <div class="input-group">
-                                        <select class="form-select" id="asset_type_id" name="asset_type_id">
+                                        <select class="form-select" id="asset_type_id" name="asset_type_id[]" >
                                             <option value="">— Select Type —</option>
                                             @foreach($assetTypes as $assetType)
                                                 <option value="{{ $assetType->id }}">{{ $assetType->name }}</option>

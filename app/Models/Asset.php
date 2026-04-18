@@ -138,4 +138,9 @@ class Asset extends Model
     {
         return $this->hasMany(AssignAssetToBrand::class);
     }
+
+    public function assetTypes()
+    {
+        return $this->belongsToMany(AssetType::class);
+    }
 }
