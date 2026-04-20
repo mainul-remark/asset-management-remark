@@ -7,7 +7,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Symfony\Component\HttpFoundation\StreamedResponse;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Illuminate\Contracts\Queue\ShouldQueue;
 
 class HelperFile
@@ -69,7 +69,7 @@ class HelperFile
      * Usage in controller:
      *   return HelperFile::exportDownload($key);
      */
-    public static function exportDownload(string $key): StreamedResponse
+    public static function exportDownload(string $key): BinaryFileResponse
     {
         $data = Cache::get($key);
 
@@ -78,21 +78,27 @@ class HelperFile
         }
 
         $storagePath = $data['file'];
+        $fullPath    = Storage::disk('local')->path($storagePath);
 
-        if (! Storage::disk('local')->exists($storagePath)) {
+        if (! file_exists($fullPath)) {
             abort(404, 'Export file not found.');
         }
 
         $filename = basename($storagePath);
 
-        $response = Storage::disk('local')->download($storagePath, $filename, [
-            'Content-Type'        => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
-        ]);
-
-        // Clean up the file and cache after download
-        Storage::disk('local')->deleteDirectory(dirname($storagePath));
         Cache::forget($key);
+
+        // deleteFileAfterSend ensures the file is removed only after streaming completes,
+        // avoiding the null-stream error that occurs when deleting before the response is sent.
+        $response = response()->download($fullPath, $filename, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ])->deleteFileAfterSend(true);
+
+        // Schedule directory cleanup after PHP shuts down (after response is fully sent)
+        $dir = dirname($fullPath);
+        register_shutdown_function(function () use ($dir) {
+            @rmdir($dir);
+        });
 
         return $response;
     }

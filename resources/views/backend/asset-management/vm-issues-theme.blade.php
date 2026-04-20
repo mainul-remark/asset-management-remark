@@ -737,6 +737,7 @@
         function triggerAutoDownload(downloadUrl) {
             const a = document.createElement('a');
             a.href = downloadUrl;
+            a.download = '';
             a.style.display = 'none';
             document.body.appendChild(a);
             a.click();
@@ -749,10 +750,12 @@
                     .done(function (res) {
                         if (res.status === 'done') {
                             clearInterval(exportPollTimer);
+                            exportPollTimer = null;
                             setExportLoading(false);
                             triggerAutoDownload(res.download_url);
                         } else if (res.status === 'failed' || res.status === 'expired') {
                             clearInterval(exportPollTimer);
+                            exportPollTimer = null;
                             setExportLoading(false);
                             showToast(res.message || 'Export failed. Please try again.', 'danger');
                         }
@@ -760,6 +763,7 @@
                     })
                     .fail(function () {
                         clearInterval(exportPollTimer);
+                        exportPollTimer = null;
                         setExportLoading(false);
                         showToast('Failed to check export status.', 'danger');
                     });

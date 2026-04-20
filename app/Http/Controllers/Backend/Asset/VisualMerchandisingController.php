@@ -221,7 +221,7 @@ class VisualMerchandisingController extends Controller
         return HelperFile::exportStatus($key, 'vm.vm-issues.export.download');
     }
 
-    public function exportVmIssuesDownload(string $key)
+    public function exportVmIssuesDownload(string $key): \Symfony\Component\HttpFoundation\BinaryFileResponse
     {
         return HelperFile::exportDownload($key);
     }
