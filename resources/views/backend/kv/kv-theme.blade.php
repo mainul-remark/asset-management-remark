@@ -23,7 +23,7 @@
             <small class="text-muted">Role: Admin &bull; Current View: Active KVs</small>
         </div>
         <div class="page-header-actions d-flex gap-2 flex-wrap">
-            <button type="button" class="btn btn-outline-secondary btn-sm"><i class="bi bi-journal-text me-1"></i>Audit Log (0)</button>
+{{--            <button type="button" class="btn btn-outline-secondary btn-sm"><i class="bi bi-journal-text me-1"></i>Audit Log (0)</button>--}}
             <button type="button" class="btn btn-outline-secondary btn-sm"><i class="bi bi-download me-1"></i>Export Active</button>
             <button type="button" class="btn btn-warning btn-sm text-white btn-add-key-visual" id="btn-add-key-visual"><i class="bi bi-plus-circle me-1"></i>Add Key Visual</button>
         </div>
@@ -52,7 +52,7 @@
             <div class="stat-card">
                 <div class="stat-icon" style="background:#fff3e0;color:#e65100;"><i class="bi bi-tag"></i></div>
                 <div>
-                    <div class="stat-value">{{ $brands->count() }}</div>
+                    <div class="stat-value" id="stat-brands-count">{{ $brands->count() }}</div>
                     <div class="stat-label">Active Brands</div>
                 </div>
             </div>
@@ -61,7 +61,7 @@
             <div class="stat-card">
                 <div class="stat-icon" style="background:#e8f5e9;color:#2e7d32;"><i class="bi bi-folder"></i></div>
                 <div>
-                    <div class="stat-value">{{ $categories->count() }}</div>
+                    <div class="stat-value" id="stat-categories-count">{{ $categories->count() }}</div>
                     <div class="stat-label">Categories</div>
                 </div>
             </div>
@@ -112,7 +112,7 @@
                         </div>
                         <div class="kv-list-scroll">
                             @forelse($brands as $brand)
-                                <div class="kv-brand-item">
+                                <div class="kv-brand-item" data-brand-id="{{ $brand->id }}">
                                     <div>
                                         <span class="kv-brand-name">{{ $brand->name }}</span>
                                         <span class="kv-brand-code">{{ $brand->code }}</span>
@@ -130,7 +130,7 @@
                                     </div>
                                 </div>
                             @empty
-                                <div class="p-3 text-muted small">No brands found.</div>
+                                <div class="p-3 text-muted small" id="brands-empty-state">No brands found.</div>
                             @endforelse
                         </div>
                     </div>
@@ -143,7 +143,7 @@
                         </div>
                         <div class="kv-list-scroll">
                             @forelse($categories as $category)
-                                <div class="kv-brand-item">
+                                <div class="kv-brand-item" data-category-id="{{ $category->id }}">
                                     <div>
                                         <span class="kv-brand-name">{{ $category->name }}</span>
                                         <span class="kv-brand-code">{{ $category->code }}</span>
@@ -161,7 +161,7 @@
                                     </div>
                                 </div>
                             @empty
-                                <div class="p-3 text-muted small">No categories found.</div>
+                                <div class="p-3 text-muted small" id="categories-empty-state">No categories found.</div>
                             @endforelse
                         </div>
                     </div>
@@ -1530,6 +1530,110 @@ $(function () {
         $sel.val(id).attr('data-selected-category-code', code).trigger('change');
     }
 
+    function truncateWords(str, n) {
+        if (!str) return '';
+        const words = String(str).trim().split(/\s+/);
+        return words.slice(0, n).join(' ');
+    }
+
+    function buildBrandPaneItem(brand) {
+        const id   = String(brand.id);
+        const name = brand.name || '';
+        const code = String(brand.code || '').toUpperCase();
+        const desc = truncateWords(brand.description, 10);
+        const $item = $('<div class="kv-brand-item">').attr('data-brand-id', id);
+        const $info = $('<div>');
+        $info.append($('<span class="kv-brand-name">').text(name));
+        $info.append($('<span class="kv-brand-code">').text(code));
+        $info.append($('<div class="kv-brand-desc">').text(desc));
+        const $actions = $('<div class="kv-brand-actions">');
+        $actions.append(
+            $('<button type="button" class="btn-action kv-sidebar-brand-edit" title="Edit Brand">')
+                .attr('data-id', id).html('<i class="bi bi-pencil"></i>')
+        );
+        $actions.append(
+            $('<button type="button" class="btn-action text-danger kv-sidebar-brand-delete" title="Delete Brand">')
+                .attr('data-id', id).attr('data-name', name).html('<i class="bi bi-trash"></i>')
+        );
+        return $item.append($info).append($actions);
+    }
+
+    function upsertBrandPaneItem(brand) {
+        if (!brand?.id) return;
+        const $scroll   = $('#kvBrandsPane .kv-list-scroll');
+        const $existing = $scroll.find(`[data-brand-id="${brand.id}"]`);
+        const $newItem  = buildBrandPaneItem(brand);
+        if ($existing.length) {
+            $existing.replaceWith($newItem);
+        } else {
+            $('#brands-empty-state').remove();
+            $scroll.append($newItem);
+            const $stat = $('#stat-brands-count');
+            $stat.text(parseInt($stat.text(), 10) + 1);
+        }
+    }
+
+    function removeBrandPaneItem(id) {
+        const $scroll = $('#kvBrandsPane .kv-list-scroll');
+        if ($scroll.find(`[data-brand-id="${id}"]`).length) {
+            $scroll.find(`[data-brand-id="${id}"]`).remove();
+            const $stat = $('#stat-brands-count');
+            $stat.text(Math.max(0, parseInt($stat.text(), 10) - 1));
+        }
+        if ($scroll.find('.kv-brand-item').length === 0) {
+            $scroll.append('<div class="p-3 text-muted small" id="brands-empty-state">No brands found.</div>');
+        }
+    }
+
+    function buildCategoryPaneItem(category) {
+        const id   = String(category.id);
+        const name = category.name || '';
+        const code = String(category.code || '').toUpperCase();
+        const desc = truncateWords(category.description, 10);
+        const $item = $('<div class="kv-brand-item">').attr('data-category-id', id);
+        const $info = $('<div>');
+        $info.append($('<span class="kv-brand-name">').text(name));
+        $info.append($('<span class="kv-brand-code">').text(code));
+        $info.append($('<div class="kv-brand-desc">').text(desc));
+        const $actions = $('<div class="kv-brand-actions">');
+        $actions.append(
+            $('<button type="button" class="btn-action kv-sidebar-category-edit" title="Edit Category">')
+                .attr('data-id', id).html('<i class="bi bi-pencil"></i>')
+        );
+        $actions.append(
+            $('<button type="button" class="btn-action text-danger kv-sidebar-category-delete" title="Delete Category">')
+                .attr('data-id', id).attr('data-name', name).html('<i class="bi bi-trash"></i>')
+        );
+        return $item.append($info).append($actions);
+    }
+
+    function upsertCategoryPaneItem(category) {
+        if (!category?.id) return;
+        const $scroll   = $('#kvCategoriesPane .kv-list-scroll');
+        const $existing = $scroll.find(`[data-category-id="${category.id}"]`);
+        const $newItem  = buildCategoryPaneItem(category);
+        if ($existing.length) {
+            $existing.replaceWith($newItem);
+        } else {
+            $('#categories-empty-state').remove();
+            $scroll.append($newItem);
+            const $stat = $('#stat-categories-count');
+            $stat.text(parseInt($stat.text(), 10) + 1);
+        }
+    }
+
+    function removeCategoryPaneItem(id) {
+        const $scroll = $('#kvCategoriesPane .kv-list-scroll');
+        if ($scroll.find(`[data-category-id="${id}"]`).length) {
+            $scroll.find(`[data-category-id="${id}"]`).remove();
+            const $stat = $('#stat-categories-count');
+            $stat.text(Math.max(0, parseInt($stat.text(), 10) - 1));
+        }
+        if ($scroll.find('.kv-brand-item').length === 0) {
+            $scroll.append('<div class="p-3 text-muted small" id="categories-empty-state">No categories found.</div>');
+        }
+    }
+
     function setBrandLogoInPond(logoPath) {
         brandLogoPond.removeFiles();
         if (!logoPath) return;
@@ -1742,8 +1846,8 @@ $(function () {
             url: `${BRAND_URL}/${id}`,
             type: 'DELETE',
             success: function (res) {
+                removeBrandPaneItem(id);
                 showToast(res.message || 'Brand deleted successfully.', 'success');
-                setTimeout(() => location.reload(), 500);
             },
             error: function () {
                 showToast('Failed to delete brand.', 'danger');
@@ -1762,8 +1866,8 @@ $(function () {
             url: `${CAT_URL}/${id}`,
             type: 'DELETE',
             success: function (res) {
+                removeCategoryPaneItem(id);
                 showToast(res.message || 'Category deleted successfully.', 'success');
-                setTimeout(() => location.reload(), 500);
             },
             error: function () {
                 showToast('Failed to delete category.', 'danger');
@@ -1809,11 +1913,15 @@ $(function () {
     $('#btnActiveToggle').on('click', function () {
         cardStatusFilter = cardStatusFilter === '1' ? 'all' : '1';
         applyCardFilters();
+        $(this).removeClass('kv-toggle-inactive').addClass('kv-toggle-active');
+        $('#btnArchivedToggle').removeClass('kv-toggle-active').addClass('kv-toggle-inactive');
     });
 
     $('#btnArchivedToggle').on('click', function () {
         cardStatusFilter = cardStatusFilter === '0' ? 'all' : '0';
         applyCardFilters();
+        $(this).removeClass('kv-toggle-inactive').addClass('kv-toggle-active');
+        $('#btnActiveToggle').removeClass('kv-toggle-active').addClass('kv-toggle-inactive');
     });
 
     $('#kv-search-input').on('input', applyCardFilters);
@@ -2062,13 +2170,9 @@ $(function () {
             data: formData, processData: false, contentType: false,
             success: function (res) {
                 brandModal.hide();
-                if (id) {
-                    showToast(res.message || 'Brand updated successfully.', 'success');
-                    setTimeout(() => location.reload(), 500);
-                } else {
-                    upsertBrandOption(res.data || null);
-                    showToast(res.message || 'Brand created successfully.', 'success');
-                }
+                upsertBrandOption(res.data || null);
+                upsertBrandPaneItem(res.data || null);
+                showToast(res.message || (id ? 'Brand updated successfully.' : 'Brand created successfully.'), 'success');
             },
             error: function (xhr) {
                 if (xhr.status === 422 && xhr.responseJSON?.errors) {
@@ -2108,13 +2212,9 @@ $(function () {
             data: formData, processData: false, contentType: false,
             success: function (res) {
                 catModal.hide();
-                if (id) {
-                    showToast(res.message || 'Category updated successfully.', 'success');
-                    setTimeout(() => location.reload(), 500);
-                } else {
-                    upsertCategoryOption(res.data || null);
-                    showToast(res.message || 'Category created successfully.', 'success');
-                }
+                upsertCategoryOption(res.data || null);
+                upsertCategoryPaneItem(res.data || null);
+                showToast(res.message || (id ? 'Category updated successfully.' : 'Category created successfully.'), 'success');
             },
             error: function (xhr) {
                 if (xhr.status === 422 && xhr.responseJSON?.errors) {

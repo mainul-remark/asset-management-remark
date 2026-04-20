@@ -156,6 +156,7 @@ HTML;
 
     public function show(string $id)
     {
+
         return response()->json(
             Asset::with(['assetType:id,name', 'store:id,title,code'])->findOrFail($id)
         );
@@ -163,7 +164,9 @@ HTML;
 
     public function edit(string $id)
     {
-        return response()->json(Asset::findOrFail($id));
+        $asset = Asset::with(['assetTypes'])->findOrFail($id);
+//        return response()->json(Asset::findOrFail($id));
+        return response()->json($asset);
     }
 
     public function update(AssetRequest $request, string $id)
