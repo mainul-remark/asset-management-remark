@@ -33,6 +33,7 @@ class AssetRequest extends FormRequest
             'status'         => ['nullable', 'boolean'],
             'has_self'       => ['nullable', 'boolean'],
             'total_self'     => ['nullable', 'integer', 'min:0', 'max:127'],
+
         ];
     }
 
@@ -42,9 +43,9 @@ class AssetRequest extends FormRequest
             'asset_type_id.required' => 'Please select an asset type.',
             'asset_type_id.exists'   => 'The selected asset type is invalid.',
 
-            'name.required' => 'Asset name is required.',
-            'name.string'   => 'Asset name must be valid text.',
-            'name.max'      => 'Asset name cannot exceed 255 characters.',
+            'name.required'          => 'Asset name is required.',
+            'name.string'            => 'Asset name must be valid text.',
+            'name.max'               => 'Asset name cannot exceed 255 characters.',
 
             'default_image.required' => 'A default image is required for this asset category.',
             'default_image.image'    => 'The uploaded file must be a valid image.',

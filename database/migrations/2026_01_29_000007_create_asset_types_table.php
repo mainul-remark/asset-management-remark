@@ -68,6 +68,10 @@ return new class extends Migration {
                 ->default(0)
                 ->nullable();
             $table->tinyInteger('has_asset_self')->nullable();
+            $table
+                ->tinyInteger('total_kv_slot')
+                ->default(1)
+                ->nullable();
 
             $table->timestamps();
             $table->softDeletes();

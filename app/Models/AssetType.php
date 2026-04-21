@@ -30,6 +30,7 @@ class AssetType extends Model
         'need_asset_image',
         'need_asset_planogram',
         'has_asset_self',
+        'total_kv_slot',
     ];
 
     protected $searchableFields = ['*'];
@@ -53,6 +54,7 @@ class AssetType extends Model
             'need_asset_image'      => $request->need_asset_image ?? 0,
             'need_asset_planogram'  => $request->need_asset_planogram ?? 0,
             'has_asset_self'        => $request->has_asset_self ?? 0,
+            'total_kv_slot'         => $request->total_kv_slot ?? 0,
         ];
 
         if ($request->hasFile('default_image')) {

@@ -64,7 +64,7 @@
                                                 <span class="badge bg-info-transparent me-1">Digital</span>
                                             @endif
                                             @if($assetType->has_kv_space)
-                                                <span class="badge bg-warning-transparent me-1">KV Space</span>
+                                                <span class="badge bg-warning-transparent me-1">KV ({{ $assetType->total_kv_slot ?? 0 }})</span>
                                             @endif
                                             @if($assetType->need_asset_image)
                                                 <span class="badge bg-primary-transparent me-1">Asset Image</span>
@@ -192,7 +192,7 @@
                         </div>
 
                         {{-- ── Section: Storage & Image ── --}}
-                        <div class="form-section mb-4">
+                        <div class="form-section mb-4 d-none">
                             <p class="form-section-label"><i class="ri-image-line me-1"></i>Storage & Image</p>
                             <div class="row g-3 align-items-start">
                                 <div class="col-12 d-none">
@@ -295,6 +295,13 @@
                                     <div class="invalid-feedback" id="error-total_self"></div>
                                     <div class="form-text">Number of shelf units</div>
                                 </div>
+                                <div class="col-md-4" id="total-kv-slot-wrap">
+                                    <label for="total_kv_slot" class="form-label">Total KV Slot</label>
+                                    <input type="number" min="0" class="form-control"
+                                        id="total_kv_slot" name="total_kv_slot" placeholder="0">
+                                    <div class="invalid-feedback" id="error-total_kv_slot"></div>
+                                    <div class="form-text">Number of KV Slots</div>
+                                </div>
                             </div>
                         </div>
 
@@ -364,6 +371,10 @@
                                 <tr>
                                     <th class="text-muted fw-medium fs-12">KV Space</th>
                                     <td id="view-kv"></td>
+                                </tr>
+                                <tr>
+                                    <th class="text-muted fw-medium fs-12">Total KV Slot</th>
+                                    <td id="view-total-kv-slot"></td>
                                 </tr>
                                 <tr>
                                     <th class="text-muted fw-medium fs-12">Default Dimension</th>
@@ -597,8 +608,17 @@
             toggleTotalShelf(this.checked);
         });
 
+        // ── has_kv_space toggle (shows total kv slot) ─────────────────────────
+        function toggleTotalKvSlot(show) {
+            $('#total-kv-slot-wrap').toggleClass('d-none', !show);
+        }
+
+        $('#has_kv_space').on('change', function () {
+            toggleTotalKvSlot(this.checked);
+        });
+
         function populateForm(data) {
-            ['name', 'height', 'width', 'total_self']
+            ['name', 'height', 'width', 'total_self', 'total_kv_slot']
                 .forEach(f => $('#' + f).val(data[f] ?? ''));
 
             // DB column is `dimention_unit_name` (typo), form field is `dimension_unit_name`
@@ -614,6 +634,7 @@
 
             toggleDimensionFields(data.has_default_dimension == 1);
             toggleTotalShelf(data.has_asset_self == 1);
+            toggleTotalKvSlot(data.has_kv_space == 1);
 
             if (data.default_image) {
                 $('#upload-placeholder').hide();
@@ -636,6 +657,7 @@
             $('#has_asset_self').prop('checked', false);
             toggleDimensionFields(false);
             toggleTotalShelf(false);
+            toggleTotalKvSlot(true);
             clearErrors();
         }
 
@@ -669,6 +691,7 @@
                 $('#view-status').html(badge(data.status == 1,                 'success',   'Active',    'danger',  'Inactive'));
                 $('#view-digital').html(badge(data.is_digital == 1,            'info',      'Yes',       null,      'No'));
                 $('#view-kv').html(badge(data.has_kv_space == 1,               'warning',   'Yes',       null,      'No'));
+                $('#view-total-kv-slot').text(data.has_kv_space == 1 ? `${data.total_kv_slot ?? 0} slot(s)` : '—');
                 $('#view-has-default-dimension').html(badge(data.has_default_dimension == 1, 'success', 'Yes', null, 'No'));
                 $('#view-need-asset-image').html(badge(data.need_asset_image == 1,           'primary',  'Yes', null, 'No'));
                 $('#view-need-planogram').html(badge(data.need_asset_planogram == 1,         'secondary','Yes', null, 'No'));

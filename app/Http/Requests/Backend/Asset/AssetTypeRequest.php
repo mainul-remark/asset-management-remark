@@ -37,6 +37,7 @@ class AssetTypeRequest extends FormRequest
             'need_asset_image'      => ['nullable', 'in:0,1'],
             'need_asset_planogram'  => ['nullable', 'in:0,1'],
             'has_asset_self'        => ['nullable', 'in:0,1'],
+            'total_kv_slot'       => ['nullable', 'integer', 'min:0', 'max:127'],
         ];
     }
 
@@ -72,6 +73,10 @@ class AssetTypeRequest extends FormRequest
             'total_self.integer' => 'Total shelf must be a whole number.',
             'total_self.min'     => 'Total shelf cannot be negative.',
             'has_kv_space.in'    => 'KV space flag must be Yes or No.',
+
+            'total_kv_slot.integer'  => 'Total KV Slot must be a whole number.',
+            'total_kv_slot.min'      => 'Total KV Slot cannot be negative.',
+            'total_kv_slot.max'      => 'Total KV Slot cannot exceed 127.',
         ];
     }
 }
