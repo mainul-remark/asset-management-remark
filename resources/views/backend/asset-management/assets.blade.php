@@ -567,18 +567,161 @@
     </div>
 
     {{-- ────────────────── manage asset kv Modal ──────────────────────── --}}
-    <div class="modal fade" id="assetKvManage" >
-        <div class="modal-dialog">
+    <div class="modal fade" id="assetKvManage" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h1 class="modal-title fs-5" id="exampleModalLabel">Mange Asset KV</h1>
+                    <div>
+                        <h1 class="modal-title fs-5 mb-1">Manage Asset KV</h1>
+                        <p class="text-muted fs-12 mb-0">Review, add, edit, and remove key visuals for the selected asset.</p>
+                    </div>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
+                    <div id="asset-kv-loading" class="text-center py-5">
+                        <div class="spinner-border text-primary mb-3" role="status"></div>
+                        <div class="fw-medium">Loading asset KV data...</div>
+                    </div>
 
+                    <div id="asset-kv-content" class="d-none">
+                        <div class="asset-kv-summary mb-3">
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <div class="asset-kv-summary-item">
+                                        <span class="asset-kv-summary-label">Asset</span>
+                                        <div class="asset-kv-summary-value" id="asset-kv-name">-</div>
+                                        <div class="asset-kv-summary-meta" id="asset-kv-code">-</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="asset-kv-summary-item">
+                                        <span class="asset-kv-summary-label">Category</span>
+                                        <div class="asset-kv-summary-value" id="asset-kv-type">-</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="asset-kv-summary-item">
+                                        <span class="asset-kv-summary-label">Store</span>
+                                        <div class="asset-kv-summary-value" id="asset-kv-store">-</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="asset-kv-summary-item">
+                                        <span class="asset-kv-summary-label">Slot Usage</span>
+                                        <div class="asset-kv-summary-value" id="asset-kv-slot-usage">-</div>
+                                        <div class="asset-kv-summary-meta" id="asset-kv-slot-note">-</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="alert alert-warning d-none mt-3 mb-0 py-2" id="asset-kv-capacity-alert"></div>
+                        </div>
+
+                        <div class="card custom-card shadow-none border mb-3">
+                            <div class="card-header d-flex justify-content-between align-items-center gap-2 flex-wrap">
+                                <div>
+                                    <div class="card-title mb-0">Assigned Key Visuals</div>
+                                    <p class="text-muted fs-12 mb-0" id="asset-kv-assignment-count">0 assignment(s)</p>
+                                </div>
+                                <button type="button" class="btn btn-sm btn-primary btn-wave" id="btn-asset-kv-add">
+                                    <i class="ri-add-line me-1"></i> Add Assignment
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-bordered align-middle mb-0" id="asset-kv-table">
+                                        <thead>
+                                            <tr>
+                                                <th width="50">#</th>
+                                                <th>Key Visual</th>
+                                                <th>KV File</th>
+                                                <th width="140">Assigned</th>
+                                                <th width="100">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="asset-kv-tbody"></tbody>
+                                    </table>
+                                </div>
+                                <div class="text-center text-muted py-4 d-none" id="asset-kv-empty-state">
+                                    <i class="ri-image-line fs-2 d-block mb-2"></i>
+                                    No key visuals are assigned to this asset yet.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card custom-card shadow-none border d-none" id="asset-kv-form-card">
+                            <div class="card-header">
+                                <div class="card-title mb-0" id="asset-kv-form-title">Add KV Assignment</div>
+                                <p class="text-muted fs-12 mb-0">Choose a key visual and file for this asset.</p>
+                            </div>
+                            <div class="card-body">
+                                <form id="assetKvForm">
+                                    <input type="hidden" id="asset_kv_assignment_id" value="">
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <label for="asset_kv_key_visual_id" class="form-label">Key Visual <span class="text-danger">*</span></label>
+                                            <select class="form-select select-ele" id="asset_kv_key_visual_id" name="key_visual_id">
+                                                <option value="">Select Key Visual</option>
+                                            </select>
+                                            <div class="invalid-feedback" id="error-asset_kv_key_visual_id"></div>
+                                        </div>
+                                        <div class="col-md-6 d-none" id="asset-kv-file-group">
+                                            <label for="asset_kv_key_visual_files_id" class="form-label">KV File <span class="text-danger">*</span></label>
+                                            <select class="form-select select-ele" id="asset_kv_key_visual_files_id" name="key_visual_files_id" disabled>
+                                                <option value="">Select Key Visual First</option>
+                                            </select>
+                                            <div class="invalid-feedback" id="error-asset_kv_key_visual_files_id"></div>
+                                        </div>
+                                        <div class="col-md-6 d-none" id="asset-kv-size-group">
+                                            <label for="asset_kv_key_visual_size_id" class="form-label">KV Size</label>
+                                            <select class="form-select select-ele" id="asset_kv_key_visual_size_id" disabled>
+                                                <option value="">Select KV File First</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Selection Status</label>
+                                            <div class="asset-kv-selection-status" id="asset-kv-selection-status">
+                                                Select a key visual file to continue.
+                                            </div>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="card-footer d-flex justify-content-end gap-2 flex-wrap">
+                                <button type="button" class="btn btn-light d-none" id="btn-asset-kv-cancel-edit">Cancel Edit</button>
+                                <button type="submit" form="assetKvForm" class="btn btn-primary" id="btn-save-asset-kv">
+                                    <span class="btn-text"><i class="ri-save-line me-1"></i>Save Assignment</span>
+                                    <span class="spinner-border spinner-border-sm d-none"></span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="assetKvDeleteModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-sm modal-dialog-centered">
+            <div class="modal-content text-center">
+                <div class="modal-body p-4 pb-2">
+                    <div class="mb-3">
+                        <span class="avatar avatar-lg bg-danger-transparent rounded-circle">
+                            <i class="ri-delete-bin-line text-danger fs-24"></i>
+                        </span>
+                    </div>
+                    <h6 class="fw-semibold mb-1">Delete KV Assignment?</h6>
+                    <p class="text-muted fs-13 mb-0" id="asset-kv-delete-message">This action cannot be undone.</p>
+                    <input type="hidden" id="asset-kv-delete-id" value="">
+                </div>
+                <div class="modal-footer justify-content-center border-0 pb-4">
+                    <button type="button" class="btn btn-sm btn-light px-4" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-sm btn-danger px-4" id="btn-confirm-asset-kv-delete">
+                        <span class="btn-text">Delete</span>
+                        <span class="spinner-border spinner-border-sm d-none"></span>
+                    </button>
                 </div>
             </div>
         </div>
@@ -645,6 +788,53 @@
         display: flex; align-items: center; justify-content: center;
         font-size: 3rem; color: var(--text-muted);
         border: 1px dashed var(--default-border);
+    }
+    .asset-kv-summary {
+        border: 1px solid var(--default-border);
+        border-radius: 8px;
+        padding: 1rem;
+        background: var(--light);
+    }
+    .asset-kv-summary-item {
+        height: 100%;
+    }
+    .asset-kv-summary-label {
+        display: block;
+        margin-bottom: 0.35rem;
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+    }
+    .asset-kv-summary-value {
+        font-weight: 600;
+        color: var(--default-text-color);
+    }
+    .asset-kv-summary-meta {
+        margin-top: 0.25rem;
+        font-size: 0.78rem;
+        color: var(--text-muted);
+    }
+    .asset-kv-cell .primary-line {
+        font-weight: 600;
+        color: var(--default-text-color);
+    }
+    .asset-kv-cell .secondary-line {
+        margin-top: 2px;
+        font-size: 0.75rem;
+        color: var(--text-muted);
+    }
+    .asset-kv-selection-status {
+        min-height: 38px;
+        display: flex;
+        align-items: center;
+        padding: 0.625rem 0.75rem;
+        border: 1px dashed var(--default-border);
+        border-radius: 8px;
+        background: rgba(var(--primary-rgb), 0.03);
+        color: var(--text-muted);
+        font-size: 0.85rem;
     }
 </style>
 @endpush
@@ -802,6 +992,7 @@
                 'is_digital'           => (int) $t->is_digital,
                 'total_self'           => (int) $t->total_self,
                 'has_kv_space'         => (int) $t->has_kv_space,
+                'total_kv_slot'        => (int) $t->total_kv_slot,
             ]);
         @endphp
         const assetTypeFlags = {!! json_encode($assetTypeFlagsData) !!};
@@ -1051,6 +1242,7 @@
                             is_digital: Number(assetType.is_digital ?? 0),
                             total_self: Number(assetType.total_self ?? 0),
                             has_kv_space: Number(assetType.has_kv_space ?? 0),
+                            total_kv_slot: Number(assetType.total_kv_slot ?? 0),
                         };
 
                         $('#asset_type_id').val(String(assetType.id)).trigger('change');
@@ -1270,11 +1462,561 @@
 
     // ── Manage Asset KV ──────────────────────────────────────
     <script>
-        // ── Open Asset KV Modal──────────────────────────────────────
-        $(document).on('click', '.open-kv-assign-form', function () {
-            var assetId = $(this).data('id');
+        const assetKvManageModal = new bootstrap.Modal(document.getElementById('assetKvManage'));
+        const assetKvDeleteModal = new bootstrap.Modal(document.getElementById('assetKvDeleteModal'));
+        const assetKvUrl = id => base_url + 'kv/assign-kv-to-asset' + (id ? '/' + id : '');
+        const assetKvFilterUrl = assetKvUrl() + '/filter';
 
-            $('#assetKvManage').modal('show');
+        function escapeHtml(value) {
+            return $('<div>').text(value ?? '').html();
+        }
+
+        function formatShortDate(value) {
+            if (!value) return '—';
+
+            const date = new Date(value);
+            if (Number.isNaN(date.getTime())) return value;
+
+            return date.toLocaleDateString('en-GB', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric'
+            });
+        }
+
+        const keyVisuals = @json($keyVisuals ?? []);
+        const keyVisualFiles = @json($keyVisualFiles ?? []);
+
+        const assetKvState = {
+            assetId: '',
+            asset: null,
+            assignments: [],
+            editingAssignmentId: '',
+            formVisible: false,
+        };
+
+        function getAssetTypeMeta(typeId) {
+            return typeId ? (assetTypeFlags[String(typeId)] || {}) : {};
+        }
+
+        function getAssetKvSlotLimit() {
+            return Number(getAssetTypeMeta(assetKvState.asset?.asset_type_id).total_kv_slot || 0);
+        }
+
+        function getAssetKvHardLockMessage() {
+            if (!assetKvState.asset) return 'Load an asset first.';
+            if (parseInt(assetKvState.asset.has_kv_slot, 10) !== 1) return 'This asset is not marked as KV-ready.';
+
+            const typeMeta = getAssetTypeMeta(assetKvState.asset.asset_type_id);
+            if (Number(typeMeta.has_kv_space || 0) !== 1) return 'This asset category does not allow key visuals.';
+            if (getAssetKvSlotLimit() < 1) return 'No KV slots are configured for this asset category.';
+
+            return '';
+        }
+
+        function getAssetKvCapacityLockMessage() {
+            if (assetKvState.editingAssignmentId) return '';
+
+            const slotLimit = getAssetKvSlotLimit();
+            if (slotLimit > 0 && assetKvState.assignments.length >= slotLimit) {
+                return 'All KV slots are already in use. Edit or delete an assignment to continue.';
+            }
+
+            return '';
+        }
+
+        function getAssetKvActiveLockMessage() {
+            return getAssetKvHardLockMessage() || getAssetKvCapacityLockMessage();
+        }
+
+        function setAssetKvLoading(loading) {
+            $('#asset-kv-loading').toggleClass('d-none', !loading);
+            $('#asset-kv-content').toggleClass('d-none', loading);
+        }
+
+        function setAssetKvSaveLoading(loading) {
+            const $btn = $('#btn-save-asset-kv');
+            $btn.prop('disabled', loading);
+            $btn.find('.spinner-border').toggleClass('d-none', !loading);
+        }
+
+        function setAssetKvDeleteLoading(loading) {
+            const $btn = $('#btn-confirm-asset-kv-delete');
+            $btn.prop('disabled', loading);
+            $btn.find('.spinner-border').toggleClass('d-none', !loading);
+        }
+
+        function clearAssetKvErrors() {
+            $('#assetKvForm .is-invalid').removeClass('is-invalid');
+            $('#assetKvForm .invalid-feedback').text('');
+        }
+
+        function applyAssetKvValidationErrors(errors) {
+            const fieldMap = {
+                key_visual_id: '#asset_kv_key_visual_id',
+                key_visual_files_id: '#asset_kv_key_visual_files_id',
+            };
+
+            Object.entries(errors || {}).forEach(([field, messages]) => {
+                const selector = fieldMap[field];
+                if (selector) $(selector).addClass('is-invalid');
+                $(`#error-asset_kv_${field}`).text(messages[0] || '');
+            });
+        }
+
+        function updateAssetKvFormActionState() {
+            const isEditing = !!assetKvState.editingAssignmentId;
+            $('#asset-kv-form-title').text(isEditing ? 'Edit KV Assignment' : 'Add KV Assignment');
+            $('#btn-asset-kv-cancel-edit').toggleClass('d-none', !isEditing);
+            $('#btn-save-asset-kv .btn-text').html(
+                isEditing
+                    ? '<i class="ri-save-line me-1"></i>Update Assignment'
+                    : '<i class="ri-save-line me-1"></i>Save Assignment'
+            );
+        }
+
+        function setAssetKvFormVisibility(visible) {
+            assetKvState.formVisible = visible;
+            $('#asset-kv-form-card').toggleClass('d-none', !visible);
+        }
+
+        function syncAssetKvFieldVisibility() {
+            const hasKeyVisual = !!$('#asset_kv_key_visual_id').val();
+            const hasKvFile = !!$('#asset_kv_key_visual_files_id').val();
+
+            $('#asset-kv-file-group').toggleClass('d-none', !hasKeyVisual);
+            $('#asset-kv-size-group').toggleClass('d-none', !hasKvFile);
+        }
+
+        function resetAssetKvSummary() {
+            $('#asset-kv-name, #asset-kv-code, #asset-kv-type, #asset-kv-store, #asset-kv-slot-usage, #asset-kv-slot-note').text('—');
+            $('#asset-kv-capacity-alert')
+                .addClass('d-none')
+                .removeClass('alert-warning alert-danger')
+                .addClass('alert-warning')
+                .text('');
+        }
+
+        function formatAssetKvFileMeta(file) {
+            const size = file?.key_visual_size || file?.keyVisualSize || {};
+            const parts = [];
+
+            if (file?.file_type) parts.push(file.file_type);
+            if (size?.name) parts.push(size.name);
+            if (size?.width && size?.height) {
+                parts.push(`${size.width} x ${size.height} ${(size.unit_name || 'px').toUpperCase()}`);
+            }
+
+            return parts.join(' | ') || 'No file metadata';
+        }
+
+        function renderAssetKvSummary() {
+            const asset = assetKvState.asset;
+            if (!asset) {
+                resetAssetKvSummary();
+                return;
+            }
+
+            const isCommonAsset = parseInt(asset.is_common_asset, 10) === 1;
+            const slotLimit = getAssetKvSlotLimit();
+            const storeLabel = isCommonAsset ? 'Common Asset' : (asset.store?.title || 'No Store');
+
+            $('#asset-kv-name').text(asset.name || '—');
+            $('#asset-kv-code').text(asset.asset_code || '—');
+            $('#asset-kv-type').text(asset.asset_type?.name || '—');
+            $('#asset-kv-store').text(storeLabel);
+            $('#asset-kv-slot-usage').text(slotLimit > 0 ? `${assetKvState.assignments.length} / ${slotLimit}` : `${assetKvState.assignments.length}`);
+            $('#asset-kv-slot-note').text(slotLimit > 0 ? 'Used / Total slots' : 'Assigned KV count');
+
+            const hardLockMessage = getAssetKvHardLockMessage();
+            const lockMessage = hardLockMessage || getAssetKvCapacityLockMessage();
+
+            $('#asset-kv-capacity-alert')
+                .toggleClass('d-none', !lockMessage)
+                .toggleClass('alert-danger', !!hardLockMessage)
+                .toggleClass('alert-warning', !hardLockMessage)
+                .text(lockMessage);
+        }
+
+        function renderAssetKvAssignments() {
+            const $tbody = $('#asset-kv-tbody');
+            $tbody.empty();
+
+            if (!assetKvState.assignments.length) {
+                $('#asset-kv-table').addClass('d-none');
+                $('#asset-kv-empty-state').removeClass('d-none');
+                $('#asset-kv-assignment-count').text('0 assignment(s)');
+                return;
+            }
+
+            $('#asset-kv-table').removeClass('d-none');
+            $('#asset-kv-empty-state').addClass('d-none');
+
+            assetKvState.assignments.forEach((assignment, index) => {
+                const keyVisual = assignment.key_visual || {};
+                const file = assignment.key_visual_file || {};
+
+                $tbody.append(`
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>
+                            <div class="asset-kv-cell">
+                                <div class="primary-line">${escapeHtml(keyVisual.name || '—')}</div>
+                                <div class="secondary-line">${escapeHtml(keyVisual.unique_code || '—')}</div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="asset-kv-cell">
+                                <div class="primary-line">${escapeHtml(file.name || '—')}</div>
+                                <div class="secondary-line">${escapeHtml(formatAssetKvFileMeta(file))}</div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="asset-kv-cell">
+                                <div class="primary-line">${escapeHtml(formatShortDate(assignment.assigned_date))}</div>
+                                <div class="secondary-line">${escapeHtml(assignment.assigned_by_user?.name || '—')}</div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="btn-list">
+                                <button type="button" class="btn btn-icon btn-sm btn-primary-light btn-wave btn-edit-asset-kv" data-id="${assignment.id}" title="Edit">
+                                    <i class="ri-edit-box-line"></i>
+                                </button>
+                                <button type="button" class="btn btn-icon btn-sm btn-danger-light btn-wave btn-delete-asset-kv" data-id="${assignment.id}" title="Delete">
+                                    <i class="ri-delete-bin-line"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `);
+            });
+
+            $('#asset-kv-assignment-count').text(`${assetKvState.assignments.length} assignment(s)`);
+        }
+
+        function populateAssetKvKeyVisualOptions(selectedId = '') {
+            const assetTypeId = String(assetKvState.asset?.asset_type_id || '');
+            const hardLockMessage = getAssetKvHardLockMessage();
+            const filteredKeyVisuals = keyVisuals
+                .filter(keyVisual => !assetTypeId || String(keyVisual.asset_type_id) === assetTypeId)
+                .sort((left, right) => String(left.name || '').localeCompare(String(right.name || '')));
+
+            let options = '<option value="">Select Key Visual</option>';
+            filteredKeyVisuals.forEach(keyVisual => {
+                const label = `${keyVisual.name || 'Unnamed KV'}${keyVisual.unique_code ? ` (${keyVisual.unique_code})` : ''}`;
+                options += `<option value="${keyVisual.id}">${escapeHtml(label)}</option>`;
+            });
+
+            $('#asset_kv_key_visual_id').html(options);
+            if (selectedId && filteredKeyVisuals.some(keyVisual => String(keyVisual.id) === String(selectedId))) {
+                $('#asset_kv_key_visual_id').val(String(selectedId));
+            } else {
+                $('#asset_kv_key_visual_id').val('');
+            }
+
+            $('#asset_kv_key_visual_id')
+                .prop('disabled', !!hardLockMessage || !filteredKeyVisuals.length)
+                .trigger('change.select2');
+        }
+
+        function populateAssetKvFileOptions(selectedId = '') {
+            const keyVisualId = $('#asset_kv_key_visual_id').val();
+            const hardLockMessage = getAssetKvHardLockMessage();
+
+            if (!keyVisualId) {
+                $('#asset_kv_key_visual_files_id')
+                    .html('<option value="">Select Key Visual First</option>')
+                    .prop('disabled', true)
+                    .val('')
+                    .trigger('change.select2');
+                return;
+            }
+
+            const filteredFiles = keyVisualFiles
+                .filter(file => String(file.key_visual_id) === String(keyVisualId))
+                .sort((left, right) => String(left.name || '').localeCompare(String(right.name || '')));
+
+            let options = '<option value="">Select KV File</option>';
+            filteredFiles.forEach(file => {
+                const label = `${file.name || `File #${file.id}`}${file.file_type ? ` | ${file.file_type}` : ''}`;
+                options += `<option value="${file.id}">${escapeHtml(label)}</option>`;
+            });
+
+            $('#asset_kv_key_visual_files_id').html(options);
+            if (selectedId && filteredFiles.some(file => String(file.id) === String(selectedId))) {
+                $('#asset_kv_key_visual_files_id').val(String(selectedId));
+            } else {
+                $('#asset_kv_key_visual_files_id').val('');
+            }
+
+            $('#asset_kv_key_visual_files_id')
+                .prop('disabled', !!hardLockMessage || !filteredFiles.length)
+                .trigger('change.select2');
+        }
+
+        function populateAssetKvSizeOption(fileId = '') {
+            if (!fileId) {
+                $('#asset_kv_key_visual_size_id')
+                    .html('<option value="">Select KV File First</option>')
+                    .prop('disabled', true)
+                    .val('')
+                    .trigger('change.select2');
+                return;
+            }
+
+            const selectedFile = keyVisualFiles.find(file => String(file.id) === String(fileId));
+            if (!selectedFile?.key_visual_size_id) {
+                $('#asset_kv_key_visual_size_id')
+                    .html('<option value="">Size not available</option>')
+                    .prop('disabled', true)
+                    .val('')
+                    .trigger('change.select2');
+                return;
+            }
+
+            $('#asset_kv_key_visual_size_id')
+                .html(`<option value="${selectedFile.key_visual_size_id}">${escapeHtml(formatAssetKvFileMeta(selectedFile))}</option>`)
+                .prop('disabled', false)
+                .val(String(selectedFile.key_visual_size_id))
+                .trigger('change.select2');
+        }
+
+        function syncAssetKvSelectionStatus() {
+            const lockMessage = getAssetKvActiveLockMessage();
+            const selectedFile = keyVisualFiles.find(file => String(file.id) === String($('#asset_kv_key_visual_files_id').val()));
+            let message = lockMessage;
+
+            if (!message) {
+                if (!$('#asset_kv_key_visual_id').val()) {
+                    message = 'Select a key visual for this asset.';
+                } else if (!selectedFile) {
+                    message = 'Choose a key visual file to continue.';
+                } else {
+                    message = `${selectedFile.name || 'Selected file'} | ${formatAssetKvFileMeta(selectedFile)}`;
+                }
+            }
+
+            syncAssetKvFieldVisibility();
+            $('#asset-kv-selection-status').text(message);
+            $('#btn-save-asset-kv').prop('disabled', !!lockMessage || !$('#asset_kv_key_visual_id').val() || !selectedFile);
+            $('#btn-asset-kv-add').prop('disabled', !!getAssetKvActiveLockMessage());
+        }
+
+        function resetAssetKvForm() {
+            $('#assetKvForm')[0].reset();
+            $('#asset_kv_assignment_id').val('');
+            assetKvState.editingAssignmentId = '';
+            clearAssetKvErrors();
+            updateAssetKvFormActionState();
+            setAssetKvFormVisibility(false);
+            populateAssetKvKeyVisualOptions();
+            populateAssetKvFileOptions();
+            populateAssetKvSizeOption();
+            syncAssetKvSelectionStatus();
+            renderAssetKvSummary();
+        }
+
+        function startAssetKvEdit(assignmentId) {
+            const assignment = assetKvState.assignments.find(item => String(item.id) === String(assignmentId));
+            if (!assignment) return;
+
+            assetKvState.editingAssignmentId = String(assignment.id);
+            $('#asset_kv_assignment_id').val(String(assignment.id));
+            clearAssetKvErrors();
+            updateAssetKvFormActionState();
+            setAssetKvFormVisibility(true);
+            populateAssetKvKeyVisualOptions(assignment.key_visual_id);
+            populateAssetKvFileOptions(assignment.key_visual_files_id);
+            populateAssetKvSizeOption(assignment.key_visual_files_id);
+            syncAssetKvSelectionStatus();
+            renderAssetKvSummary();
+        }
+
+        function loadAssetKvAssignments() {
+            if (!assetKvState.assetId) return $.Deferred().resolve().promise();
+
+            return $.get(assetKvFilterUrl, { asset_id: assetKvState.assetId })
+                .done(data => {
+                    assetKvState.assignments = Array.isArray(data) ? data : [];
+
+                    if (
+                        assetKvState.editingAssignmentId &&
+                        !assetKvState.assignments.some(item => String(item.id) === String(assetKvState.editingAssignmentId))
+                    ) {
+                        resetAssetKvForm();
+                    } else {
+                        renderAssetKvAssignments();
+                        renderAssetKvSummary();
+                        syncAssetKvSelectionStatus();
+                    }
+
+                    renderAssetKvAssignments();
+                    renderAssetKvSummary();
+                    syncAssetKvSelectionStatus();
+                })
+                .fail(xhr => {
+                    showToast(xhr.responseJSON?.message || 'Failed to load asset KV assignments.', 'danger');
+                });
+        }
+
+        function openAssetKvModal(assetId) {
+            assetKvState.assetId = String(assetId || '');
+            assetKvState.asset = null;
+            assetKvState.assignments = [];
+            assetKvState.editingAssignmentId = '';
+            assetKvState.formVisible = false;
+
+            resetAssetKvSummary();
+            renderAssetKvAssignments();
+            updateAssetKvFormActionState();
+            clearAssetKvErrors();
+            setAssetKvLoading(true);
+            assetKvManageModal.show();
+
+            $.when(
+                $.get(apiUrl(assetId)),
+                $.get(assetKvFilterUrl, { asset_id: assetId })
+            ).done((assetResponse, assignmentResponse) => {
+                assetKvState.asset = assetResponse[0];
+                assetKvState.assignments = Array.isArray(assignmentResponse[0]) ? assignmentResponse[0] : [];
+
+                setAssetKvLoading(false);
+                renderAssetKvAssignments();
+                resetAssetKvForm();
+            }).fail(xhr => {
+                setAssetKvLoading(false);
+                resetAssetKvSummary();
+                showToast(xhr.responseJSON?.message || 'Failed to load asset KV data.', 'danger');
+            });
+        }
+
+        $(document).on('click', '.open-kv-assign-form', function () {
+            openAssetKvModal($(this).data('id'));
+        });
+
+        $('#btn-asset-kv-add').on('click', function () {
+            resetAssetKvForm();
+            setAssetKvFormVisibility(true);
+            syncAssetKvSelectionStatus();
+        });
+
+        $('#btn-asset-kv-cancel-edit').on('click', function () {
+            resetAssetKvForm();
+        });
+
+        $('#asset_kv_key_visual_id').on('change', function () {
+            clearAssetKvErrors();
+            populateAssetKvFileOptions();
+            populateAssetKvSizeOption();
+            syncAssetKvSelectionStatus();
+        });
+
+        $('#asset_kv_key_visual_files_id').on('change', function () {
+            clearAssetKvErrors();
+            populateAssetKvSizeOption($(this).val());
+            syncAssetKvSelectionStatus();
+        });
+
+        $(document).on('click', '.btn-edit-asset-kv', function () {
+            startAssetKvEdit($(this).data('id'));
+        });
+
+        $(document).on('click', '.btn-delete-asset-kv', function () {
+            const assignment = assetKvState.assignments.find(item => String(item.id) === String($(this).data('id')));
+            const keyVisualName = assignment?.key_visual?.name || 'this key visual';
+
+            $('#asset-kv-delete-id').val($(this).data('id'));
+            $('#asset-kv-delete-message').text(`Remove ${keyVisualName} from ${assetKvState.asset?.name || 'this asset'}?`);
+            assetKvDeleteModal.show();
+        });
+
+        $('#assetKvForm').on('submit', function (e) {
+            e.preventDefault();
+            clearAssetKvErrors();
+
+            const assignmentId = $('#asset_kv_assignment_id').val();
+            const payload = {
+                asset_id: assetKvState.assetId,
+                key_visual_id: $('#asset_kv_key_visual_id').val(),
+                key_visual_files_id: $('#asset_kv_key_visual_files_id').val(),
+            };
+
+            setAssetKvSaveLoading(true);
+
+            $.ajax({
+                url: assetKvUrl(assignmentId || null),
+                type: assignmentId ? 'PUT' : 'POST',
+                data: payload,
+                success: response => {
+                    if (response.success === false) {
+                        showToast(response.message || 'Failed to save KV assignment.', 'danger');
+                        return;
+                    }
+
+                    resetAssetKvForm();
+                    loadAssetKvAssignments();
+                    showToast(response.message || 'KV assignment saved successfully.', 'success');
+                },
+                error: xhr => {
+                    if (xhr.status === 422) {
+                        applyAssetKvValidationErrors(xhr.responseJSON?.errors || {});
+                    }
+
+                    showToast(xhr.responseJSON?.message || 'Failed to save KV assignment.', 'danger');
+                },
+                complete: () => {
+                    setAssetKvSaveLoading(false);
+                    updateAssetKvFormActionState();
+                    syncAssetKvSelectionStatus();
+                }
+            });
+        });
+
+        $('#btn-confirm-asset-kv-delete').on('click', function () {
+            const assignmentId = $('#asset-kv-delete-id').val();
+            if (!assignmentId) return;
+
+            setAssetKvDeleteLoading(true);
+
+            $.ajax({
+                url: assetKvUrl(assignmentId),
+                type: 'DELETE',
+                success: response => {
+                    if (response.success === false) {
+                        showToast(response.message || 'Failed to delete KV assignment.', 'danger');
+                        return;
+                    }
+
+                    if (String(assetKvState.editingAssignmentId) === String(assignmentId)) {
+                        resetAssetKvForm();
+                    }
+
+                    assetKvDeleteModal.hide();
+                    loadAssetKvAssignments();
+                    showToast(response.message || 'KV assignment deleted successfully.', 'success');
+                },
+                error: xhr => {
+                    showToast(xhr.responseJSON?.message || 'Failed to delete KV assignment.', 'danger');
+                },
+                complete: () => {
+                    setAssetKvDeleteLoading(false);
+                }
+            });
+        });
+
+        const legacyAssetKvTextWalker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+        while (legacyAssetKvTextWalker.nextNode()) {
+            const node = legacyAssetKvTextWalker.currentNode;
+            if (String(node.textContent || '').includes('Manage Asset KV')) {
+                node.textContent = '';
+            }
+        }
+
+        // ── Open Asset KV Modal──────────────────────────────────────
+        $(document).on('click', '.open-kv-assign-form-legacy-disabled', function () {
+            var legacyAssetId = $(this).data('id');
+
+            return legacyAssetId;
         })
     </script>
 @endpush

@@ -65,6 +65,10 @@ class AssignKvToAssetController extends Controller
 
     public function store(AssignKvToAssetRequest $request): JsonResponse
     {
+        if ($slotLimitResponse = $this->validateAvailableKvSlot((int) $request->asset_id)) {
+            return $slotLimitResponse;
+        }
+
         try {
 
             $assignment = DB::transaction(function () use ($request) {
@@ -95,14 +99,10 @@ class AssignKvToAssetController extends Controller
 
     public function update(AssignKvToAssetRequest $request, AssignKvToAsset $assignKvToAsset): JsonResponse
     {
-        $assetCurrentKvs = AssignKvToAsset::where('asset_id', $request->asset_id)->count();
-        $asset = Asset::find(request()->asset_id);
-        if (!$asset->assetType->has_kv_space || $asset->assetType->total_kv_slot == $assetCurrentKvs) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Max KV slot is reached.',
-            ]);
+        if ($slotLimitResponse = $this->validateAvailableKvSlot((int) $request->asset_id, $assignKvToAsset->id)) {
+            return $slotLimitResponse;
         }
+
         try {
             $assignment = DB::transaction(function () use ($request, $assignKvToAsset) {
                 return $this->persistAssignment($request, $assignKvToAsset);
@@ -382,5 +382,40 @@ class AssignKvToAssetController extends Controller
                 'name' => $assignment->installedBy->name,
             ] : null,
         ];
+    }
+
+    private function validateAvailableKvSlot(int $assetId, ?int $ignoreAssignmentId = null): ?JsonResponse
+    {
+        $asset = Asset::with('assetType:id,has_kv_space,total_kv_slot')->find($assetId);
+
+        if (!$asset?->assetType || (int) $asset->assetType->has_kv_space !== 1) {
+            return response()->json([
+                'success' => false,
+                'message' => 'This asset does not support key visual assignments.',
+            ], 422);
+        }
+
+        $maxKvSlots = (int) ($asset->assetType->total_kv_slot ?? 0);
+
+        if ($maxKvSlots < 1) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No KV slots are configured for this asset category.',
+            ], 422);
+        }
+
+        $existingAssignments = AssignKvToAsset::query()
+            ->where('asset_id', $assetId)
+            ->when($ignoreAssignmentId, fn ($query) => $query->where('id', '!=', $ignoreAssignmentId))
+            ->count();
+
+        if ($existingAssignments >= $maxKvSlots) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Max KV slot is reached.',
+            ], 422);
+        }
+
+        return null;
     }
 }

@@ -9,6 +9,8 @@ use App\Models\AssetType;
 use App\Models\AssignAssetToStore;
 use App\Models\District;
 use App\Models\Division;
+use App\Models\KeyVisual;
+use App\Models\KeyVisualFiles;
 use App\Models\Store;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -125,8 +127,18 @@ HTML;
         }
 
         return view('backend.asset-management.assets', [
-            'assetTypes' => AssetType::orderBy('name')->get(['id', 'name', 'need_asset_image', 'need_asset_planogram', 'has_asset_self', 'is_digital', 'total_self', 'has_kv_space']),
+            'assetTypes' => AssetType::orderBy('name')->get(['id', 'name', 'need_asset_image', 'need_asset_planogram', 'has_asset_self', 'is_digital', 'total_self', 'has_kv_space', 'total_kv_slot']),
             'stores'     => Store::orderBy('title')->get(['id', 'title', 'code']),
+            'keyVisuals' => KeyVisual::with(['brands:id,name,code', 'categories:id,name,code'])
+                ->where('status', 1)
+                ->whereNull('deleted_at')
+                ->orderBy('name')
+                ->get(['id', 'name', 'unique_code', 'asset_type_id']),
+            'keyVisualFiles' => KeyVisualFiles::with('keyVisualSize:id,name,width,height,unit_name')
+                ->where('status', 1)
+                ->whereNull('deleted_at')
+                ->orderBy('name')
+                ->get(['id', 'name', 'key_visual_id', 'key_visual_size_id', 'kv_file', 'kv_size', 'file_type']),
         ]);
     }
 
