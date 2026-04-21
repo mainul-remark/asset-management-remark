@@ -737,13 +737,12 @@
             const shouldAutoSelectFirstKeyVisual = !selectedKeyVisualId && !!($('#modal-brand').val() || $('#modal-category').val());
 
             populateKeyVisualOptions($('#modal-key-visual'), {
-                assetTypeId: getModalAssetTypeId(),
                 brandId: $('#modal-brand').val(),
                 categoryId: $('#modal-category').val(),
                 selectedId: selectedKeyVisualId,
                 placeholder: 'Select Key Visual',
                 autoSelectFirst: shouldAutoSelectFirstKeyVisual
-            }, true);
+            }, false);
             populateKeyVisualFileOptions($('#modal-key-visual-file'), $('#modal-key-visual').val(), selectedFileId, 'Select KV File', true);
             populateKeyVisualSizeOptions($('#modal-key-visual-size'), $('#modal-key-visual-file').val(), 'Select KV File First');
             syncModalKeyVisualDependencyVisibility();
@@ -948,8 +947,6 @@
         });
 
         $('#modal-asset').on('change', function () {
-            const selectedAsset = getSelectedModalAsset();
-            modalAssetTypeId = selectedAsset?.asset_type_id ? String(selectedAsset.asset_type_id) : '';
             refreshModalKeyVisuals();
         });
 
@@ -980,7 +977,7 @@
 
         $('#btn-add-assignment').on('click', function () {
             resetModalForm();
-            $('#assignmentModalLabel').text('Add KV Assignment');
+            $('#assignmentModalLabel').text('Add KV To Asset');
             $('#btn-save-assignment .btn-text').html('<i class="ri-save-line me-1"></i>Save Assignment');
             assignmentModal.show();
         });

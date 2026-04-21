@@ -566,6 +566,24 @@
         </div>
     </div>
 
+    {{-- ────────────────── manage asset kv Modal ──────────────────────── --}}
+    <div class="modal fade" id="assetKvManage" >
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="exampleModalLabel">Mange Asset KV</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 @endsection
 
 @push('styles')
@@ -1248,5 +1266,15 @@
         });
 
     });
+    </script>
+
+    // ── Manage Asset KV ──────────────────────────────────────
+    <script>
+        // ── Open Asset KV Modal──────────────────────────────────────
+        $(document).on('click', '.open-kv-assign-form', function () {
+            var assetId = $(this).data('id');
+
+            $('#assetKvManage').modal('show');
+        })
     </script>
 @endpush

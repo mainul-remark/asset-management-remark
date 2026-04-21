@@ -98,7 +98,7 @@ class AssetController extends Controller
                     return <<<HTML
 <div class="btn-list">
     <button class="btn btn-icon btn-sm btn-info-light btn-wave open-kv-assign-form" data-id="{$id}" title="View KV">
-        <i class="ri-eye-line"></i>
+        <i class="ri-tv-line"></i>
     </button>
     <button class="btn btn-icon btn-sm btn-info-light btn-wave btn-view" data-id="{$id}" title="View">
         <i class="ri-eye-line"></i>

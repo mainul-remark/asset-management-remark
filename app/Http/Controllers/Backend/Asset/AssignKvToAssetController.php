@@ -66,6 +66,7 @@ class AssignKvToAssetController extends Controller
     public function store(AssignKvToAssetRequest $request): JsonResponse
     {
         try {
+
             $assignment = DB::transaction(function () use ($request) {
                 return $this->persistAssignment($request);
             });
@@ -94,6 +95,14 @@ class AssignKvToAssetController extends Controller
 
     public function update(AssignKvToAssetRequest $request, AssignKvToAsset $assignKvToAsset): JsonResponse
     {
+        $assetCurrentKvs = AssignKvToAsset::where('asset_id', $request->asset_id)->count();
+        $asset = Asset::find(request()->asset_id);
+        if (!$asset->assetType->has_kv_space || $asset->assetType->total_kv_slot == $assetCurrentKvs) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Max KV slot is reached.',
+            ]);
+        }
         try {
             $assignment = DB::transaction(function () use ($request, $assignKvToAsset) {
                 return $this->persistAssignment($request, $assignKvToAsset);

@@ -450,12 +450,12 @@
                     </div>
 
                     <div class="row g-3 mb-3">
-                        <div class="col-md-5">
+                        <div class="col-md-12">
                             <label for="brand_ids" class="form-label fw-medium">Brand <span class="text-danger">*</span></label>
                             <div class="input-group">
-                                <select class="form-select kv-select2-brand" id="brand_ids" name="brand_ids[]"
+                                <select class="form-select kv-select2-brand select-ele" id="brand_ids" name="brand_ids[]"
                                     data-selected-brand-code="" multiple>
-                                    <option value="" disabled>  Select Brand  </option>
+                                    <option disabled>  Select Brand  </option>
                                     @foreach($brands as $brand)
                                         <option value="{{ $brand->id }}" data-brand-code="{{ $brand->code }}">
                                             {{ $brand->name }} ({{ $brand->code }})
@@ -469,12 +469,12 @@
                             </div>
                             <div class="invalid-feedback d-block" id="error-brand_ids"></div>
                         </div>
-                        <div class="col-md-5">
+                        <div class="col-md-12">
                             <label for="category_ids" class="form-label fw-medium">Category <span class="text-danger">*</span></label>
                             <div class="input-group">
-                                <select class="form-select kv-select2-category" id="category_ids" name="category_ids[]"
+                                <select class="form-select kv-select2-category select-ele" id="category_ids" name="category_ids[]"
                                     data-selected-category-code="" multiple>
-                                    <option value="" disabled><-- Select Category --></option>
+                                    <option disabled><-- Select Category --></option>
                                     @foreach($categories as $category)
                                         <option value="{{ $category->id }}" data-category-code="{{ $category->code }}">
                                             {{ $category->name }} ({{ $category->code }})
@@ -633,9 +633,7 @@
     </div>
 </div>
 
-{{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-     DELETE CONFIRMATION MODAL
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
+{{--      DELETE CONFIRMATION MODAL --}}
 <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-sm">
         <div class="modal-content text-center">
@@ -664,9 +662,7 @@
     </div>
 </div>
 
-{{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-     CREATE BRAND MODAL (child)
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
+{{--  CREATE BRAND MODAL (child) --}}
 <div class="modal fade" id="brandModal" tabindex="-1" aria-labelledby="brandModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
@@ -725,9 +721,7 @@
     </div>
 </div>
 
-{{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-     CREATE CATEGORY MODAL (child)
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
+{{--      CREATE CATEGORY MODAL (child) --}}
 <div class="modal fade" id="categoryModal" tabindex="-1" aria-labelledby="categoryModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -788,7 +782,7 @@
 <link rel="stylesheet" href="{{ asset('backend/build/select2-4.1.0/select2.min.css') }}">
 <link rel="stylesheet" href="{{ asset('backend/build/select2-4.1.0/select2-bootstrap-5-theme.min.css') }}">
 <style>
-/* â”€â”€ TABLE THUMB */
+/*  TABLE THUMB */
 .kv-thumb {
     width: 44px; height: 44px; object-fit: cover;
     border-radius: 8px; border: 1px solid var(--default-border);
@@ -1208,7 +1202,8 @@
 <script src="{{ asset('backend/build/assets/libs/filepond-plugin-image-exif-orientation/filepond-plugin-image-exif-orientation.min.js') }}"></script>
 <script src="{{ asset('backend/build/assets/libs/filepond-plugin-file-validate-type/filepond-plugin-file-validate-type.min.js') }}"></script>
 <script src="{{ asset('backend/build/assets/libs/filepond-plugin-file-validate-size/filepond-plugin-file-validate-size.min.js') }}"></script>
-<script src="{{ asset('backend/build/select2-4.1.0/select2.min.js') }}"></script>
+{{--<script src="{{ asset('backend/build/select2-4.1.0/select2.min.js') }}"></script>--}}
+@include('backend.includes.plugins.select2')
 <script>
 $(function () {
     // â”€â”€ CONSTANTS
@@ -1318,8 +1313,8 @@ $(function () {
         dropdownParent: $(parent), width: '100%',
     });
 
-    $('#brand_ids').select2(s2Opts('  Select Brand  ', '#keyVisualModal'));
-    $('#category_ids').select2(s2Opts('  Select Category  ', '#keyVisualModal'));
+    // $('#brand_ids').select2(s2Opts('  Select Brand  ', '#keyVisualModal'));
+    // $('#category_ids').select2(s2Opts('  Select Category  ', '#keyVisualModal'));
 
     // â”€â”€ HELPER FUNCTIONS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     function showToast(message, type = 'success') {

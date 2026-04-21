@@ -94,6 +94,9 @@
                             <a href="{{ route('assets.index') }}" class="side-menu__item">Assets</a>
                         </li>
                         <li class="slide">
+                            <a href="{{ route('assets.assign-asset-to-brand') }}" class="side-menu__item">Assign Asset to Brand</a>
+                        </li>
+                        <li class="slide">
                             <a href="{{ route('assets.assigned-assets') }}" class="side-menu__item">Assigned Assets</a>
                         </li>
                         <li class="slide">
