@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Backend\Asset\AssetRequest;
 use App\Models\Asset;
 use App\Models\AssetType;
+use App\Models\AssignAssetToBrand;
 use App\Models\AssignAssetToStore;
+use App\Models\Brand;
 use App\Models\District;
 use App\Models\Division;
 use App\Models\KeyVisual;
@@ -132,6 +134,11 @@ HTML;
         return view('backend.asset-management.assets', [
             'assetTypes' => AssetType::orderBy('name')->get(['id', 'name', 'need_asset_image', 'need_asset_planogram', 'has_asset_self', 'is_digital', 'total_self', 'has_kv_space', 'total_kv_slot']),
             'stores'     => Store::orderBy('title')->get(['id', 'title', 'code']),
+            'brands' => Brand::query()
+                ->where('status', 1)
+                ->whereNull('deleted_at')
+                ->orderBy('name')
+                ->get(['id', 'name', 'code']),
             'keyVisuals' => KeyVisual::with(['brands:id,name,code', 'categories:id,name,code'])
                 ->where('status', 1)
                 ->whereNull('deleted_at')

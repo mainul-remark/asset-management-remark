@@ -183,6 +183,24 @@ class AssignAssetToBrandController extends Controller
         ]);
     }
 
+    public function assignmentsByAsset(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'asset_id' => ['required', 'exists:assets,id'],
+        ]);
+
+        $assignments = AssignAssetToBrand::query()
+            ->where('asset_id', $validated['asset_id'])
+            ->whereNull('deleted_at')
+            ->with(AssignAssetToBrand::detailRelations())
+            ->latest('id')
+            ->get();
+
+        return response()->json([
+            'data' => $assignments->map(fn (AssignAssetToBrand $a) => $this->transformAssignment($a))->values(),
+        ]);
+    }
+
     public function show(AssignAssetToBrand $assignAssetToBrand): JsonResponse
     {
         $assignAssetToBrand->loadMissing(AssignAssetToBrand::detailRelations());

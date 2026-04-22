@@ -728,22 +728,179 @@
     </div>
 
 
+    {{-- ── Manage Asset Brand Modal ────────────────────────────────────────── --}}
     <div class="modal fade" id="manageAssetBrandModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-sm modal-dialog-centered">
-            <div class="modal-content text-center">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
                 <div class="modal-header">
                     <div>
                         <h1 class="modal-title fs-5 mb-1">Manage Asset Brands</h1>
-                        <p class="text-muted fs-12 mb-0">Review, add, edit, and remove Brands for the selected asset.</p>
+                        <p class="text-muted fs-12 mb-0">Review, add, edit, and remove brand assignments for the selected asset.</p>
                     </div>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body p-4 pb-2">
+                <div class="modal-body">
 
+                    {{-- Loading --}}
+                    <div id="asset-brand-loading" class="text-center py-5">
+                        <div class="spinner-border text-primary mb-3" role="status"></div>
+                        <div class="fw-medium">Loading brand assignment data...</div>
+                    </div>
+
+                    <div id="asset-brand-content" class="d-none">
+
+                        {{-- Summary --}}
+                        <div class="asset-brand-summary mb-3">
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <div class="asset-kv-summary-item">
+                                        <span class="asset-kv-summary-label">Asset</span>
+                                        <div class="asset-kv-summary-value" id="asset-brand-name">-</div>
+                                        <div class="asset-kv-summary-meta" id="asset-brand-code">-</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="asset-kv-summary-item">
+                                        <span class="asset-kv-summary-label">Category</span>
+                                        <div class="asset-kv-summary-value" id="asset-brand-type">-</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="asset-kv-summary-item">
+                                        <span class="asset-kv-summary-label">Store</span>
+                                        <div class="asset-kv-summary-value" id="asset-brand-store">-</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="asset-kv-summary-item">
+                                        <span class="asset-kv-summary-label">Assigned Brands</span>
+                                        <div class="asset-kv-summary-value" id="asset-brand-count">0</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Add / Edit Form --}}
+                        <div class="card custom-card shadow-none border d-none" id="asset-brand-form-card">
+                            <div class="card-header">
+                                <div class="card-title mb-0" id="asset-brand-form-title">Add Brand Assignment</div>
+                                <p class="text-muted fs-12 mb-0">Fill in the details below to assign a brand to this asset.</p>
+                            </div>
+                            <div class="card-body">
+                                <form id="assetBrandForm">
+                                    <input type="hidden" id="asset_brand_assignment_id" value="">
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <label for="asset_brand_brand_id" class="form-label">Brand <span class="text-danger">*</span> <span class="text-muted fw-normal ms-1 fs-12" id="asset-brand-multi-hint">(select one or more)</span></label>
+                                            <select class="form-select select-ele" id="asset_brand_brand_id" name="brand_ids[]" multiple>
+                                                @foreach($brands as $brand)
+                                                    <option value="{{ $brand->id }}">{{ $brand->name }}{{ $brand->code ? ' ('.$brand->code.')' : '' }}</option>
+                                                @endforeach
+                                            </select>
+                                            <div class="invalid-feedback d-block" id="error-asset_brand_brand_id"></div>
+                                        </div>
+                                        <div class="col-md-3 d-none" id="asset-brand-charge-wrap">
+                                            <label for="asset_brand_asset_charge" class="form-label">Asset Charge</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">৳</span>
+                                                <input type="number" step="0.01" min="0" class="form-control" id="asset_brand_asset_charge" name="asset_charge" placeholder="0.00">
+                                            </div>
+                                            <div class="invalid-feedback d-block" id="error-asset_brand_asset_charge"></div>
+                                        </div>
+                                        <div class="col-md-3 d-none" id="asset-brand-close-date-wrap">
+                                            <label for="asset_brand_close_date" class="form-label">Close Date</label>
+                                            <input type="date" class="form-control" id="asset_brand_close_date" name="close_date">
+                                            <div class="invalid-feedback" id="error-asset_brand_close_date"></div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label">Status <span class="text-danger">*</span></label>
+                                            <div class="asset-brand-status-wrap">
+                                                <div class="form-check form-check-inline">
+                                                    <input class="form-check-input" type="radio" name="asset_brand_status" id="asset_brand_status_active" value="1" checked>
+                                                    <label class="form-check-label" for="asset_brand_status_active">Active</label>
+                                                </div>
+                                                <div class="form-check form-check-inline">
+                                                    <input class="form-check-input" type="radio" name="asset_brand_status" id="asset_brand_status_inactive" value="0">
+                                                    <label class="form-check-label" for="asset_brand_status_inactive">Inactive</label>
+                                                </div>
+                                            </div>
+                                            <div class="invalid-feedback d-block" id="error-asset_brand_status"></div>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="card-footer d-flex justify-content-end gap-2 flex-wrap">
+                                <button type="button" class="btn btn-light d-none" id="btn-asset-brand-cancel-edit">Cancel Edit</button>
+                                <button type="submit" form="assetBrandForm" class="btn btn-primary" id="btn-save-asset-brand">
+                                    <span class="btn-text"><i class="ri-save-line me-1"></i>Save Assignment</span>
+                                    <span class="spinner-border spinner-border-sm d-none"></span>
+                                </button>
+                            </div>
+                        </div>
+
+                        {{-- Assignments Table --}}
+                        <div class="card custom-card shadow-none border mb-3">
+                            <div class="card-header d-flex justify-content-between align-items-center gap-2 flex-wrap">
+                                <div>
+                                    <div class="card-title mb-0">Assigned Brands</div>
+                                    <p class="text-muted fs-12 mb-0" id="asset-brand-assignment-count">0 assignment(s)</p>
+                                </div>
+                                <button type="button" class="btn btn-sm btn-primary btn-wave" id="btn-asset-brand-add">
+                                    <i class="ri-add-line me-1"></i> Add Assignment
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-bordered align-middle mb-0" id="asset-brand-table">
+                                        <thead>
+                                            <tr>
+                                                <th width="50">#</th>
+                                                <th>Brand</th>
+                                                <th width="120" class="d-none">Charge</th>
+                                                <th width="130" class="d-none">Close Date</th>
+                                                <th width="100">Status</th>
+                                                <th width="100">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="asset-brand-tbody"></tbody>
+                                    </table>
+                                </div>
+                                <div class="text-center text-muted py-4 d-none" id="asset-brand-empty-state">
+                                    <i class="ri-store-3-line fs-2 d-block mb-2"></i>
+                                    No brands are assigned to this asset yet.
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- ── Asset Brand Delete Modal ─────────────────────────────────────────── --}}
+    <div class="modal fade" id="assetBrandDeleteModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-sm modal-dialog-centered">
+            <div class="modal-content text-center">
+                <div class="modal-body p-4 pb-2">
+                    <div class="mb-3">
+                        <span class="avatar avatar-lg bg-danger-transparent rounded-circle">
+                            <i class="ri-delete-bin-line text-danger fs-24"></i>
+                        </span>
+                    </div>
+                    <h6 class="fw-semibold mb-1">Remove Brand Assignment?</h6>
+                    <p class="text-muted fs-13 mb-0" id="asset-brand-delete-message">This action cannot be undone.</p>
+                    <input type="hidden" id="asset-brand-delete-id" value="">
                 </div>
                 <div class="modal-footer justify-content-center border-0 pb-4">
-                    <button type="button" class="btn btn-sm btn-light px-4" data-bs-dismiss="modal">Close</button>
-
+                    <button type="button" class="btn btn-sm btn-light px-4" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-sm btn-danger px-4" id="btn-confirm-asset-brand-delete">
+                        <span class="btn-text">Delete</span>
+                        <span class="spinner-border spinner-border-sm d-none"></span>
+                    </button>
                 </div>
             </div>
         </div>
@@ -859,12 +1016,43 @@
         font-size: 0.85rem;
     }
 </style>
+
+<style>
+    /* ── Manage Asset Brand Assign ── */
+    .asset-brand-summary {
+        border: 1px solid var(--default-border);
+        border-radius: 8px;
+        padding: 1rem;
+        background: var(--light);
+    }
+    .asset-brand-status-wrap {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 0.75rem;
+        border: 1px solid var(--default-border);
+        border-radius: 8px;
+        min-height: 38px;
+    }
+    #asset-brand-table td, #asset-brand-table th { vertical-align: middle; }
+    .asset-brand-cell .primary-line { font-weight: 600; color: var(--default-text-color); }
+    .asset-brand-cell .secondary-line { margin-top: 2px; font-size: 0.75rem; color: var(--text-muted); }
+</style>
 @endpush
 
 @push('scripts')
     @include('backend.includes.plugins.datatable')
     @include('backend.includes.plugins.select2')
     <script>
+        const apiUrl = id => base_url + 'assets' + (id ? '/' + id : '');
+        function showToast(message, type) {
+            $(`<div class="toast align-items-center text-bg-${type} border-0 show position-fixed top-0 end-0 m-3" style="z-index:9999" role="alert">
+                <div class="d-flex">
+                    <div class="toast-body">${message}</div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                </div>
+            </div>`).appendTo('body').delay(3000).queue(function () { $(this).remove(); });
+        }
     $(document).ready(function () {
 
         // ── Bootstrap modals & AJAX setup ─────────────────────────────────────
@@ -873,7 +1061,7 @@
         const deleteModalEl = new bootstrap.Modal(document.getElementById('deleteModal'));
         $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
 
-        const apiUrl = id => base_url + 'assets' + (id ? '/' + id : '');
+
         const assetCategoryModal = new bootstrap.Modal(document.getElementById('addAssetCategoryModal'));
         const assetCategoryApiUrl = id => base_url + 'asset-types' + (id ? '/' + id : '');
 
@@ -929,15 +1117,6 @@
             $btn.prop('disabled', loading);
             if (loadingText) $btn.find('.btn-text').text(loadingText);
             $btn.find('.spinner-border').toggleClass('d-none', !loading);
-        }
-
-        function showToast(message, type) {
-            $(`<div class="toast align-items-center text-bg-${type} border-0 show position-fixed top-0 end-0 m-3" style="z-index:9999" role="alert">
-                <div class="d-flex">
-                    <div class="toast-body">${message}</div>
-                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-                </div>
-            </div>`).appendTo('body').delay(3000).queue(function () { $(this).remove(); });
         }
 
         function clearErrors() {
@@ -2044,9 +2223,315 @@
 
     // ── Manage Asset brand assign script ──────────────────────────────────────
     <script>
+        const manageAssetBrandModal = new bootstrap.Modal(document.getElementById('manageAssetBrandModal'));
+        const assetBrandDeleteModal = new bootstrap.Modal(document.getElementById('assetBrandDeleteModal'));
+
+        const assetBrandApiUrl = id => base_url + 'asset/assign-asset-to-brand' + (id ? '/' + id : '');
+        const assetBrandByAssetUrl = base_url + 'asset/assign-asset-to-brand/by-asset/list';
+
+        const assetBrandState = {
+            assetId: '',
+            asset: null,
+            assignments: [],
+            editingAssignmentId: '',
+            formVisible: false,
+        };
+
+        function setAssetBrandLoading(loading) {
+            $('#asset-brand-loading').toggleClass('d-none', !loading);
+            $('#asset-brand-content').toggleClass('d-none', loading);
+        }
+
+        function setAssetBrandSaveLoading(loading) {
+            const $btn = $('#btn-save-asset-brand');
+            $btn.prop('disabled', loading);
+            $btn.find('.spinner-border').toggleClass('d-none', !loading);
+        }
+
+        function setAssetBrandDeleteLoading(loading) {
+            const $btn = $('#btn-confirm-asset-brand-delete');
+            $btn.prop('disabled', loading);
+            $btn.find('.spinner-border').toggleClass('d-none', !loading);
+        }
+
+        function clearAssetBrandErrors() {
+            $('#assetBrandForm .is-invalid').removeClass('is-invalid');
+            $('#assetBrandForm .invalid-feedback').text('');
+        }
+
+        function applyAssetBrandValidationErrors(errors) {
+            const fieldMap = {
+                brand_id:    '#asset_brand_brand_id',
+                asset_charge:'#asset_brand_asset_charge',
+                close_date:  '#asset_brand_close_date',
+                status:      '#error-asset_brand_status',
+                brand_ids:   '#error-asset_brand_brand_id',
+            };
+            Object.entries(errors || {}).forEach(([field, messages]) => {
+                if (field === 'brand_id' || field === 'brand_ids') {
+                    $('#asset_brand_brand_id').addClass('is-invalid');
+                    $('#error-asset_brand_brand_id').text(messages[0] || '');
+                } else if (fieldMap[field]) {
+                    $(fieldMap[field]).addClass('is-invalid').text(messages[0] || '');
+                }
+            });
+        }
+
+        function updateAssetBrandFormActionState() {
+            const isEditing = !!assetBrandState.editingAssignmentId;
+            $('#asset-brand-form-title').text(isEditing ? 'Edit Brand Assignment' : 'Add Brand Assignment');
+            $('#btn-asset-brand-cancel-edit').toggleClass('d-none', !isEditing);
+            $('#btn-save-asset-brand .btn-text').html(
+                isEditing
+                    ? '<i class="ri-save-line me-1"></i>Update Assignment'
+                    : '<i class="ri-save-line me-1"></i>Save Assignment'
+            );
+            // On create, use brand_ids (multi); on edit, use brand_id (single) — handled at submit
+        }
+
+        function setAssetBrandFormVisibility(visible) {
+            assetBrandState.formVisible = visible;
+            $('#asset-brand-form-card').toggleClass('d-none', !visible);
+        }
+
+        function resetAssetBrandForm() {
+            document.getElementById('assetBrandForm').reset();
+            $('#asset_brand_assignment_id').val('');
+            $('#asset_brand_brand_id').val(null).trigger('change.select2');
+            $('#asset_brand_status_active').prop('checked', true);
+            $('#asset-brand-multi-hint').removeClass('d-none');
+            assetBrandState.editingAssignmentId = '';
+            clearAssetBrandErrors();
+            updateAssetBrandFormActionState();
+            setAssetBrandFormVisibility(false);
+        }
+
+        function renderAssetBrandSummary() {
+            const asset = assetBrandState.asset;
+            if (!asset) return;
+            const isCommon = parseInt(asset.is_common_asset, 10) === 1;
+            $('#asset-brand-name').text(asset.name || '—');
+            $('#asset-brand-code').text(asset.asset_code || '—');
+            $('#asset-brand-type').text(asset.asset_type?.name || '—');
+            $('#asset-brand-store').text(isCommon ? 'Common Asset' : (asset.store?.title || 'No Store'));
+            const count = assetBrandState.assignments.length;
+            $('#asset-brand-count').text(count);
+            $('#asset-brand-assignment-count').text(count + ' assignment(s)');
+        }
+
+        function renderAssetBrandAssignments() {
+            const $tbody = $('#asset-brand-tbody');
+            $tbody.empty();
+            const assignments = assetBrandState.assignments;
+
+            if (!assignments.length) {
+                $('#asset-brand-table').addClass('d-none');
+                $('#asset-brand-empty-state').removeClass('d-none');
+                return;
+            }
+
+            $('#asset-brand-table').removeClass('d-none');
+            $('#asset-brand-empty-state').addClass('d-none');
+
+            assignments.forEach((assignment, index) => {
+                const brand = assignment.brand || {};
+                const statusBadge = parseInt(assignment.status, 10) === 1
+                    ? '<span class="badge bg-success-transparent">Active</span>'
+                    : '<span class="badge bg-danger-transparent">Inactive</span>';
+                const charge = assignment.asset_charge !== null && assignment.asset_charge !== undefined
+                    ? '৳ ' + Number(assignment.asset_charge).toFixed(2)
+                    : '—';
+                const closeDate = assignment.close_date ? formatShortDate(assignment.close_date) : '—';
+
+                $tbody.append(`
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>
+                            <div class="asset-brand-cell">
+                                <div class="primary-line">${escapeHtml(brand.name || '—')}</div>
+                                <div class="secondary-line">${escapeHtml(brand.code || '—')}</div>
+                            </div>
+                        </td>
+                        <td class="d-none">${charge}</td>
+                        <td class="d-none">${closeDate}</td>
+                        <td>${statusBadge}</td>
+                        <td>
+                            <div class="btn-list">
+                                <button type="button" class="btn btn-icon btn-sm btn-primary-light btn-wave btn-edit-asset-brand" data-id="${assignment.id}" title="Edit">
+                                    <i class="ri-edit-box-line"></i>
+                                </button>
+                                <button type="button" class="btn btn-icon btn-sm btn-danger-light btn-wave btn-delete-asset-brand" data-id="${assignment.id}" title="Delete">
+                                    <i class="ri-delete-bin-line"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `);
+            });
+        }
+
+        function loadAssetBrandAssignments() {
+            if (!assetBrandState.assetId) return $.Deferred().resolve().promise();
+            return $.get(assetBrandByAssetUrl, { asset_id: assetBrandState.assetId })
+                .done(response => {
+                    assetBrandState.assignments = Array.isArray(response.data) ? response.data : [];
+                    renderAssetBrandAssignments();
+                    renderAssetBrandSummary();
+                })
+                .fail(xhr => {
+                    showToast(xhr.responseJSON?.message || 'Failed to load brand assignments.', 'danger');
+                });
+        }
+
+        function openAssetBrandModal(assetId) {
+            assetBrandState.assetId = String(assetId || '');
+            assetBrandState.asset = null;
+            assetBrandState.assignments = [];
+            assetBrandState.editingAssignmentId = '';
+            assetBrandState.formVisible = false;
+
+            resetAssetBrandForm();
+            setAssetBrandLoading(true);
+            manageAssetBrandModal.show();
+
+            $.when(
+                $.get(apiUrl(assetId)),
+                $.get(assetBrandByAssetUrl, { asset_id: assetId })
+            ).done((assetResp, assignResp) => {
+                assetBrandState.asset = assetResp[0];
+                assetBrandState.assignments = Array.isArray(assignResp[0].data) ? assignResp[0].data : [];
+                setAssetBrandLoading(false);
+                renderAssetBrandAssignments();
+                renderAssetBrandSummary();
+            }).fail(xhr => {
+                setAssetBrandLoading(false);
+                showToast(xhr.responseJSON?.message || 'Failed to load asset data.', 'danger');
+            });
+        }
+
         $(document).on('click', '.open-brand-assign-form', function () {
-            var assetId = $(this).data('id');
-            $('#manageAssetBrandModal').modal('show');
-        })
+            openAssetBrandModal($(this).data('id'));
+        });
+
+        $('#btn-asset-brand-add').on('click', function () {
+            resetAssetBrandForm();
+            setAssetBrandFormVisibility(true);
+        });
+
+        $('#btn-asset-brand-cancel-edit').on('click', function () {
+            resetAssetBrandForm();
+        });
+
+        $('#manageAssetBrandModal').on('hidden.bs.modal', function () {
+            resetAssetBrandForm();
+        });
+
+        $(document).on('click', '.btn-edit-asset-brand', function () {
+            const id = $(this).data('id');
+            const assignment = assetBrandState.assignments.find(a => String(a.id) === String(id));
+            if (!assignment) return;
+
+            assetBrandState.editingAssignmentId = String(assignment.id);
+            $('#asset_brand_assignment_id').val(String(assignment.id));
+            $('#asset_brand_brand_id').val([String(assignment.brand_id)]).trigger('change.select2');
+            $('#asset-brand-multi-hint').addClass('d-none');
+            $('#asset_brand_asset_charge').val(assignment.asset_charge !== null ? Number(assignment.asset_charge).toFixed(2) : '');
+            $('#asset_brand_close_date').val(assignment.close_date || '');
+            if (parseInt(assignment.status, 10) === 1) {
+                $('#asset_brand_status_active').prop('checked', true);
+            } else {
+                $('#asset_brand_status_inactive').prop('checked', true);
+            }
+            clearAssetBrandErrors();
+            updateAssetBrandFormActionState();
+            setAssetBrandFormVisibility(true);
+        });
+
+        $(document).on('click', '.btn-delete-asset-brand', function () {
+            const id = $(this).data('id');
+            const assignment = assetBrandState.assignments.find(a => String(a.id) === String(id));
+            const brandName = assignment?.brand?.name || 'this brand';
+            $('#asset-brand-delete-id').val(id);
+            $('#asset-brand-delete-message').text('Remove ' + brandName + ' from ' + (assetBrandState.asset?.name || 'this asset') + '?');
+            assetBrandDeleteModal.show();
+        });
+
+        $('#assetBrandForm').on('submit', function (e) {
+            e.preventDefault();
+            clearAssetBrandErrors();
+
+            const assignmentId = $('#asset_brand_assignment_id').val();
+            const isEditing = !!assignmentId;
+            const status = $('input[name="asset_brand_status"]:checked').val() ?? '1';
+            const assetCharge = $('#asset_brand_asset_charge').val();
+            const closeDate = $('#asset_brand_close_date').val();
+
+            const payload = {
+                asset_id: assetBrandState.assetId,
+                status: status,
+            };
+
+            if (assetCharge !== '') payload.asset_charge = assetCharge;
+            if (closeDate !== '') payload.close_date = closeDate;
+
+            if (isEditing) {
+                payload.brand_id = $('#asset_brand_brand_id').val()?.[0] || '';
+            } else {
+                payload['brand_ids[]'] = $('#asset_brand_brand_id').val() || [];
+            }
+
+            setAssetBrandSaveLoading(true);
+
+            $.ajax({
+                url: assetBrandApiUrl(assignmentId || null),
+                type: isEditing ? 'PUT' : 'POST',
+                data: payload,
+                success: response => {
+                    if (response.success === false) {
+                        showToast(response.message || 'Failed to save assignment.', 'danger');
+                        return;
+                    }
+                    resetAssetBrandForm();
+                    loadAssetBrandAssignments();
+                    showToast(response.message || 'Brand assignment saved.', 'success');
+                },
+                error: xhr => {
+                    if (xhr.status === 422) {
+                        applyAssetBrandValidationErrors(xhr.responseJSON?.errors || {});
+                    }
+                    showToast(xhr.responseJSON?.message || 'Failed to save assignment.', 'danger');
+                },
+                complete: () => {
+                    setAssetBrandSaveLoading(false);
+                    updateAssetBrandFormActionState();
+                }
+            });
+        });
+
+        $('#btn-confirm-asset-brand-delete').on('click', function () {
+            const assignmentId = $('#asset-brand-delete-id').val();
+            if (!assignmentId) return;
+            setAssetBrandDeleteLoading(true);
+            $.ajax({
+                url: assetBrandApiUrl(assignmentId),
+                type: 'DELETE',
+                success: response => {
+                    if (response.success === false) {
+                        showToast(response.message || 'Failed to delete assignment.', 'danger');
+                        return;
+                    }
+                    if (String(assetBrandState.editingAssignmentId) === String(assignmentId)) {
+                        resetAssetBrandForm();
+                    }
+                    assetBrandDeleteModal.hide();
+                    loadAssetBrandAssignments();
+                    showToast(response.message || 'Brand assignment deleted.', 'success');
+                },
+                error: xhr => {
+                    showToast(xhr.responseJSON?.message || 'Failed to delete assignment.', 'danger');
+                },
+                complete: () => setAssetBrandDeleteLoading(false)
+            });
+        });
     </script>
 @endpush

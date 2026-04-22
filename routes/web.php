@@ -80,6 +80,7 @@ Route::middleware([
         Route::post('/assign-asset-to-brand', [AssignAssetToBrandController::class, 'store'])->name('assets.assign-asset-to-brand.store');
         Route::get('/assign-asset-to-brand/assets', [AssignAssetToBrandController::class, 'assetOptions'])->name('assets.assign-asset-to-brand.assets');
         Route::get('/assign-asset-to-brand/filter', [AssignAssetToBrandController::class, 'filter'])->name('assets.assign-asset-to-brand.filter');
+        Route::get('/assign-asset-to-brand/by-asset/list', [AssignAssetToBrandController::class, 'assignmentsByAsset'])->name('assets.assign-asset-to-brand.by-asset');
         Route::get('/assign-asset-to-brand/{assignAssetToBrand}', [AssignAssetToBrandController::class, 'show'])->name('assets.assign-asset-to-brand.show');
         Route::get('/assign-asset-to-brand/{assignAssetToBrand}/edit', [AssignAssetToBrandController::class, 'edit'])->name('assets.assign-asset-to-brand.edit');
         Route::put('/assign-asset-to-brand/{assignAssetToBrand}', [AssignAssetToBrandController::class, 'update'])->name('assets.assign-asset-to-brand.update');
