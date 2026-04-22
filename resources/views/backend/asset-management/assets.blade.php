@@ -727,6 +727,28 @@
         </div>
     </div>
 
+
+    <div class="modal fade" id="manageAssetBrandModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-sm modal-dialog-centered">
+            <div class="modal-content text-center">
+                <div class="modal-header">
+                    <div>
+                        <h1 class="modal-title fs-5 mb-1">Manage Asset Brands</h1>
+                        <p class="text-muted fs-12 mb-0">Review, add, edit, and remove Brands for the selected asset.</p>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4 pb-2">
+
+                </div>
+                <div class="modal-footer justify-content-center border-0 pb-4">
+                    <button type="button" class="btn btn-sm btn-light px-4" data-bs-dismiss="modal">Close</button>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
 @endsection
 
 @push('styles')
@@ -2017,6 +2039,14 @@
             var legacyAssetId = $(this).data('id');
 
             return legacyAssetId;
+        })
+    </script>
+
+    // ── Manage Asset brand assign script ──────────────────────────────────────
+    <script>
+        $(document).on('click', '.open-brand-assign-form', function () {
+            var assetId = $(this).data('id');
+            $('#manageAssetBrandModal').modal('show');
         })
     </script>
 @endpush

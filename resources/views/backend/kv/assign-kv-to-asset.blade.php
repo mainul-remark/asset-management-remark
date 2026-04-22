@@ -734,15 +734,19 @@
         }
 
         function refreshModalKeyVisuals(selectedKeyVisualId = '', selectedFileId = '') {
-            const shouldAutoSelectFirstKeyVisual = !selectedKeyVisualId && !!($('#modal-brand').val() || $('#modal-category').val());
+            const hasAsset = !!$('#modal-asset').val();
+            const shouldAutoSelectFirstKeyVisual = !selectedKeyVisualId && hasAsset && !!($('#modal-brand').val() || $('#modal-category').val());
 
             populateKeyVisualOptions($('#modal-key-visual'), {
                 brandId: $('#modal-brand').val(),
                 categoryId: $('#modal-category').val(),
                 selectedId: selectedKeyVisualId,
-                placeholder: 'Select Key Visual',
+                placeholder: hasAsset ? 'Select Key Visual' : 'Select Asset First',
                 autoSelectFirst: shouldAutoSelectFirstKeyVisual
             }, false);
+
+            $('#modal-key-visual').prop('disabled', !hasAsset).trigger('change.select2');
+
             populateKeyVisualFileOptions($('#modal-key-visual-file'), $('#modal-key-visual').val(), selectedFileId, 'Select KV File', true);
             populateKeyVisualSizeOptions($('#modal-key-visual-size'), $('#modal-key-visual-file').val(), 'Select KV File First');
             syncModalKeyVisualDependencyVisibility();
@@ -947,7 +951,7 @@
         });
 
         $('#modal-asset').on('change', function () {
-            refreshModalKeyVisuals();
+            refreshModalKeyVisuals($('#modal-key-visual').val());
         });
 
         $('#modal-key-visual').on('change', function () {
