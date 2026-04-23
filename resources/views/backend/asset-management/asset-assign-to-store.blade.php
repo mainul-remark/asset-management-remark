@@ -87,9 +87,6 @@
                                     <th>Store</th>
                                     <th width="60">#</th>
                                     <th>Asset</th>
-                                    <th>Category</th>
-                                    <th>Assign Date</th>
-                                    <th>Assigned By</th>
                                 </tr>
                                 </thead>
                                 <tbody></tbody>
@@ -442,9 +439,6 @@
                 { data: 'store_summary', name: 'stores.title' },
                 { data: null, name: 'group_item_index', searchable: false, orderable: false, defaultContent: '' },
                 { data: 'asset_display', name: 'assets.name' },
-                { data: 'category_display', name: 'asset_types.name' },
-                { data: 'assign_date_display', name: 'assign_asset_to_stores.assign_date', className: 'text-nowrap' },
-                { data: 'assigned_by_display', name: 'users.name' }
             ],
             drawCallback: function () {
                 const api = this.api();

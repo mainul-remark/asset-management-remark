@@ -298,10 +298,13 @@ HTML;
             ->addColumn('asset_display', function ($row) {
                 $name = e($row->asset_name ?? '-');
                 $code = filled($row->asset_code)
-                    ? '<small class="asset-code">' . e($row->asset_code) . '</small>'
+                    ? '<small class="asset-code d-block">' . e($row->asset_code) . '</small>'
+                    : '';
+                $category = filled($row->asset_type_name)
+                    ? '<small class="asset-code d-block">' . e($row->asset_type_name) . '</small>'
                     : '';
 
-                return '<div class="asset-name">' . $name . '</div>' . $code;
+                return '<div class="asset-name">' . $name . '</div>' . $code . $category;
             })
             ->addColumn('category_display', fn ($row) => e($row->asset_type_name ?? '-'))
             ->addColumn('assign_date_display', function ($row) {
