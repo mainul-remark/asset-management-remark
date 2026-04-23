@@ -324,7 +324,7 @@
                                 </div>
                                 <div class="kv-list-col">
                                     <small class="kv-list-col-label">Specification</small>
-                                    <div class="kv-list-col-value">{{ $keyVisual->assetType?->name ?? 'No asset type' }}</div>
+                                    <div class="kv-list-col-value">{{ $keyVisual->assetType?->name ?? 'No asset Category' }}</div>
                                     @if($keyVisual->minimum_res_width || $keyVisual->minimum_res_height)
                                         <div class="text-muted fs-11 font-monospace mt-1">{{ $keyVisual->minimum_res_width ?? 0 }} x {{ $keyVisual->minimum_res_height ?? 0 }} px</div>
                                     @endif
@@ -374,9 +374,7 @@
 
 @section('modal')
 
-{{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-     MAIN KEY VISUAL FORM MODAL
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
+{{--      MAIN KEY VISUAL FORM MODAL --}}
 <div class="modal fade" id="keyVisualModal" tabindex="-1" aria-labelledby="keyVisualModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <div class="modal-content kv-modal-content">
@@ -406,7 +404,7 @@
                             <div class="invalid-feedback" id="error-name"></div>
                         </div>
                         <div class="col-md-4">
-                            <label for="asset_type_id" class="form-label fw-medium">Asset Type <span class="text-danger">*</span></label>
+                            <label for="asset_type_id" class="form-label fw-medium">Asset Category <span class="text-danger">*</span></label>
                             <select class="form-select" id="asset_type_id" name="asset_type_id">
                                 <option value="">  Select  </option>
                                 @foreach($assetTypes as $assetType)
@@ -617,7 +615,7 @@
                         <table class="table table-sm table-bordered mb-0">
                             <tr><th width="38%">Name</th><td id="view-name"></td></tr>
                             <tr><th>Unique Code</th><td id="view-unique-code"></td></tr>
-                            <tr><th>Asset Type</th><td id="view-asset-type"></td></tr>
+                            <tr><th>Asset Category</th><td id="view-asset-type"></td></tr>
                             <tr><th>KV Type</th><td id="view-kv-type"></td></tr>
                             <tr><th>Min Resolution</th><td id="view-resolution"></td></tr>
                             <tr><th>Sample File</th><td id="view-sample-file"></td></tr>
@@ -1206,7 +1204,7 @@
 @include('backend.includes.plugins.select2')
 <script>
 $(function () {
-    // â”€â”€ CONSTANTS
+    // CONSTANTS
     const BASE          = base_url;
     const apiUrl        = (id) => BASE + 'key-visuals' + (id ? '/' + id : '');
     const NEXT_CODE_URL = @json(route('key-visuals.next-unique-code'));
@@ -1215,7 +1213,7 @@ $(function () {
     const brandEditUrl  = (id) => `${BRAND_URL}/${id}/edit`;
     const catEditUrl    = (id) => `${CAT_URL}/${id}/edit`;
 
-    // â”€â”€ MODAL INSTANCES
+    // MODAL INSTANCES
     const kvModal      = new bootstrap.Modal('#keyVisualModal');
     const viewModalEl  = new bootstrap.Modal('#viewModal');
     const deleteModal  = new bootstrap.Modal('#deleteModal');
@@ -1223,12 +1221,12 @@ $(function () {
     const catModal     = new bootstrap.Modal('#categoryModal');
     let restoreKvModal = false;
 
-    // â”€â”€ UNIQUE CODE REQUEST HANDLE
+    // UNIQUE CODE REQUEST HANDLE
     let codeRequest = null;
     let cardStatusFilter = 'all';
     let currentView = 'grid';
 
-    // â”€â”€ FILE UPLOAD MODES
+    // FILE UPLOAD MODES
     const FILE_MODES = {
         image: {
             acceptedFileTypes: ['image/jpeg', 'image/png', 'image/webp'],
@@ -1370,7 +1368,7 @@ $(function () {
             setError('#name', '#error-name', 'Key visual name is required.'); ok = false;
         }
         if (!$('#asset_type_id').val()) {
-            setError('#asset_type_id', '#error-asset_type_id', 'Please select an asset type.'); ok = false;
+            setError('#asset_type_id', '#error-asset_type_id', 'Please select an asset Category.'); ok = false;
         }
         if (!id) {
             if (!$('#brand_ids').val()) {
@@ -2027,7 +2025,7 @@ $(function () {
                                 <tr><td class="kv-detail-label">KV ID:</td><td><span class="kv-card-id">${data.unique_code || '\u2014'}</span></td></tr>
                                 <tr><td class="kv-detail-label">Status:</td><td>${statusBadge}</td></tr>
                                 <tr><td class="kv-detail-label">Title:</td><td class="fw-semibold">${data.name || '\u2014'}</td></tr>
-                                <tr><td class="kv-detail-label">Asset Type:</td><td>${data.asset_type?.name ?? '\u2014'}</td></tr>
+                                <tr><td class="kv-detail-label">Asset Category:</td><td>${data.asset_type?.name ?? '\u2014'}</td></tr>
                             </table>
                         </div>
                         <div class="col-12 col-md-6">

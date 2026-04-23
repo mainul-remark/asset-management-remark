@@ -134,7 +134,16 @@ class AssignAssetToBrand extends Model
             ->unique()
             ->values();
 
-        return $brandIds->map(function (int $brandId) use ($request, $data, $assignedByUserId) {
+        $existingBrandIds = static::query()
+            ->where('asset_id', (int) $data['asset_id'])
+            ->whereNull('deleted_at')
+            ->pluck('brand_id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
+
+        $newBrandIds = $brandIds->reject(fn (int $brandId) => in_array($brandId, $existingBrandIds, true));
+
+        return $newBrandIds->map(function (int $brandId) use ($request, $data, $assignedByUserId) {
             $payload = static::buildPayload($request, $data, $brandId, $assignedByUserId);
 
             return static::create($payload)->load(static::detailRelations());

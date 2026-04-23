@@ -8,12 +8,15 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Support\Facades\File;
 use Mainul\CustomHelperFunctions\Helpers\CustomHelper;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class KeyVisual extends Model
 {
     use HasFactory;
     use Searchable;
     use SoftDeletes;
+    use LogsActivity;
 
     protected $fillable = [
         'asset_type_id',
@@ -30,6 +33,13 @@ class KeyVisual extends Model
     protected $searchableFields = ['*'];
 
     protected $table = 'key_visuals';
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        // TODO: Implement getActivitylogOptions() method.
+        return LogOptions::defaults()
+            ->logOnly($this->searchableFields);
+    }
 
     protected static function booted(): void
     {

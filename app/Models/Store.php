@@ -7,12 +7,15 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Mainul\CustomHelperFunctions\Helpers\CustomHelper;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Store extends Model
 {
     use HasFactory;
     use Searchable;
     use SoftDeletes;
+    use LogsActivity;
 
     protected $fillable = [
         'title',
@@ -41,6 +44,13 @@ class Store extends Model
     ];
 
     protected $searchableFields = ['*'];
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        // TODO: Implement getActivitylogOptions() method.
+        return LogOptions::defaults()
+            ->logOnly($this->searchableFields);
+    }
 
     public static function updateOrCreateStore($request, $store = null)
     {

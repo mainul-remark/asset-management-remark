@@ -616,38 +616,6 @@
                             <div class="alert alert-warning d-none mt-3 mb-0 py-2" id="asset-kv-capacity-alert"></div>
                         </div>
 
-                        <div class="card custom-card shadow-none border mb-3">
-                            <div class="card-header d-flex justify-content-between align-items-center gap-2 flex-wrap">
-                                <div>
-                                    <div class="card-title mb-0">Assigned Key Visuals</div>
-                                    <p class="text-muted fs-12 mb-0" id="asset-kv-assignment-count">0 assignment(s)</p>
-                                </div>
-                                <button type="button" class="btn btn-sm btn-primary btn-wave" id="btn-asset-kv-add">
-                                    <i class="ri-add-line me-1"></i> Add Assignment
-                                </button>
-                            </div>
-                            <div class="card-body">
-                                <div class="table-responsive">
-                                    <table class="table table-bordered align-middle mb-0" id="asset-kv-table">
-                                        <thead>
-                                            <tr>
-                                                <th width="50">#</th>
-                                                <th>Key Visual</th>
-                                                <th>KV File</th>
-                                                <th width="140">Assigned</th>
-                                                <th width="100">Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="asset-kv-tbody"></tbody>
-                                    </table>
-                                </div>
-                                <div class="text-center text-muted py-4 d-none" id="asset-kv-empty-state">
-                                    <i class="ri-image-line fs-2 d-block mb-2"></i>
-                                    No key visuals are assigned to this asset yet.
-                                </div>
-                            </div>
-                        </div>
-
                         <div class="card custom-card shadow-none border d-none" id="asset-kv-form-card">
                             <div class="card-header">
                                 <div class="card-title mb-0" id="asset-kv-form-title">Add KV Assignment</div>
@@ -694,6 +662,39 @@
                                 </button>
                             </div>
                         </div>
+
+                        <div class="card custom-card shadow-none border mb-3">
+                            <div class="card-header d-flex justify-content-between align-items-center gap-2 flex-wrap">
+                                <div>
+                                    <div class="card-title mb-0">Assigned Key Visuals</div>
+                                    <p class="text-muted fs-12 mb-0" id="asset-kv-assignment-count">0 assignment(s)</p>
+                                </div>
+                                <button type="button" class="btn btn-sm btn-primary btn-wave" id="btn-asset-kv-add">
+                                    <i class="ri-add-line me-1"></i> Add Assignment
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-bordered align-middle mb-0" id="asset-kv-table">
+                                        <thead>
+                                            <tr>
+                                                <th width="50">#</th>
+                                                <th>Key Visual</th>
+                                                <th>KV File</th>
+                                                <th width="140">Assigned</th>
+                                                <th width="100">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="asset-kv-tbody"></tbody>
+                                    </table>
+                                </div>
+                                <div class="text-center text-muted py-4 d-none" id="asset-kv-empty-state">
+                                    <i class="ri-image-line fs-2 d-block mb-2"></i>
+                                    No key visuals are assigned to this asset yet.
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -1053,6 +1054,20 @@
                 </div>
             </div>`).appendTo('body').delay(3000).queue(function () { $(this).remove(); });
         }
+
+        @php
+            $assetTypeFlagsData = $assetTypes->keyBy('id')->map(fn($t) => [
+                'need_asset_image'     => (int) $t->need_asset_image,
+                'need_asset_planogram' => (int) $t->need_asset_planogram,
+                'has_asset_self'       => (int) $t->has_asset_self,
+                'is_digital'           => (int) $t->is_digital,
+                'total_self'           => (int) $t->total_self,
+                'has_kv_space'         => (int) $t->has_kv_space,
+                'total_kv_slot'        => (int) $t->total_kv_slot,
+            ]);
+        @endphp
+        const assetTypeFlags = {!! json_encode($assetTypeFlagsData) !!};
+
     $(document).ready(function () {
 
         // ── Bootstrap modals & AJAX setup ─────────────────────────────────────
@@ -1185,18 +1200,7 @@
         }
 
         // ── Asset type flags map ───────────────────────────────────────────────
-        @php
-            $assetTypeFlagsData = $assetTypes->keyBy('id')->map(fn($t) => [
-                'need_asset_image'     => (int) $t->need_asset_image,
-                'need_asset_planogram' => (int) $t->need_asset_planogram,
-                'has_asset_self'       => (int) $t->has_asset_self,
-                'is_digital'           => (int) $t->is_digital,
-                'total_self'           => (int) $t->total_self,
-                'has_kv_space'         => (int) $t->has_kv_space,
-                'total_kv_slot'        => (int) $t->total_kv_slot,
-            ]);
-        @endphp
-        const assetTypeFlags = {!! json_encode($assetTypeFlagsData) !!};
+
 
         function upsertAssetTypeOption($select, value, label) {
             const optionValue = String(value ?? '');
@@ -2356,10 +2360,10 @@
                         <td class="d-none">${closeDate}</td>
                         <td>${statusBadge}</td>
                         <td>
-                            <div class="btn-list">
-                                <button type="button" class="btn btn-icon btn-sm btn-primary-light btn-wave btn-edit-asset-brand" data-id="${assignment.id}" title="Edit">
+                            <div class="btn-list text-center">
+                                <!-- <button type="button" class="btn btn-icon btn-sm btn-primary-light btn-wave btn-edit-asset-brand" data-id="${assignment.id}" title="Edit">
                                     <i class="ri-edit-box-line"></i>
-                                </button>
+                                </button> -->
                                 <button type="button" class="btn btn-icon btn-sm btn-danger-light btn-wave btn-delete-asset-brand" data-id="${assignment.id}" title="Delete">
                                     <i class="ri-delete-bin-line"></i>
                                 </button>
@@ -2415,6 +2419,10 @@
 
         $('#btn-asset-brand-add').on('click', function () {
             resetAssetBrandForm();
+            const assignedBrandIds = assetBrandState.assignments.map(a => String(a.brand_id)).filter(Boolean);
+            if (assignedBrandIds.length) {
+                $('#asset_brand_brand_id').val(assignedBrandIds).trigger('change.select2');
+            }
             setAssetBrandFormVisibility(true);
         });
 
@@ -2477,7 +2485,16 @@
             if (isEditing) {
                 payload.brand_id = $('#asset_brand_brand_id').val()?.[0] || '';
             } else {
-                payload['brand_ids[]'] = $('#asset_brand_brand_id').val() || [];
+                const selectedBrandIds = $('#asset_brand_brand_id').val() || [];
+                const assignedBrandIds = assetBrandState.assignments.map(a => String(a.brand_id)).filter(Boolean);
+                const newBrandIds = selectedBrandIds.filter(id => !assignedBrandIds.includes(String(id)));
+
+                if (!newBrandIds.length) {
+                    showToast('All selected brands are already assigned to this asset.', 'warning');
+                    return;
+                }
+
+                payload['brand_ids[]'] = newBrandIds;
             }
 
             setAssetBrandSaveLoading(true);

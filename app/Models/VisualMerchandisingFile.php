@@ -4,21 +4,31 @@ namespace App\Models;
 
 use App\Models\Scopes\Searchable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Support\Facades\File;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class VisualMerchandisingFile extends Model
 {
     use HasFactory;
     use Searchable;
     use SoftDeletes;
+    use LogsActivity;
 
     protected $fillable = ['visual_merchandising_id', 'file_path', 'file_type'];
 
     protected $searchableFields = ['*'];
 
     protected $table = 'visual_merchandising_files';
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['visual_merchandising_id', 'file_path', 'file_type']);
+    }
 
     protected static function booted(): void
     {

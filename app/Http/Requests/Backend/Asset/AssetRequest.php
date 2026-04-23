@@ -14,10 +14,11 @@ class AssetRequest extends FormRequest
 
     public function rules(): array
     {
-        $isUpdate  = $this->isMethod('PUT') || $this->isMethod('PATCH');
-        $assetType = AssetType::find($this->asset_type_id);
+        $isUpdate      = $this->isMethod('PUT') || $this->isMethod('PATCH');
+        $assetTypeId   = is_array($this->asset_type_id) ? ($this->asset_type_id[0] ?? null) : $this->asset_type_id;
+        $assetType     = AssetType::find($assetTypeId);
 
-        $needImage    = $assetType?->need_asset_image    == 1;
+        $needImage     = $assetType?->need_asset_image    == 1;
         $needPlanogram = $assetType?->need_asset_planogram == 1;
 
         return [

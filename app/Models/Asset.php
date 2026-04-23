@@ -54,6 +54,7 @@ class Asset extends Model
     {
         $data = $request->validated();
 
+        $data['asset_type_id']   = is_array($data['asset_type_id'] ?? null) ? ($data['asset_type_id'][0] ?? null) : ($data['asset_type_id'] ?? null);
         $data['has_kv_slot']     = $request->boolean('has_kv_slot') ? 1 : 0;
         $data['is_common_asset'] = $request->boolean('is_common_asset') ? 1 : 0;
         $data['status']          = $request->boolean('status') ? 1 : 0;

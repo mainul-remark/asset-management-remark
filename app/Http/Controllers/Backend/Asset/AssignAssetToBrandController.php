@@ -47,9 +47,11 @@ class AssignAssetToBrandController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => $createdCount === 1
-                    ? 'Asset assigned to 1 brand successfully.'
-                    : "Asset assigned to {$createdCount} brands successfully.",
+                'message' => $createdCount === 0
+                    ? 'All selected brands are already assigned to this asset.'
+                    : ($createdCount === 1
+                        ? 'Asset assigned to 1 brand successfully.'
+                        : "Asset assigned to {$createdCount} brands successfully."),
                 'created_count' => $createdCount,
                 'data' => $assignments
                     ->map(fn (AssignAssetToBrand $assignment) => $this->transformAssignment($assignment))
