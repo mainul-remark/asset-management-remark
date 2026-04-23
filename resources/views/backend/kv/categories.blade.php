@@ -9,7 +9,7 @@
                 <div class="card custom-card">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <div>
-                            <div class="card-title mb-1">Categories Management</div>
+                            <div class="card-title mb-1">KV Categories Management</div>
                             {{-- Breadcrumb Navigation --}}
                             <nav aria-label="breadcrumb">
                                 <ol class="breadcrumb mb-0" style="font-size: 0.8rem;">
@@ -41,7 +41,7 @@
                                 </a>
                             @endif
                             <button type="button" class="btn btn-sm btn-primary btn-wave" id="btn-add-category">
-                                <i class="ri-add-line me-1"></i> Add {{ $parent ? 'Subcategory' : 'Category' }}
+                                <i class="ri-add-line me-1"></i> Add KV {{ $parent ? 'Subcategory' : 'Category' }}
                             </button>
                         </div>
                     </div>
@@ -120,7 +120,7 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h6 class="modal-title" id="categoryModalLabel">Add Category</h6>
+                    <h6 class="modal-title" id="categoryModalLabel">Add KV Category</h6>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <form id="categoryForm" style="display:flex;flex-direction:column;flex:1;overflow:hidden;min-height:0;">
@@ -137,7 +137,7 @@
 {{--                            <div class="invalid-feedback" id="error-category_id"></div>--}}
 {{--                        </div>--}}
                         <div class="mb-3">
-                            <label for="name" class="form-label">Category Name <span class="text-danger">*</span></label>
+                            <label for="name" class="form-label">KV Category Name <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" id="name" name="name" placeholder="Enter category name">
                             <div class="invalid-feedback" id="error-name"></div>
                         </div>

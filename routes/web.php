@@ -195,7 +195,7 @@ Route::get('/optimize-clear', function () {return \Mainul\CustomHelperFunctions\
 //    }
 //});
 Route::get('/has-kv', function (){
-    \App\Models\Asset::whereNotIn('id', [1,2])
-        ->update(['has_kv_slot' => 1]);
-
+//    \App\Models\Asset::whereNotIn('id', [1,2])
+//        ->update(['has_kv_slot' => 1]);
+    return bcrypt('rezaul\'s');
 });
