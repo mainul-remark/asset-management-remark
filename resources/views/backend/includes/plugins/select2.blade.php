@@ -4,9 +4,10 @@
 <script>
     $(function () {
         $('.select-ele').each(function () {
+            const $modal = $(this).closest('.modal');
             $(this).select2({
                 theme: "bootstrap-5",
-                dropdownParent: $(this).parent(),
+                dropdownParent: $modal.length ? $modal : $(this).parent(),
             });
         });
     })

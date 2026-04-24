@@ -11,23 +11,25 @@ class KeyVisualSize extends Model
     use HasFactory;
     use Searchable;
 
-    protected $fillable = [
-        'name',
-        'height',
-        'width',
-        'unit_name',
-        'kv_file',
-        'kv_size',
-        'aspect_ratio',
-        'status',
-    ];
+    protected $fillable = ['name', 'height', 'width', 'unit_name', 'status'];
 
     protected $searchableFields = ['*'];
 
     protected $table = 'key_visual_sizes';
 
-    public function keyVisuals()
+    protected $casts = [
+        'height' => 'decimal:0',
+        'width' => 'decimal:0',
+        'status' => 'integer',
+    ];
+
+    public function keyVisualFiles()
     {
-        return $this->belongsToMany(KeyVisual::class);
+        return $this->hasMany(KeyVisualFiles::class, 'key_visual_size_id');
+    }
+
+    public function allKeyVisualFiles()
+    {
+        return $this->keyVisualFiles();
     }
 }

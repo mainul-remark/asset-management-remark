@@ -8,22 +8,26 @@
             <div class="col-xl-9 col-lg-10 col-md-11 col-sm-12 mx-auto">
                 <div class="card custom-card">
                     <div class="card-header d-flex justify-content-between align-items-center">
-                        <div class="card-title">Asset Type Management</div>
+                        <div class="card-title">Asset Category Management</div>
                         <button type="button" class="btn btn-sm btn-primary btn-wave" id="btn-add-asset-type">
-                            <i class="ri-add-line me-1"></i> Add Asset Type
+                            <i class="ri-add-line me-1"></i> Add Asset Category
                         </button>
                     </div>
+                    @php
+                        $hasImage      = $assetTypes->contains(fn($r) => $r->default_image);
+                        $hasDimensions = $assetTypes->contains(fn($r) => $r->height || $r->width);
+                        $hasProperties = $assetTypes->contains(fn($r) => $r->is_digital || $r->has_kv_space || $r->total_self > 0 || $r->need_asset_image || $r->need_asset_planogram || $r->has_asset_self);
+                    @endphp
                     <div class="card-body">
                         <div class="table-responsive">
                             <table id="data-table" class="table table-bordered text-nowrap w-100">
                                 <thead>
                                     <tr>
                                         <th>#</th>
-                                        <th>Image</th>
+                                        @if($hasImage)<th>Image</th>@endif
                                         <th>Name</th>
-                                        <th>Default Fee</th>
-                                        <th>Dimensions</th>
-                                        <th>Properties</th>
+                                        @if($hasDimensions)<th>Dimensions</th>@endif
+                                        @if($hasProperties)<th>Properties</th>@endif
                                         <th>Status</th>
                                         <th width="110">Actions</th>
                                     </tr>
@@ -32,6 +36,7 @@
                                 @foreach($assetTypes as $assetType)
                                     <tr>
                                         <td>{{ $loop->iteration }}</td>
+                                        @if($hasImage)
                                         <td>
                                             @if($assetType->default_image)
                                                 <img class="asset-thumb" src="{{ asset($assetType->default_image) }}" alt="{{ $assetType->name }}">
@@ -39,8 +44,9 @@
                                                 <div class="asset-thumb-empty"><i class="ri-image-line"></i></div>
                                             @endif
                                         </td>
+                                        @endif
                                         <td class="fw-semibold">{{ $assetType->name }}</td>
-                                        <td>{{ $assetType->default_price ? '৳ '.number_format($assetType->default_price, 2) : '—' }}</td>
+                                        @if($hasDimensions)
                                         <td>
                                             @if($assetType->height || $assetType->width)
                                                 <span class="text-muted fs-11">
@@ -51,15 +57,28 @@
                                                 <span class="text-muted">—</span>
                                             @endif
                                         </td>
+                                        @endif
+                                        @if($hasProperties)
                                         <td>
                                             @if($assetType->is_digital)
                                                 <span class="badge bg-info-transparent me-1">Digital</span>
                                             @endif
                                             @if($assetType->has_kv_space)
-                                                <span class="badge bg-warning-transparent me-1">KV Space</span>
+                                                <span class="badge bg-warning-transparent me-1">KV ({{ $assetType->total_kv_slot ?? 0 }})</span>
                                             @endif
-                                            <span class="badge bg-light text-dark border">{{ $assetType->total_self ?? 0 }} Shelf</span>
+                                            @if($assetType->need_asset_image)
+                                                <span class="badge bg-primary-transparent me-1">Asset Image</span>
+                                            @endif
+                                            @if($assetType->need_asset_planogram)
+                                                <span class="badge bg-secondary-transparent me-1">Planogram</span>
+                                            @endif
+                                            @if($assetType->has_asset_self)
+                                                <span class="badge bg-teal-transparent me-1">Self ({{ $assetType->total_self ?? 0 }})</span>
+                                            @elseif($assetType->total_self > 0)
+                                                <span class="badge bg-light text-dark border">{{ $assetType->total_self }} Shelf</span>
+                                            @endif
                                         </td>
+                                        @endif
                                         <td>
                                             @if($assetType->status == 1)
                                                 <span class="badge bg-success-transparent">Active</span>
@@ -103,12 +122,12 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h6 class="modal-title fw-semibold" id="assetTypeModalLabel">
-                        <i class="ri-archive-line me-2 text-primary"></i>Add Asset Type
+                        <i class="ri-archive-line me-2 text-primary"></i>Add Asset Category
                     </h6>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
 
-                <form id="assetTypeForm" enctype="multipart/form-data">
+                <form id="assetTypeForm" enctype="multipart/form-data" style="display:flex;flex-direction:column;flex:1;overflow:hidden;min-height:0;">
                     @csrf
                     <input type="hidden" id="asset_type_id" value="">
 
@@ -118,77 +137,65 @@
                         <div class="form-section mb-4">
                             <p class="form-section-label"><i class="ri-information-line me-1"></i>Basic Information</p>
                             <div class="row g-3">
-                                <div class="col-md-8">
+                                <div class="col-12">
                                     <label for="name" class="form-label">
-                                        Asset Type Name <span class="text-danger">*</span>
+                                        Asset Category Name <span class="text-danger">*</span>
                                     </label>
                                     <input type="text" class="form-control" id="name" name="name"
                                         placeholder="e.g. Billboard, LED Screen, Banner">
                                     <div class="invalid-feedback" id="error-name"></div>
-                                </div>
-                                <div class="col-md-4">
-                                    <label for="default_price" class="form-label">Default Price</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text">৳</span>
-                                        <input type="number" step="0.01" min="0" class="form-control"
-                                            id="default_price" name="default_price" placeholder="0.00">
-                                    </div>
-                                    <div class="invalid-feedback d-block" id="error-default_price"></div>
                                 </div>
                             </div>
                         </div>
 
                         {{-- ── Section: Dimensions ── --}}
                         <div class="form-section mb-4">
-                            <p class="form-section-label"><i class="ri-ruler-line me-1"></i>Dimensions</p>
-                            <div class="row g-3">
-                                <div class="col-6 col-md-3">
-                                    <label for="height" class="form-label">Height</label>
-                                    <input type="number" step="0.01" min="0" class="form-control"
-                                        id="height" name="height" placeholder="0">
-                                    <div class="invalid-feedback" id="error-height"></div>
-                                </div>
-                                <div class="col-6 col-md-3">
-                                    <label for="width" class="form-label">Width</label>
-                                    <input type="number" step="0.01" min="0" class="form-control"
-                                        id="width" name="width" placeholder="0">
-                                    <div class="invalid-feedback" id="error-width"></div>
-                                </div>
-                                <div class="col-6 col-md-3">
-                                    <label for="depth" class="form-label">Depth</label>
-                                    <input type="number" step="0.01" min="0" class="form-control"
-                                        id="depth" name="depth" placeholder="0">
-                                    <div class="invalid-feedback" id="error-depth"></div>
-                                </div>
-                                <div class="col-6 col-md-3">
-                                    <label for="dimension_unit_name" class="form-label">Unit</label>
-                                    <select class="form-select" id="dimension_unit_name" name="dimension_unit_name">
-                                        <option value="">— Select —</option>
-                                        <option value="px">px</option>
-                                        <option value="in">in (inch)</option>
-                                        <option value="ft">ft (feet)</option>
-                                        <option value="cm">cm</option>
-                                        <option value="mm">mm</option>
-                                        <option value="m">m (meter)</option>
-                                        <option value="yd">yd (yard)</option>
-                                    </select>
-                                    <div class="invalid-feedback" id="error-dimension_unit_name"></div>
+                            <div class="d-flex align-items-center justify-content-between pb-2 mb-3 border-bottom">
+                                <p class="form-section-label mb-0 border-0 pb-0"><i class="ri-ruler-line me-1"></i>Dimensions</p>
+                                <div class="form-check form-switch mb-0">
+                                    <input class="form-check-input form-checked-success" type="checkbox"
+                                        role="switch" id="has_default_dimension" name="has_default_dimension">
+                                    <label class="form-check-label fw-medium fs-12" for="has_default_dimension">Has Default Dimension</label>
                                 </div>
                             </div>
+                            <div id="dimension-fields" style="display:none;">
+                                <div class="row g-3">
+                                    <div class="col-6 col-md-4">
+                                        <label for="height" class="form-label">Height</label>
+                                        <input type="number" step="0.01" min="0" class="form-control"
+                                            id="height" name="height" placeholder="0">
+                                        <div class="invalid-feedback" id="error-height"></div>
+                                    </div>
+                                    <div class="col-6 col-md-4">
+                                        <label for="width" class="form-label">Width</label>
+                                        <input type="number" step="0.01" min="0" class="form-control"
+                                            id="width" name="width" placeholder="0">
+                                        <div class="invalid-feedback" id="error-width"></div>
+                                    </div>
+                                    <div class="col-6 col-md-4">
+                                        <label for="dimension_unit_name" class="form-label">Unit</label>
+                                        <select class="form-select" id="dimension_unit_name" name="dimension_unit_name">
+                                            <option value="">— Select —</option>
+                                            <option value="px">px</option>
+                                            <option value="in">in (inch)</option>
+                                            <option value="ft">ft (feet)</option>
+                                            <option value="cm">cm</option>
+                                            <option value="mm">mm</option>
+                                            <option value="m">m (meter)</option>
+                                            <option value="yd">yd (yard)</option>
+                                        </select>
+                                        <div class="invalid-feedback" id="error-dimension_unit_name"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <p id="dimension-hint" class="text-muted fs-12 mb-0">Enable <strong>Has Default Dimension</strong> to set height, width and depth.</p>
                         </div>
 
                         {{-- ── Section: Storage & Image ── --}}
-                        <div class="form-section mb-4">
+                        <div class="form-section mb-4 d-none">
                             <p class="form-section-label"><i class="ri-image-line me-1"></i>Storage & Image</p>
                             <div class="row g-3 align-items-start">
-                                <div class="col-md-4">
-                                    <label for="total_self" class="form-label">Total Shelf</label>
-                                    <input type="number" min="0" class="form-control"
-                                        id="total_self" name="total_self" placeholder="0">
-                                    <div class="invalid-feedback" id="error-total_self"></div>
-                                    <div class="form-text">Number of available shelf units</div>
-                                </div>
-                                <div class="col-md-8">
+                                <div class="col-12 d-none">
                                     <label class="form-label">Default Image</label>
                                     <div class="image-upload-zone" id="imageUploadZone">
                                         <div id="upload-placeholder" class="upload-placeholder-inner">
@@ -209,6 +216,7 @@
                                 </div>
                             </div>
                         </div>
+
 
                         {{-- ── Section: Options ── --}}
                         <div class="form-section">
@@ -246,6 +254,53 @@
                                         <small class="text-muted d-block mt-1">Supports key-value metadata storage</small>
                                         <div class="invalid-feedback" id="error-has_kv_space"></div>
                                     </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="switch-option-card">
+                                        <div class="form-check form-switch mb-0">
+                                            <input class="form-check-input form-checked-primary" type="checkbox"
+                                                role="switch" id="need_asset_image">
+                                            <label class="form-check-label fw-medium" for="need_asset_image">Need Asset Image</label>
+                                        </div>
+                                        <small class="text-muted d-block mt-1">Asset requires an image upload</small>
+                                        <div class="invalid-feedback" id="error-need_asset_image"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="switch-option-card">
+                                        <div class="form-check form-switch mb-0">
+                                            <input class="form-check-input form-checked-secondary" type="checkbox"
+                                                role="switch" id="need_asset_planogram">
+                                            <label class="form-check-label fw-medium" for="need_asset_planogram">Need Planogram</label>
+                                        </div>
+                                        <small class="text-muted d-block mt-1">Asset requires a planogram layout</small>
+                                        <div class="invalid-feedback" id="error-need_asset_planogram"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="switch-option-card">
+                                        <div class="form-check form-switch mb-0">
+                                            <input class="form-check-input form-checked-teal" type="checkbox"
+                                                role="switch" id="has_asset_self">
+                                            <label class="form-check-label fw-medium" for="has_asset_self">Has Asset Self</label>
+                                        </div>
+                                        <small class="text-muted d-block mt-1">Asset contains self-managed sections</small>
+                                        <div class="invalid-feedback" id="error-has_asset_self"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 d-none" id="total-self-wrap">
+                                    <label for="total_self" class="form-label">Total Shelf</label>
+                                    <input type="number" min="0" class="form-control"
+                                        id="total_self" name="total_self" placeholder="0">
+                                    <div class="invalid-feedback" id="error-total_self"></div>
+                                    <div class="form-text">Number of shelf units</div>
+                                </div>
+                                <div class="col-md-4" id="total-kv-slot-wrap">
+                                    <label for="total_kv_slot" class="form-label">Total KV Slot</label>
+                                    <input type="number" min="0" class="form-control"
+                                        id="total_kv_slot" name="total_kv_slot" placeholder="0">
+                                    <div class="invalid-feedback" id="error-total_kv_slot"></div>
+                                    <div class="form-text">Number of KV Slots</div>
                                 </div>
                             </div>
                         </div>
@@ -316,6 +371,26 @@
                                 <tr>
                                     <th class="text-muted fw-medium fs-12">KV Space</th>
                                     <td id="view-kv"></td>
+                                </tr>
+                                <tr>
+                                    <th class="text-muted fw-medium fs-12">Total KV Slot</th>
+                                    <td id="view-total-kv-slot"></td>
+                                </tr>
+                                <tr>
+                                    <th class="text-muted fw-medium fs-12">Default Dimension</th>
+                                    <td id="view-has-default-dimension"></td>
+                                </tr>
+                                <tr>
+                                    <th class="text-muted fw-medium fs-12">Need Asset Image</th>
+                                    <td id="view-need-asset-image"></td>
+                                </tr>
+                                <tr>
+                                    <th class="text-muted fw-medium fs-12">Need Planogram</th>
+                                    <td id="view-need-planogram"></td>
+                                </tr>
+                                <tr>
+                                    <th class="text-muted fw-medium fs-12">Has Asset Self</th>
+                                    <td id="view-has-asset-self"></td>
                                 </tr>
                             </table>
                         </div>
@@ -434,7 +509,8 @@
         const viewModalEl    = new bootstrap.Modal(document.getElementById('viewModal'));
         const deleteModalEl  = new bootstrap.Modal(document.getElementById('deleteModal'));
 
-        $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
+        const csrfToken = $('meta[name="csrf-token"]').attr('content');
+        $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': csrfToken } });
 
         // ── Utility helpers ───────────────────────────────────────────────────
         const apiUrl = id => base_url + 'asset-types' + (id ? '/' + id : '');
@@ -513,14 +589,52 @@
             $('#btn-save .btn-text').html(`<i class="ri-save-line me-1"></i>${isEdit ? 'Update' : 'Save'}`);
         }
 
+        // ── has_default_dimension toggle ──────────────────────────────────────
+        function toggleDimensionFields(show) {
+            $('#dimension-fields').toggle(show);
+            $('#dimension-hint').toggle(!show);
+        }
+
+        $('#has_default_dimension').on('change', function () {
+            toggleDimensionFields(this.checked);
+        });
+
+        // ── has_asset_self toggle (shows total shelf) ─────────────────────────
+        function toggleTotalShelf(show) {
+            $('#total-self-wrap').toggleClass('d-none', !show);
+        }
+
+        $('#has_asset_self').on('change', function () {
+            toggleTotalShelf(this.checked);
+        });
+
+        // ── has_kv_space toggle (shows total kv slot) ─────────────────────────
+        function toggleTotalKvSlot(show) {
+            $('#total-kv-slot-wrap').toggleClass('d-none', !show);
+        }
+
+        $('#has_kv_space').on('change', function () {
+            toggleTotalKvSlot(this.checked);
+        });
+
         function populateForm(data) {
-            ['name', 'default_price', 'height', 'width', 'depth', 'total_self']
+            ['name', 'height', 'width', 'total_self', 'total_kv_slot']
                 .forEach(f => $('#' + f).val(data[f] ?? ''));
 
-            $('#dimension_unit_name').val(data.dimension_unit_name || '');
-            $('#status').prop('checked',     data.status == 1);
-            $('#is_digital').prop('checked',  data.is_digital == 1);
-            $('#has_kv_space').prop('checked', data.has_kv_space == 1);
+            // DB column is `dimention_unit_name` (typo), form field is `dimension_unit_name`
+            $('#dimension_unit_name').val(data.dimention_unit_name || '');
+
+            $('#status').prop('checked',                data.status == 1);
+            $('#is_digital').prop('checked',            data.is_digital == 1);
+            $('#has_kv_space').prop('checked',          data.has_kv_space == 1);
+            $('#has_default_dimension').prop('checked', data.has_default_dimension == 1);
+            $('#need_asset_image').prop('checked',      data.need_asset_image == 1);
+            $('#need_asset_planogram').prop('checked',  data.need_asset_planogram == 1);
+            $('#has_asset_self').prop('checked',        data.has_asset_self == 1);
+
+            toggleDimensionFields(data.has_default_dimension == 1);
+            toggleTotalShelf(data.has_asset_self == 1);
+            toggleTotalKvSlot(data.has_kv_space == 1);
 
             if (data.default_image) {
                 $('#upload-placeholder').hide();
@@ -537,6 +651,13 @@
             $('#status').prop('checked', true);
             $('#is_digital').prop('checked', false);
             $('#has_kv_space').prop('checked', true);
+            $('#has_default_dimension').prop('checked', false);
+            $('#need_asset_image').prop('checked', false);
+            $('#need_asset_planogram').prop('checked', false);
+            $('#has_asset_self').prop('checked', false);
+            toggleDimensionFields(false);
+            toggleTotalShelf(false);
+            toggleTotalKvSlot(true);
             clearErrors();
         }
 
@@ -560,16 +681,21 @@
         $(document).on('click', '.btn-view', function () {
             $.get(apiUrl($(this).data('id')), data => {
                 const depth  = data.depth > 0 ? ` × ${data.depth}` : '';
-                const unit   = data.dimension_unit_name ? ` ${data.dimension_unit_name}` : '';
-                const hasDim = data.height || data.width;
+                const unit   = data.dimention_unit_name ? ` ${data.dimention_unit_name}` : '';
+                const hasDim = data.has_default_dimension == 1 && (data.height || data.width);
 
                 $('#view-name').text(data.name);
                 $('#view-price').text(data.default_price ? `৳ ${Number(data.default_price).toFixed(2)}` : '—');
                 $('#view-dimension').text(hasDim ? `${data.height ?? 0} × ${data.width ?? 0}${depth}${unit}` : '—');
                 $('#view-total-self').text(`${data.total_self ?? 0} unit(s)`);
-                $('#view-status').html(badge(data.status == 1,     'success', 'Active',  'danger',  'Inactive'));
-                $('#view-digital').html(badge(data.is_digital == 1, 'info',   'Yes',     null,      'No'));
-                $('#view-kv').html(badge(data.has_kv_space == 1,   'warning', 'Yes',     null,      'No'));
+                $('#view-status').html(badge(data.status == 1,                 'success',   'Active',    'danger',  'Inactive'));
+                $('#view-digital').html(badge(data.is_digital == 1,            'info',      'Yes',       null,      'No'));
+                $('#view-kv').html(badge(data.has_kv_space == 1,               'warning',   'Yes',       null,      'No'));
+                $('#view-total-kv-slot').text(data.has_kv_space == 1 ? `${data.total_kv_slot ?? 0} slot(s)` : '—');
+                $('#view-has-default-dimension').html(badge(data.has_default_dimension == 1, 'success', 'Yes', null, 'No'));
+                $('#view-need-asset-image').html(badge(data.need_asset_image == 1,           'primary',  'Yes', null, 'No'));
+                $('#view-need-planogram').html(badge(data.need_asset_planogram == 1,         'secondary','Yes', null, 'No'));
+                $('#view-has-asset-self').html(badge(data.has_asset_self == 1,               'teal',     'Yes', null, 'No'));
 
                 $('#view-image')
                     .toggleClass('d-none', !data.default_image)
@@ -592,8 +718,9 @@
             setBtnLoading($btn, true, 'Deleting...');
 
             $.ajax({
-                url:  apiUrl($('#delete-asset-type-id').val()),
-                type: 'DELETE',
+                url:     apiUrl($('#delete-asset-type-id').val()),
+                type:    'DELETE',
+                headers: { 'X-CSRF-TOKEN': csrfToken },
                 success: res => {
                     deleteModalEl.hide();
                     showToast(res.message, 'success');
@@ -609,10 +736,32 @@
             e.preventDefault();
             clearErrors();
 
+            if ($('#has_default_dimension').is(':checked')) {
+                let hasError = false;
+                if (!$('#height').val().trim()) {
+                    $('#height').addClass('is-invalid');
+                    $('#error-height').text('Height is required when Default Dimension is enabled.');
+                    hasError = true;
+                }
+                if (!$('#width').val().trim()) {
+                    $('#width').addClass('is-invalid');
+                    $('#error-width').text('Width is required when Default Dimension is enabled.');
+                    hasError = true;
+                }
+                if (!$('#dimension_unit_name').val()) {
+                    $('#dimension_unit_name').addClass('is-invalid');
+                    $('#error-dimension_unit_name').text('Unit is required when Default Dimension is enabled.');
+                    hasError = true;
+                }
+                if (hasError) return;
+            }
+
             const id       = $('#asset_type_id').val();
             const formData = new FormData(this);
 
-            ['status', 'is_digital', 'has_kv_space']
+            formData.set('_token', csrfToken);
+
+            ['status', 'is_digital', 'has_kv_space', 'has_default_dimension', 'need_asset_image', 'need_asset_planogram', 'has_asset_self']
                 .forEach(f => formData.set(f, $(`#${f}`).is(':checked') ? 1 : 0));
 
             if (id) formData.append('_method', 'PUT');
@@ -626,6 +775,7 @@
                 data: formData,
                 processData: false,
                 contentType: false,
+                headers: { 'X-CSRF-TOKEN': csrfToken },
                 success: res => {
                     assetTypeModal.hide();
                     showToast(res.message, 'success');

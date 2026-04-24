@@ -63,7 +63,7 @@
                                            @hasRole(['super-admin'])
                                                 <form action="{{route('roles.destroy',$row??'')}}" method="POST" class="d-inline">
                                                     @csrf @method('DELETE')
-                                                    <button type="submit" class="btn btn-outline-danger btn-sm ms-2" title="Delete" onclick="return confirm('Are you sure ?? want to delete this ...')"><i class="fa fa-trash-alt"></i></button>
+                                                    <button type="submit" class="btn btn-outline-danger btn-sm ms-2 delete-data" title="Delete" {{--onclick="return confirm('Are you sure ?? want to delete this ...')"--}}><i class="fa fa-trash-alt"></i></button>
                                                 </form>
                                             @endhasRole
                                         </td>
@@ -82,6 +82,7 @@
 
 @push('scripts')
     @include('backend.user-management.datatables.datatable-script')
+    @include('backend.includes.plugins.sweetalert2')
     <script>
         $(document).ready(function () {
             $('#roleDataTable').DataTable();

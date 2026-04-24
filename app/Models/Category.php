@@ -19,6 +19,8 @@ class Category extends Model
         'code',
         'description',
         'status',
+        'is_common',
+        'created_by',
     ];
 
     protected $searchableFields = ['*'];
@@ -55,12 +57,29 @@ class Category extends Model
 
     public static function updateOrCreateCategory($request, $category = null)
     {
-        return static::updateOrCreate(['id' => $category?->id], [
+        $data = [
             'category_id' => $request->category_id ?: null,
             'name'        => $request->name,
             'code'        => strtoupper($request->code),
             'description' => $request->description,
-            'status'      => $request->status,
-        ]);
+            'status'      => $request->boolean('status') ? 1 : 0,
+            'is_common'   => $request->boolean('is_common') ? 1 : 0,
+        ];
+
+        if (! $category) {
+            $data['created_by'] = auth()->id();
+        }
+
+        return static::updateOrCreate(['id' => $category?->id], $data);
+    }
+
+    public function createdBy()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function keyVisuals()
+    {
+        return $this->belongsToMany(KeyVisual::class);
     }
 }

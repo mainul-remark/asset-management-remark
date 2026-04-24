@@ -2,22 +2,21 @@
 <html lang="en" dir="ltr" data-nav-layout="vertical" data-vertical-style="overlay" data-theme-mode="light" data-header-styles="light" data-menu-styles="light" data-toggled="close">
 
 
-<!-- Mirrored from laravelui.spruko.com/valex/signin by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 31 Jan 2026 01:12:20 GMT -->
-<!-- Added by HTTrack --><meta http-equiv="content-type" content="text/html;charset=UTF-8" /><!-- /Added by HTTrack -->
+<meta http-equiv="content-type" content="text/html;charset=UTF-8" /><!-- /Added by HTTrack -->
 <head>
     <!-- Meta Data -->
     <meta charset="UTF-8">
     <meta name='viewport' content='width=device-width, initial-scale=1.0'>
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="Description" content="Laravel Bootstrap Responsive Admin Web Dashboard Template">
-    <meta name="Author" content="Spruko Technologies Private Limited">
-    <meta name="keywords" content="laravel, framework laravel, laravel template, admin, laravel dashboard, template dashboard, admin dashboard ui, bootstrap dashboard, laravel framework, vite laravel, bootstrap 5 templates, laravel admin panel, laravel tailwind, admin panel, template admin, bootstrap admin panel.">
+    <meta name="Author" content="Remark">
+    <meta name="keywords" content="Remark Asset Management">
 
     <!-- TITLE -->
-    <title> Valex - Laravel Bootstrap 5 Premium Admin & Dashboard Template </title>
+    <title> Remark VM Management</title>
 
     <!-- Favicon -->
-    <link rel="icon" href="{{ asset('/') }}backend/build/assets/images/brand-logos/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="{{ asset('/') }}favicon.ico" type="image/x-icon">
 
     <!-- Main Theme Js -->
     <link rel="modulepreload" href="{{ asset('/') }}backend/build/assets/authentication-main-nWtBO75B.js" /><script type="module" src="{{ asset('/') }}backend/build/assets/authentication-main-nWtBO75B.js"></script>
@@ -29,9 +28,6 @@
 
     <!-- APP CSS & APP SCSS -->
     <link rel="preload" as="style" href="{{ asset('/') }}backend/build/assets/app-DBELQW1b.css" /><link rel="stylesheet" href="{{ asset('/') }}backend/build/assets/app-DBELQW1b.css" />
-
-
-
 
 </head>
 
@@ -535,11 +531,11 @@
 {{--                                                </div>--}}
 {{--                                            </div>--}}
                                         </form>
-                                        <div class="main-signin-footer mt-5">
-                                            <p class="mb-1"><a href="forgot.html">Forgot password?</a></p>
-                                            <p>Don't have an account? <a href="signup.html">Create an
-                                                    Account</a></p>
-                                        </div>
+{{--                                        <div class="main-signin-footer mt-5">--}}
+{{--                                            <p class="mb-1"><a href="forgot.html">Forgot password?</a></p>--}}
+{{--                                            <p>Don't have an account? <a href="signup.html">Create an--}}
+{{--                                                    Account</a></p>--}}
+{{--                                        </div>--}}
                                     </div>
                                 </div>
                             </div>
@@ -564,5 +560,4 @@
 </body>
 
 
-<!-- Mirrored from laravelui.spruko.com/valex/signin by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 31 Jan 2026 01:12:23 GMT -->
 </html>

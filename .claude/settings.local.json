@@ -5,7 +5,9 @@
       "mcp__laravel-boost__browser-logs",
       "mcp__laravel-boost__list-routes",
       "WebFetch(domain:127.0.0.1)",
-      "WebFetch(domain:localhost)"
+      "WebFetch(domain:localhost)",
+      "mcp__laravel-boost__database-query",
+      "mcp__laravel-boost__tinker"
     ]
   },
   "enableAllProjectMcpServers": true,

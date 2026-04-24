@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Backend\Asset;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Backend\Asset\AssetTypeRequest;
 use App\Models\AssetType;
+use App\Models\AssignKvToAsset;
 use Mainul\CustomHelperFunctions\Helpers\CustomHelper;
 
 class AssetTypeController extends Controller

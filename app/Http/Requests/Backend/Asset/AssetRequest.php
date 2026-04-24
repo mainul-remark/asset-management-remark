@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Backend\Asset;
 
+use App\Models\AssetType;
 use Illuminate\Foundation\Http\FormRequest;
 
 class AssetRequest extends FormRequest
@@ -13,21 +14,27 @@ class AssetRequest extends FormRequest
 
     public function rules(): array
     {
-        $isUpdate = $this->isMethod('PUT') || $this->isMethod('PATCH');
+        $isUpdate      = $this->isMethod('PUT') || $this->isMethod('PATCH');
+        $assetTypeId   = is_array($this->asset_type_id) ? ($this->asset_type_id[0] ?? null) : $this->asset_type_id;
+        $assetType     = AssetType::find($assetTypeId);
+
+        $needImage     = $assetType?->need_asset_image    == 1;
+        $needPlanogram = $assetType?->need_asset_planogram == 1;
 
         return [
             'asset_type_id'  => ['required', 'exists:asset_types,id'],
             'name'           => ['required', 'string', 'max:255'],
-            'default_image'  => [$isUpdate ? 'nullable' : 'required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
-            'store_id'       => ['nullable', 'exists:stores,id'],
+            'default_image'  => [!$isUpdate && $needImage ? 'required' : 'nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'store_id'       => ['required', 'nullable', 'exists:stores,id'],
             'has_kv_slot'    => ['nullable', 'boolean'],
             'minimum_fee'    => ['nullable', 'numeric', 'min:0'],
             'asset_price'    => ['nullable', 'numeric', 'min:0'],
             'is_common_asset'=> ['nullable', 'boolean'],
-            'planogram_pdf'  => ['nullable', 'mimes:pdf', 'max:10240'],
+            'planogram_pdf'  => [!$isUpdate && $needPlanogram ? 'required' : 'nullable', 'mimes:pdf', 'max:10240'],
             'status'         => ['nullable', 'boolean'],
             'has_self'       => ['nullable', 'boolean'],
             'total_self'     => ['nullable', 'integer', 'min:0', 'max:127'],
+
         ];
     }
 
@@ -37,11 +44,11 @@ class AssetRequest extends FormRequest
             'asset_type_id.required' => 'Please select an asset type.',
             'asset_type_id.exists'   => 'The selected asset type is invalid.',
 
-            'name.required' => 'Asset name is required.',
-            'name.string'   => 'Asset name must be valid text.',
-            'name.max'      => 'Asset name cannot exceed 255 characters.',
+            'name.required'          => 'Asset name is required.',
+            'name.string'            => 'Asset name must be valid text.',
+            'name.max'               => 'Asset name cannot exceed 255 characters.',
 
-            'default_image.required' => 'A default image is required.',
+            'default_image.required' => 'A default image is required for this asset category.',
             'default_image.image'    => 'The uploaded file must be a valid image.',
             'default_image.mimes'    => 'Accepted formats: JPG, JPEG, PNG, WEBP.',
             'default_image.max'      => 'Image must not exceed 2 MB.',
@@ -54,6 +61,7 @@ class AssetRequest extends FormRequest
             'asset_price.numeric'    => 'Asset price must be a numeric value.',
             'asset_price.min'        => 'Asset price cannot be negative.',
 
+            'planogram_pdf.required' => 'A planogram PDF is required for this asset category.',
             'planogram_pdf.mimes'    => 'Planogram must be a PDF file.',
             'planogram_pdf.max'      => 'Planogram PDF must not exceed 10 MB.',
 

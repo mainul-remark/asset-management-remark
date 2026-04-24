@@ -27,7 +27,7 @@ return new class extends Migration {
                 ->default(0)
                 ->nullable();
             $table
-                ->enum('dimension_unit_name', [
+                ->enum('dimention_unit_name', [
                     'px',
                     'in',
                     'ft',
@@ -56,6 +56,20 @@ return new class extends Migration {
                 ->nullable();
             $table
                 ->tinyInteger('has_kv_space')
+                ->default(1)
+                ->nullable();
+            $table
+                ->tinyInteger('has_default_dimension')
+                ->default(0)
+                ->nullable();
+            $table->tinyInteger('need_asset_image')->nullable();
+            $table
+                ->tinyInteger('need_asset_planogram')
+                ->default(0)
+                ->nullable();
+            $table->tinyInteger('has_asset_self')->nullable();
+            $table
+                ->tinyInteger('total_kv_slot')
                 ->default(1)
                 ->nullable();
 

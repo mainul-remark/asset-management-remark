@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Models\StatusPermission\Status;
+use App\Observers\StatusPermission\StatusObserver;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
@@ -20,6 +22,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Status::observe(StatusObserver::class);
+
         View::composer('backend.master', function ($view) {
             $siteSetting = \App\Models\SiteSetting::first();
 

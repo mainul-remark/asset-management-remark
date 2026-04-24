@@ -24,13 +24,10 @@ class KeyVisualSizeFactory extends Factory
     {
         return [
             'name' => $this->faker->name(),
-            'height' => $this->faker->randomFloat(2, 0, 9999),
-            'width' => $this->faker->randomFloat(2, 0, 9999),
+            'height' => $this->faker->numberBetween(1, 9999),
+            'width' => $this->faker->numberBetween(1, 9999),
             'unit_name' => 'px',
-            'kv_file' => $this->faker->text(),
-            'kv_size' => $this->faker->numberBetween(0, 8388607),
-            'aspect_ratio' => $this->faker->randomNumber(2),
-            'status' => $this->faker->numberBetween(0, 127),
+            'status' => $this->faker->randomElement([0, 1]),
         ];
     }
 }

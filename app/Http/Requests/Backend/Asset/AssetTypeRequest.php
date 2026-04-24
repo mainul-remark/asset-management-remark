@@ -24,15 +24,20 @@ class AssetTypeRequest extends FormRequest
                     ->whereNull('deleted_at'),
             ],
             'default_image'       => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
-            'height'              => ['nullable', 'numeric', 'min:0'],
-            'width'               => ['nullable', 'numeric', 'min:0'],
+            'height'              => ['required_if:has_default_dimension,1', 'nullable', 'numeric', 'min:0'],
+            'width'               => ['required_if:has_default_dimension,1', 'nullable', 'numeric', 'min:0'],
             'depth'               => ['nullable', 'numeric', 'min:0'],
-            'dimension_unit_name' => ['nullable', 'in:px,in,ft,cm,mm,m,yd'],
+            'dimension_unit_name' => ['required_if:has_default_dimension,1', 'nullable', 'in:px,in,ft,cm,mm,m,yd'],
             'default_price'       => ['nullable', 'numeric', 'min:0'],
-            'status'              => ['nullable', 'in:0,1'],
-            'is_digital'          => ['nullable', 'in:0,1'],
-            'total_self'          => ['nullable', 'integer', 'min:0'],
-            'has_kv_space'        => ['nullable', 'in:0,1'],
+            'status'                => ['nullable', 'in:0,1'],
+            'is_digital'            => ['nullable', 'in:0,1'],
+            'total_self'            => ['nullable', 'integer', 'min:0'],
+            'has_kv_space'          => ['nullable', 'in:0,1'],
+            'has_default_dimension' => ['nullable', 'in:0,1'],
+            'need_asset_image'      => ['nullable', 'in:0,1'],
+            'need_asset_planogram'  => ['nullable', 'in:0,1'],
+            'has_asset_self'        => ['nullable', 'in:0,1'],
+            'total_kv_slot'       => ['nullable', 'integer', 'min:0', 'max:127'],
         ];
     }
 
@@ -48,14 +53,17 @@ class AssetTypeRequest extends FormRequest
             'default_image.mimes' => 'Accepted image formats: jpg, jpeg, png, webp.',
             'default_image.max'   => 'Image file size must not exceed 2 MB.',
 
-            'height.numeric' => 'Height must be a numeric value.',
-            'height.min'     => 'Height cannot be negative.',
-            'width.numeric'  => 'Width must be a numeric value.',
-            'width.min'      => 'Width cannot be negative.',
+            'height.required_if' => 'Height is required when Default Dimension is enabled.',
+            'height.numeric'     => 'Height must be a numeric value.',
+            'height.min'         => 'Height cannot be negative.',
+            'width.required_if'  => 'Width is required when Default Dimension is enabled.',
+            'width.numeric'      => 'Width must be a numeric value.',
+            'width.min'          => 'Width cannot be negative.',
             'depth.numeric'  => 'Depth must be a numeric value.',
             'depth.min'      => 'Depth cannot be negative.',
 
-            'dimension_unit_name.in' => 'Dimension unit must be one of: px, in, ft, cm, mm, m, yd.',
+            'dimension_unit_name.required_if' => 'Unit is required when Default Dimension is enabled.',
+            'dimension_unit_name.in'          => 'Dimension unit must be one of: px, in, ft, cm, mm, m, yd.',
 
             'default_price.numeric' => 'Default price must be a numeric value.',
             'default_price.min'     => 'Default price cannot be negative.',
@@ -65,6 +73,10 @@ class AssetTypeRequest extends FormRequest
             'total_self.integer' => 'Total shelf must be a whole number.',
             'total_self.min'     => 'Total shelf cannot be negative.',
             'has_kv_space.in'    => 'KV space flag must be Yes or No.',
+
+            'total_kv_slot.integer'  => 'Total KV Slot must be a whole number.',
+            'total_kv_slot.min'      => 'Total KV Slot cannot be negative.',
+            'total_kv_slot.max'      => 'Total KV Slot cannot exceed 127.',
         ];
     }
 }

@@ -19,8 +19,14 @@
     $(document).ready(function () {
 
         // Brands table with advanced features
-        if ($("#data-table").length) {
-            $("#data-table").DataTable({
+        const $table = $("#data-table");
+
+        if (
+            $table.length &&
+            !$table.data("datatableManual") &&
+            !$.fn.DataTable.isDataTable($table[0])
+        ) {
+            $table.DataTable({
                 dom: '<"d-flex justify-content-between align-items-center mb-3"<"d-flex align-items-center"l><"d-flex align-items-center gap-2"f>>rt<"d-flex justify-content-between align-items-center mt-3"ip>',
                 // buttons: [
                 //     { extend: "copy", className: "btn btn-sm btn-outline-primary" },
@@ -43,12 +49,11 @@
                 lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
                 order: [[1, 'asc']],
                 columnDefs: [
-                    { orderable: false, targets: [2, 6] },
-                    { searchable: false, targets: [0, 2, 6] }
+                    { orderable: false, targets: [2, -1] },
+                    { searchable: false, targets: [0, 2, -1] }
                 ],
                 stateSave: true
             });
         }
     })
 </script>
-

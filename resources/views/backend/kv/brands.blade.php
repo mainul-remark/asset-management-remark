@@ -23,7 +23,9 @@
                                         <th>Logo</th>
                                         <th>Code</th>
                                         <th>Description</th>
-                                        <th>Status</th>
+{{--                                        <th>Common</th>--}}
+{{--                                        <th>Status</th>--}}
+                                        <th>Info</th>
                                         <th>Action</th>
                                     </tr>
                                 </thead>
@@ -41,12 +43,25 @@
                                         </td>
                                         <td><span class="badge bg-primary-transparent">{{ $brand->code }}</span></td>
                                         <td class="text-wrap">{{ \Str::limit($brand->description, 50) }}</td>
+{{--                                        <td>--}}
+{{--                                            @if($brand->is_common)--}}
+{{--                                                <span class="badge bg-outline-success">Yes</span>--}}
+{{--                                            @else--}}
+{{--                                                <span class="badge bg-outline-secondary">No</span>--}}
+{{--                                            @endif--}}
+{{--                                        </td>--}}
                                         <td>
                                             @if($brand->status == 1)
                                                 <span class="badge bg-outline-success">Published</span>
                                             @else
                                                 <span class="badge bg-outline-danger">Unpublished</span>
                                             @endif
+
+                                                @if($brand->is_common)
+                                                    <span class="badge bg-outline-success">Common</span>
+                                                @else
+                                                    <span class="badge bg-outline-secondary">Not Common</span>
+                                                @endif
                                         </td>
                                         <td>
                                             <div class="btn-list">
@@ -77,7 +92,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div id="createAppendCodehere">
-                    <form id="brandForm" enctype="multipart/form-data">
+                    <form id="brandForm" enctype="multipart/form-data" style="display:flex;flex-direction:column;flex:1;overflow:hidden;min-height:0;">
                         <div class="modal-body">
                             <input type="hidden" id="brand_id" value="">
                             <div class="mb-3">
@@ -105,16 +120,32 @@
                                 </div>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label d-block">Status</label>
-                                <div class="toggle-switch">
-                                    <label class="switch">
-                                        <input type="checkbox" id="status-switch" checked>
-                                        <span class="slider round"></span>
-                                    </label>
-                                    <span class="ms-2" id="status-label">Published</span>
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <label class="form-label d-block">Is Common</label>
+                                        <div class="toggle-switch">
+                                            <label class="switch">
+                                                <input type="checkbox" id="common-switch" >
+                                                <span class="slider round"></span>
+                                            </label>
+                                            <span class="ms-2" id="status-label">Published</span>
+                                        </div>
+                                        <input type="hidden" id="isCommon" name="is_common" value="0">
+                                        <div class="invalid-feedback" id="error-status"></div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label d-block">Status</label>
+                                        <div class="toggle-switch">
+                                            <label class="switch">
+                                                <input type="checkbox" id="status-switch" checked>
+                                                <span class="slider round"></span>
+                                            </label>
+                                            <span class="ms-2" id="status-label">Published</span>
+                                        </div>
+                                        <input type="hidden" id="status" name="status" value="1">
+                                        <div class="invalid-feedback" id="error-status"></div>
+                                    </div>
                                 </div>
-                                <input type="hidden" id="status" name="status" value="1">
-                                <div class="invalid-feedback" id="error-status"></div>
                             </div>
                         </div>
                         <div class="modal-footer">
@@ -129,20 +160,6 @@
             </div>
         </div>
     </div>
-    <div class="modal fade" id="brandEditModal" tabindex="-1" aria-labelledby="brandModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h6 class="modal-title" id="brandModalLabel">Edit Brand</h6>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div id="editAppendCodehere">
-
-                </div>
-            </div>
-        </div>
-    </div>
-
     {{-- View Modal --}}
     <div class="modal fade" id="viewModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
@@ -159,6 +176,7 @@
                         <tr><th width="30%">Name</th><td id="view-name"></td></tr>
                         <tr><th>Code</th><td id="view-code"></td></tr>
                         <tr><th>Description</th><td id="view-description"></td></tr>
+                        <tr><th>Is Common</th><td id="view-is-common"></td></tr>
                         <tr><th>Status</th><td id="view-status"></td></tr>
 {{--                        <tr><th>Created</th><td id="view-created"></td></tr>--}}
                     </table>
@@ -218,6 +236,57 @@
         const brandModal = new bootstrap.Modal(document.getElementById('brandModal'));
         const viewModal = new bootstrap.Modal(document.getElementById('viewModal'));
         const deleteModalEl = new bootstrap.Modal(document.getElementById('deleteModal'));
+        const table = $('#data-table').DataTable();
+
+        function strLimit(str, limit) {
+            if (!str) return '';
+            return str.length > limit ? str.substring(0, limit) + '...' : str;
+        }
+
+        function buildBrandRow(brand, rowNum) {
+            const logoHtml = brand.logo
+                ? `<img src="${base_url}${brand.logo}" alt="${brand.name}" style="height: 40px; border-radius: 5px;">`
+                : '<span class="badge bg-light text-muted">No Logo</span>';
+            const statusBadge = brand.status == 1
+                ? '<span class="badge bg-outline-success">Published</span>'
+                : '<span class="badge bg-outline-danger">Unpublished</span>';
+            const commonBadge = brand.is_common == 1
+                ? '<span class="badge bg-outline-success">Common</span>'
+                : '<span class="badge bg-outline-secondary">Not Common</span>';
+            const actionBtns = `<div class="btn-list">
+                <button class="btn btn-icon btn-sm btn-info-light btn-wave btn-view" data-id="${brand.id}" title="View"><i class="ri-eye-line"></i></button>
+                <button class="btn btn-icon btn-sm btn-primary-light btn-wave btn-edit" data-id="${brand.id}" title="Edit"><i class="ri-edit-box-line"></i></button>
+                <button class="btn btn-icon btn-sm btn-danger-light btn-wave btn-delete" data-id="${brand.id}" data-name="${brand.name}" title="Delete"><i class="ri-delete-bin-line"></i></button>
+            </div>`;
+            return `<tr id="brand-row-${brand.id}">
+                <td>${rowNum}</td>
+                <td>${brand.name}</td>
+                <td>${logoHtml}</td>
+                <td><span class="badge bg-primary-transparent">${brand.code}</span></td>
+                <td class="text-wrap">${strLimit(brand.description, 50)}</td>
+                <td>${statusBadge} ${commonBadge}</td>
+                <td>${actionBtns}</td>
+            </tr>`;
+        }
+
+        function updateExistingRow(brand) {
+            const $row = $('#brand-row-' + brand.id);
+            const logoHtml = brand.logo
+                ? `<img src="${base_url}${brand.logo}" alt="${brand.name}" style="height: 40px; border-radius: 5px;">`
+                : '<span class="badge bg-light text-muted">No Logo</span>';
+            const statusBadge = brand.status == 1
+                ? '<span class="badge bg-outline-success">Published</span>'
+                : '<span class="badge bg-outline-danger">Unpublished</span>';
+            const commonBadge = brand.is_common == 1
+                ? '<span class="badge bg-outline-success">Common</span>'
+                : '<span class="badge bg-outline-secondary">Not Common</span>';
+            $row.find('td').eq(1).text(brand.name);
+            $row.find('td').eq(2).html(logoHtml);
+            $row.find('td').eq(3).html(`<span class="badge bg-primary-transparent">${brand.code}</span>`);
+            $row.find('td').eq(4).text(strLimit(brand.description, 50));
+            $row.find('td').eq(5).html(`${statusBadge} ${commonBadge}`);
+            $row.find('.btn-delete').data('name', brand.name);
+        }
 
         // Auto-generate code from name
         $('#name').on('input', function () {
@@ -256,30 +325,25 @@
         $(document).on('click', '.btn-edit', function () {
             resetForm();
             const id = $(this).data('id');
-            sendAjaxRequest(`brands/${id}/edit`, "get").then(function (response) {
-                console.log(response);
-                $('#editAppendCodehere').empty().append(response);
-                $('#brandEditModal').modal('show');
+            $('#brandModalLabel').text('Edit Brand');
+            $('#btn-save .btn-text').text('Update');
+            $.get(base_url + 'brands/' + id + '/edit', function (data) {
+                $('#brand_id').val(data.id);
+                $('#name').val(data.name);
+                $('#code').val(data.code);
+                $('#description').val(data.description);
+                $('#status').val(data.status);
+                $('#status-switch').prop('checked', data.status == 1).trigger('change');
+                $('#isCommon').val(data.is_common);
+                $('#common-switch').prop('checked', data.is_common == 1).trigger('change');
+                if (data.logo) {
+                    $('#logo-preview').removeClass('d-none').find('img').attr('src', base_url + data.logo);
+                }
+                brandModal.show();
+            }).fail(function (xhr) {
+                showToast(getErrorMessage(xhr, 'Failed to load brand data.'), 'danger');
             });
-        })
-        // $(document).on('click', '.btn-edit', function () {
-        //     resetForm();
-        //     const id = $(this).data('id');
-        //     $('#brandModalLabel').text('Edit Brand');
-        //     $('#btn-save .btn-text').text('Update');
-        //     $.get(base_url + 'brands/' + id + '/edit', function (data) {
-        //         $('#brand_id').val(data.id);
-        //         $('#name').val(data.name);
-        //         $('#code').val(data.code);
-        //         $('#description').val(data.description);
-        //         $('#status').val(data.status);
-        //         $('#status-switch').prop('checked', data.status == 1).trigger('change');
-        //         if (data.logo) {
-        //             $('#logo-preview').removeClass('d-none').find('img').attr('src', base_url + data.logo);
-        //         }
-        //         brandModal.show();
-        //     });
-        // });
+        });
         // View Brand
         $(document).on('click', '.btn-view', function () {
             const id = $(this).data('id');
@@ -287,6 +351,9 @@
                 $('#view-name').text(data.name);
                 $('#view-code').text(data.code);
                 $('#view-description').text(data.description || '—');
+                $('#view-is-common').html(data.is_common == 1
+                    ? '<span class="badge bg-success-transparent">Yes</span>'
+                    : '<span class="badge bg-secondary-transparent">No</span>');
                 $('#view-status').html(data.status == 1
                     ? '<span class="badge bg-success-transparent">Published</span>'
                     : '<span class="badge bg-danger-transparent">Unpublished</span>');
@@ -298,6 +365,8 @@
                     $('#view-logo-container').hide();
                 }
                 viewModal.show();
+            }).fail(function (xhr) {
+                showToast(getErrorMessage(xhr, 'Failed to load brand details.'), 'danger');
             });
         });
 
@@ -317,35 +386,23 @@
                 url: base_url + 'brands/' + id,
                 type: 'DELETE',
                 success: function (res) {
+                    if (res.success === false) {
+                        showToast(res.message || 'Failed to delete brand.', 'danger');
+                        return;
+                    }
+
                     deleteModalEl.hide();
                     showToast(res.message, 'success');
-                    setTimeout(() => location.reload(), 800);
+                    table.row('#brand-row-' + id).remove().draw(false);
                 },
-                error: function () {
-                    showToast('Failed to delete brand.', 'danger');
+                error: function (xhr) {
+                    showToast(getErrorMessage(xhr, 'Failed to delete brand.'), 'danger');
                 },
                 complete: function () {
                     btn.prop('disabled', false).text('Yes, Delete');
                 }
             });
         });
-
-        // submit form -- update
-
-        $('#editBrandForm').on('submit', function (event) {
-            event.preventDefault();
-            clearErrors();
-            const formData = new FormData(this);
-            const pondFile = pond.getFile();
-            if (pondFile) {
-                formData.append('logo', pondFile.file);
-            }
-            $('.btn-save').prop('disabled', true);
-            $('.btn-spinner').removeClass('d-none');
-            sendAjaxRequest($(this).attr('action'), 'POST', formData).then(function (response) {
-                showToast(response.message, response.success == true ? 'success' : 'danger');
-            })
-        })
 
         // Submit Form (Create / Update)
         $('#brandForm').on('submit', function (e) {
@@ -372,9 +429,23 @@
                 processData: false,
                 contentType: false,
                 success: function (res) {
+                    if (res.success === false) {
+                        showToast(res.message || 'Something went wrong.', 'danger');
+                        return;
+                    }
+
                     brandModal.hide();
                     showToast(res.message, 'success');
-                    setTimeout(() => location.reload(), 800);
+                    resetForm();
+
+                    if (id) {
+                        updateExistingRow(res.data);
+                        table.draw(false);
+                    } else {
+                        const rowNum = table.data().count() + 1;
+                        const $newRow = $(buildBrandRow(res.data, rowNum));
+                        table.row.add($newRow[0]).draw(false);
+                    }
                 },
                 error: function (xhr) {
                     if (xhr.status === 422) {
@@ -388,7 +459,7 @@
                             }
                         });
                     } else {
-                        showToast('Something went wrong.', 'danger');
+                        showToast(getErrorMessage(xhr, 'Something went wrong.'), 'danger');
                     }
                 },
                 complete: function () {
@@ -415,6 +486,11 @@
             credits: false,
         });
 
+        // Common switch toggle
+        $('#common-switch').on('change', function () {
+            $('#isCommon').val($(this).is(':checked') ? '1' : '0');
+        });
+
         // Status switch toggle
         $('#status-switch').on('change', function () {
             const isChecked = $(this).is(':checked');
@@ -427,6 +503,7 @@
             $('#brand_id').val('');
             $('#logo-preview').addClass('d-none');
             pond.removeFiles();
+            $('#common-switch').prop('checked', false).trigger('change');
             $('#status-switch').prop('checked', true).trigger('change');
             clearErrors();
         }
@@ -434,6 +511,10 @@
         function clearErrors() {
             $('.is-invalid').removeClass('is-invalid');
             $('.invalid-feedback').text('').css('display', '');
+        }
+
+        function getErrorMessage(xhr, fallbackMessage) {
+            return xhr.responseJSON?.message || fallbackMessage;
         }
 
         function showToast(message, type) {
