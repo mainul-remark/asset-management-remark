@@ -245,9 +245,15 @@ HTML;
             ->leftJoin('divisions', 'divisions.id', '=', 'stores.division_id')
             ->leftJoin('districts', 'districts.id', '=', 'stores.district_id')
             ->leftJoin('users', 'users.id', '=', 'assign_asset_to_stores.assigned_by_user_id')
+            ->leftJoin('assign_kv_to_assets', function ($join) {
+                $join->on('assign_kv_to_assets.asset_id', '=', 'assets.id')
+                     ->whereNull('assign_kv_to_assets.deleted_at');
+            })
+            ->leftJoin('key_visuals', 'key_visuals.id', '=', 'assign_kv_to_assets.key_visual_id')
             ->select([
                 'assign_asset_to_stores.id',
                 'assign_asset_to_stores.store_id',
+                'assign_asset_to_stores.asset_id',
                 'assign_asset_to_stores.assign_date',
                 'assets.name as asset_name',
                 'assets.asset_code',
@@ -257,6 +263,10 @@ HTML;
                 'divisions.name as division_name',
                 'districts.name as district_name',
                 'users.name as assigned_by_name',
+                'assign_kv_to_assets.id as akv_id',
+                'key_visuals.name as kv_name',
+                'key_visuals.unique_code as kv_code',
+                'assign_kv_to_assets.instalation_status as kv_status',
             ])
             ->whereNull('assets.deleted_at')
             ->whereNull('stores.deleted_at')
@@ -306,6 +316,35 @@ HTML;
 
                 return '<div class="asset-name">' . $name . '</div>' . $code . $category;
             })
+            ->addColumn('asset_group', function ($row) {
+                $storeId = (int) ($row->store_id ?? 0);
+                $assetId = (int) ($row->asset_id ?? 0);
+
+                return "{$storeId}|{$assetId}";
+            })
+            ->addColumn('kv_display', function ($row) {
+                if (blank($row->kv_name)) {
+                    return '<span class="text-muted fs-12">No KV assigned</span>';
+                }
+
+                $name = e($row->kv_name);
+                $code = filled($row->kv_code)
+                    ? '<small class="kv-code d-block">' . e($row->kv_code) . '</small>'
+                    : '';
+                $status = filled($row->kv_status)
+                    ? '<span class="badge bg-' . match ($row->kv_status) {
+                        'installed' => 'success',
+                        'verified'  => 'info',
+                        'planned'   => 'warning',
+                        default     => 'secondary',
+                    } . '-transparent fs-10">' . e(ucfirst($row->kv_status)) . '</span>'
+                    : '';
+
+                return '<div class="kv-info">'
+                    . '<div class="kv-name">' . $name . '</div>'
+                    . $code . $status
+                    . '</div>';
+            })
             ->addColumn('category_display', fn ($row) => e($row->asset_type_name ?? '-'))
             ->addColumn('assign_date_display', function ($row) {
                 if (! filled($row->assign_date)) {
@@ -349,13 +388,22 @@ HTML;
             })
             ->filterColumn('category_display', fn ($query, $keyword) => $query->where('asset_types.name', 'like', "%{$keyword}%"))
             ->filterColumn('assigned_by_display', fn ($query, $keyword) => $query->where('users.name', 'like', "%{$keyword}%"))
+            ->filterColumn('kv_display', function ($query, $keyword) {
+                $query->where(function ($q) use ($keyword) {
+                    $like = "%{$keyword}%";
+                    $q->where('key_visuals.name', 'like', $like)
+                      ->orWhere('key_visuals.unique_code', 'like', $like);
+                });
+            })
             ->orderColumn('store_group', 'stores.title $1')
             ->orderColumn('store_summary', 'stores.title $1')
             ->orderColumn('asset_display', 'assets.name $1')
+            ->orderColumn('asset_group', 'assets.name $1')
             ->orderColumn('category_display', 'asset_types.name $1')
             ->orderColumn('assign_date_display', 'assign_asset_to_stores.assign_date $1')
             ->orderColumn('assigned_by_display', 'users.name $1')
-            ->rawColumns(['store_summary', 'asset_display'])
+            ->orderColumn('kv_display', 'key_visuals.name $1')
+            ->rawColumns(['store_summary', 'asset_display', 'kv_display'])
             ->toJson();
     }
 

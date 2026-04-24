@@ -87,6 +87,7 @@
                                     <th>Store</th>
                                     <th width="60">#</th>
                                     <th>Asset</th>
+                                    <th>Key Visual</th>
                                 </tr>
                                 </thead>
                                 <tbody></tbody>
@@ -174,6 +175,19 @@
     font-size: 0.7rem;
     color: var(--text-muted);
     margin-top: 4px;
+}
+#assign-table .kv-name {
+    font-weight: 600;
+    color: var(--default-text-color);
+}
+#assign-table .kv-code {
+    display: inline-block;
+    margin-top: 2px;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+}
+#assign-table .kv-info .badge {
+    margin-top: 3px;
 }
 </style>
 @endpush
@@ -314,65 +328,105 @@
         }
 
         function renderStoreGroupRows(api) {
-            const $tbody = $('#assign-table tbody');
-            const rows = api.rows({ page: 'current' }).nodes().to$();
+            const rows = api.rows({ page: 'current' });
+            const nodes = rows.nodes();
+            const allData = rows.data();
 
-            rows.each(function () {
-                const $cells = $(this).children('td');
+            if (!nodes.length) return;
 
-                $cells.eq(0).show().removeAttr('rowspan').removeClass('sl-cell');
-                $cells.eq(1).show().removeAttr('rowspan').removeClass('store-cell');
-                $cells.eq(2).removeClass('group-item-cell').text('');
+            // Reset all cells
+            $(nodes).each(function () {
+                $(this).children('td').each(function () {
+                    $(this).show().removeAttr('rowspan')
+                        .removeClass('sl-cell store-cell group-item-cell');
+                });
             });
 
-            let storeSerial = 0;
-            let previousGroup = null;
-            let groupStartRow = null;
-            let groupSize = 0;
-
-            function finalizeGroup() {
-                if (!groupStartRow || groupSize === 0) {
-                    return;
-                }
-
-                const startData = api.row(groupStartRow).data();
-                const $cells = $(groupStartRow).children('td');
-
-                $cells.eq(0)
-                    .attr('rowspan', groupSize)
-                    .addClass('sl-cell')
-                    .text(storeSerial);
-
-                $cells.eq(1)
-                    .attr('rowspan', groupSize)
-                    .addClass('store-cell')
-                    .html(`${startData.store_summary || ''}<div class="store-count">${groupSize} asset${groupSize > 1 ? 's' : ''} assigned</div>`);
+            // Build items array
+            const items = [];
+            for (let i = 0; i < allData.length; i++) {
+                items.push({
+                    node: nodes[i],
+                    data: allData[i],
+                    storeGroup: allData[i].store_group,
+                    assetGroup: allData[i].asset_group,
+                });
             }
 
-            api.rows({ page: 'current' }).every(function () {
-                const rowData = this.data();
-                const $cells = $(this.node()).children('td');
+            // Two-level grouping: Store > Asset
+            let storeSerial = 0;
+            let i = 0;
 
-                if (!rowData) {
-                    return;
+            while (i < items.length) {
+                const storeGroupKey = items[i].storeGroup;
+                const storeStart = i;
+                storeSerial++;
+
+                // Find all rows in this store group
+                while (i < items.length && items[i].storeGroup === storeGroupKey) {
+                    i++;
+                }
+                const storeEnd = i;
+                const storeRowCount = storeEnd - storeStart;
+
+                // Store-level rowspan on SL (col 0) and Store (col 1)
+                const $firstStoreRow = $(items[storeStart].node).children('td');
+                $firstStoreRow.eq(0)
+                    .attr('rowspan', storeRowCount)
+                    .addClass('sl-cell')
+                    .text(storeSerial);
+                $firstStoreRow.eq(1)
+                    .attr('rowspan', storeRowCount)
+                    .addClass('store-cell')
+                    .html(items[storeStart].data.store_summary || '');
+
+                // Hide SL and Store for subsequent rows
+                for (let r = storeStart + 1; r < storeEnd; r++) {
+                    $(items[r].node).children('td').eq(0).hide();
+                    $(items[r].node).children('td').eq(1).hide();
                 }
 
-                if (rowData.store_group !== previousGroup) {
-                    finalizeGroup();
-                    storeSerial++;
-                    previousGroup = rowData.store_group;
-                    groupStartRow = this.node();
-                    groupSize = 1;
-                    $cells.eq(2).addClass('group-item-cell').text(1);
-                } else {
-                    groupSize++;
-                    $cells.eq(0).hide();
-                    $cells.eq(1).hide();
-                    $cells.eq(2).addClass('group-item-cell').text(groupSize);
-                }
-            });
+                // Asset-level grouping within this store
+                let assetIndex = 0;
+                let j = storeStart;
 
-            finalizeGroup();
+                while (j < storeEnd) {
+                    const assetGroupKey = items[j].assetGroup;
+                    const assetStart = j;
+                    assetIndex++;
+
+                    while (j < storeEnd && items[j].assetGroup === assetGroupKey) {
+                        j++;
+                    }
+                    const assetEnd = j;
+                    const assetRowCount = assetEnd - assetStart;
+
+                    // Asset-level rowspan on # (col 2) and Asset (col 3)
+                    const $firstAssetRow = $(items[assetStart].node).children('td');
+                    $firstAssetRow.eq(2)
+                        .attr('rowspan', assetRowCount)
+                        .addClass('group-item-cell')
+                        .text(assetIndex);
+                    $firstAssetRow.eq(3)
+                        .attr('rowspan', assetRowCount);
+
+                    // Hide # and Asset for subsequent KV rows
+                    for (let r = assetStart + 1; r < assetEnd; r++) {
+                        $(items[r].node).children('td').eq(2).hide();
+                        $(items[r].node).children('td').eq(3).hide();
+                    }
+                }
+
+                // Update store summary with distinct asset count
+                const distinctAssets = new Set();
+                for (let r = storeStart; r < storeEnd; r++) {
+                    distinctAssets.add(items[r].assetGroup);
+                }
+                const assetCount = distinctAssets.size;
+                $firstStoreRow.eq(1).append(
+                    `<div class="store-count">${assetCount} asset${assetCount > 1 ? 's' : ''} assigned</div>`
+                );
+            }
         }
 
         const filterPlaceholders = {
@@ -402,7 +456,7 @@
             deferRender: true,
             searchDelay: 500,
             stateSave: true,
-            orderFixed: [[1, 'asc']],
+            orderFixed: [[5, 'asc'], [6, 'asc']],
             order: [[3, 'asc']],
             pageLength: 25,
             lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
@@ -436,9 +490,12 @@
             },
             columns: [
                 { data: 'DT_RowIndex', name: 'DT_RowIndex', searchable: false, orderable: false, className: 'text-center text-muted fw-semibold' },
-                { data: 'store_summary', name: 'stores.title' },
+                { data: 'store_summary', name: 'store_summary' },
                 { data: null, name: 'group_item_index', searchable: false, orderable: false, defaultContent: '' },
-                { data: 'asset_display', name: 'assets.name' },
+                { data: 'asset_display', name: 'asset_display' },
+                { data: 'kv_display', name: 'kv_display' },
+                { data: 'store_group', name: 'store_group', visible: false },
+                { data: 'asset_group', name: 'asset_group', visible: false },
             ],
             drawCallback: function () {
                 const api = this.api();
