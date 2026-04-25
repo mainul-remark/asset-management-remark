@@ -20,6 +20,7 @@ use App\Http\Controllers\Backend\KV\KeyVisualFilesController;
 use App\Http\Controllers\Backend\Asset\AssignKvToAssetController;
 
 use App\Http\Controllers\Backend\Asset\AssignAssetToBrandController;
+use App\Http\Controllers\Backend\Asset\VmIssueFixController;
 
 Route::get('/', function () {
     if (auth()->check())
@@ -68,6 +69,14 @@ Route::middleware([
         Route::get('/vm-issues/export/status/{key}', [VisualMerchandisingController::class, 'exportVmIssuesStatus'])->name('vm-issues.export.status');
         Route::get('/vm-issues/export/download/{key}', [VisualMerchandisingController::class, 'exportVmIssuesDownload'])->name('vm-issues.export.download');
         Route::post('/change-vm-issue-status/{visualMerchandising}/{issueStatus}', [VisualMerchandisingController::class, 'changeVmIssueStatus'])->name('change-vm-issue-status');
+
+
+        Route::get('/fix-issues', [VmIssueFixController::class, 'index'])->name('fix-issues');
+        Route::get('/fix-issues/datatable', [VmIssueFixController::class, 'datatable'])->name('fix-issues.datatable');
+        Route::get('/fix-issues/{visualMerchandising}', [VmIssueFixController::class, 'show'])->name('fix-issues.show');
+        Route::post('/fix-issues/{visualMerchandising}/assign-user', [VmIssueFixController::class, 'assignUser'])->name('assign-user');
+        Route::post('/fix-issues/{visualMerchandising}/upload-proof', [VmIssueFixController::class, 'uploadProof'])->name('upload-proof');
+        Route::post('/fix-issues/{visualMerchandising}/change-fix-status', [VmIssueFixController::class, 'changeFixStatus'])->name('change-fix-status');
     });
 
     Route::prefix('store')->group(function () {

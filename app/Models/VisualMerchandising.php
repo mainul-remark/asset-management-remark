@@ -27,6 +27,10 @@ class VisualMerchandising extends Model
         'issue_text',
         'issue_fix_status',
         'status',
+        'assigned_by',
+        'assigned_to',
+        'fix_proof',
+        'fix_note',
     ];
 
     protected $searchableFields = ['*'];
@@ -43,6 +47,10 @@ class VisualMerchandising extends Model
                 'issue_text',
                 'issue_fix_status',
                 'status',
+                'assigned_by',
+                'assigned_to',
+                'fix_proof',
+                'fix_note',
             ]);
         // Chain fluent methods for configuration options
     }
@@ -153,6 +161,16 @@ class VisualMerchandising extends Model
     public function createdBy()
     {
         return $this->belongsTo(User::class, 'creator_id');
+    }
+
+    public function assignedBy()
+    {
+        return $this->belongsTo(User::class, 'assigned_by');
+    }
+
+    public function assignedTo()
+    {
+        return $this->belongsTo(User::class, 'assigned_to');
     }
 
 }

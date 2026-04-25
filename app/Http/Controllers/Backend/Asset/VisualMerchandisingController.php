@@ -10,6 +10,7 @@ use App\Http\Requests\Backend\Asset\VisualMerchandisingRequest;
 use App\Models\Asset;
 use App\Models\Store;
 use App\Models\VisualMerchandising;
+use App\Models\VmIssueFix;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -54,9 +55,12 @@ class VisualMerchandisingController extends Controller
 
     public function store(VisualMerchandisingRequest $request)
     {
-        $visualMerchandising = DB::transaction(
-            fn () => VisualMerchandising::updateOrCreateVisualMerchandising($request)
-        );
+        $visualMerchandising = DB::transaction( function () use ($request) {
+            return VisualMerchandising::updateOrCreateVisualMerchandising($request);
+//            if ($visualMerchandising) {
+//                VmIssueFix::createOrUpdateVmIssueFix($request, $visualMerchandising);
+//            }
+        });
 
         return response()->json([
             'message' => 'Visual merchandising issue created successfully.',

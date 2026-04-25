@@ -311,4 +311,14 @@ class User extends Authenticatable
         return $this->hasMany(AssignAssetToBrand::class, 'assigned_by_user_id');
     }
 
+    public function vmIssueFixAssignedBy()
+    {
+        return $this->hasMany(VisualMerchandising::class, 'assigned_by');
+    }
+
+    public function vmIssueFixAssignedTo()
+    {
+        return $this->hasMany(VisualMerchandising::class, 'assigned_to');
+    }
+
 }
