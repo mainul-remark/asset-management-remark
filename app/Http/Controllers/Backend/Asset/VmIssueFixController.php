@@ -121,6 +121,7 @@ class VmIssueFixController extends Controller
                 foreach (json_decode($vm->fix_proof) as $file)
                 {
                     if (file_exists($file))
+
                         unlink($file);
                 }
             }
@@ -132,8 +133,16 @@ class VmIssueFixController extends Controller
                 'fix_proof'   => json_encode($fileString),
                 'issue_fix_status'  => 'processing'
             ]);
+            return response()->json([
+                'success'   => true,
+                'message'   => 'Proof Files successfully uploaded',
+            ]);
             return back()->with('success', 'Proof successfully uploaded');
         } catch (\Exception $exception) {
+            return response()->json([
+                'success'   => false,
+                'message'   => 'Something went wrong. Please try again',
+            ]);
             return back()->withErrors([$exception->getMessage()]);
         }
 
