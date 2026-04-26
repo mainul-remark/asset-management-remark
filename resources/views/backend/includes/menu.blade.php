@@ -56,6 +56,9 @@
                         <li class="slide">
                             <a href="{{ route('users.index') }}" class="side-menu__item">Users</a>
                         </li>
+                        <li class="slide">
+                            <a href="{{ route('user-store-assignments.index') }}" class="side-menu__item">User Assigned Stores</a>
+                        </li>
                     </ul>
                 </li>
                 <!-- sample menu with nested sub menu -->

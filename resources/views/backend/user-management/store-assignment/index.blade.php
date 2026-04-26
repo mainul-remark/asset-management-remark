@@ -77,42 +77,38 @@
 
         <div class="card custom-card mb-3">
             <div class="card-body">
-                <form method="GET" action="{{ route('user-store-assignments.index') }}">
-                    <div class="row g-3 align-items-end">
-                        <div class="col-lg-5">
-                            <label for="search" class="form-label">Search</label>
-                            <input
-                                type="text"
-                                class="form-control"
-                                id="search"
-                                name="search"
-                                value="{{ $filters['search'] }}"
-                                placeholder="Search by user, email, store, or role"
-                            >
-                        </div>
-                        <div class="col-lg-3">
-                            <label for="status" class="form-label">Status</label>
-                            <select class="form-select" id="status" name="status">
-                                <option value="">All Statuses</option>
-                                <option value="1" @selected((string) $filters['status'] === '1')>Active</option>
-                                <option value="0" @selected((string) $filters['status'] === '0')>Inactive</option>
-                            </select>
-                        </div>
-                        <div class="col-lg-4">
-                            <div class="d-flex gap-2">
-                                <button type="submit" class="btn btn-primary btn-wave">
-                                    <i class="ri-search-line me-1"></i>Filter
-                                </button>
-                                <a href="{{ route('user-store-assignments.index') }}" class="btn btn-light btn-wave">
-                                    <i class="ri-refresh-line me-1"></i>Reset
-                                </a>
-                                <button type="button" class="btn btn-success btn-wave ms-auto" id="btn-open-create-modal">
-                                    <i class="ri-add-line me-1"></i>Assign User
-                                </button>
-                            </div>
+                <div class="row g-3 align-items-end">
+                    <div class="col-lg-5">
+                        <label for="search" class="form-label">Search</label>
+                        <input
+                            type="text"
+                            class="form-control"
+                            id="search"
+                            placeholder="Search by user, email, store, or role"
+                        >
+                    </div>
+                    <div class="col-lg-3">
+                        <label for="status" class="form-label">Status</label>
+                        <select class="form-select" id="status">
+                            <option value="">All Statuses</option>
+                            <option value="1">Active</option>
+                            <option value="0">Inactive</option>
+                        </select>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-primary btn-wave" id="btn-filter-assignments">
+                                <i class="ri-search-line me-1"></i>Filter
+                            </button>
+                            <button type="button" class="btn btn-light btn-wave" id="btn-reset-filters">
+                                <i class="ri-refresh-line me-1"></i>Reset
+                            </button>
+                            <button type="button" class="btn btn-success btn-wave ms-auto" id="btn-open-create-modal">
+                                <i class="ri-add-line me-1"></i>Assign User
+                            </button>
                         </div>
                     </div>
-                </form>
+                </div>
             </div>
         </div>
 
@@ -122,11 +118,11 @@
                     <h5 class="card-title mb-1">Assignment Directory</h5>
                     <p class="text-muted fs-12 mb-0">Each row represents one user with one or more assigned stores.</p>
                 </div>
-                <span class="badge bg-primary-transparent">{{ $assignmentGroups->total() }} user(s)</span>
+                <span class="badge bg-primary-transparent" id="assignment-count-badge">0 user(s)</span>
             </div>
             <div class="card-body">
                 <div class="table-responsive">
-                    <table class="table table-bordered align-middle mb-0">
+                    <table id="assignment-table" class="table table-bordered align-middle mb-0 w-100" data-datatable-manual="true">
                         <thead>
                         <tr>
                             <th width="60">SL</th>
@@ -138,96 +134,9 @@
                             <th width="140">Actions</th>
                         </tr>
                         </thead>
-                        <tbody>
-                        @forelse($assignmentGroups as $index => $group)
-                            <tr>
-                                <td>{{ $assignmentGroups->firstItem() + $index }}</td>
-                                <td>
-                                    <div class="assignment-cell">
-                                        <div class="primary-line">{{ $group['user']['name'] }}</div>
-                                        <div class="secondary-line">{{ $group['user']['email'] }}</div>
-                                    </div>
-                                </td>
-                                <td>
-                                    @if($group['role'])
-                                        <span class="badge bg-info-transparent text-info">{{ $group['role']['name'] }}</span>
-                                    @else
-                                        <span class="text-muted">No role</span>
-                                    @endif
-                                </td>
-                                <td>
-                                    <div class="d-flex flex-wrap gap-2">
-                                        @foreach($group['stores'] as $store)
-                                            <span class="badge bg-light text-dark border store-chip">
-                                                {{ $store['title'] }}
-                                                @if($store['code'])
-                                                    <small class="text-muted ms-1">{{ $store['code'] }}</small>
-                                                @endif
-                                            </span>
-                                        @endforeach
-                                    </div>
-                                    <div class="secondary-line mt-2">{{ $group['store_count'] }} store(s)</div>
-                                </td>
-                                <td>
-                                    <span class="badge {{ $group['status'] === 1 ? 'bg-success-transparent text-success' : 'bg-danger-transparent text-danger' }}">
-                                        {{ $group['status_label'] }}
-                                    </span>
-                                </td>
-                                <td>
-                                    <div class="assignment-cell">
-                                        <div class="primary-line">{{ $group['assigned_at'] ?? 'N/A' }}</div>
-                                        <div class="secondary-line">
-                                            {{ $group['assigned_by']['name'] ?? 'System' }}
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="d-flex gap-2">
-                                        <button
-                                            type="button"
-                                            class="btn btn-sm btn-primary-light btn-wave btn-edit-assignment"
-                                            data-id="{{ $group['id'] }}"
-                                            title="Edit"
-                                        >
-                                            <i class="ri-edit-line"></i>
-                                        </button>
-                                        <button
-                                            type="button"
-                                            class="btn btn-sm btn-danger-light btn-wave btn-delete-assignment"
-                                            data-id="{{ $group['id'] }}"
-                                            data-user-name="{{ $group['user']['name'] }}"
-                                            data-store-count="{{ $group['store_count'] }}"
-                                            title="Delete"
-                                        >
-                                            <i class="ri-delete-bin-line"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="7" class="text-center py-5">
-                                    <div class="text-muted">
-                                        <i class="ri-inbox-line fs-1 d-block mb-2"></i>
-                                        No user store assignments found.
-                                    </div>
-                                </td>
-                            </tr>
-                        @endforelse
-                        </tbody>
+                        <tbody></tbody>
                     </table>
                 </div>
-
-                @if($assignmentGroups->hasPages())
-                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-3">
-                        <div class="text-muted fs-13">
-                            Showing {{ $assignmentGroups->firstItem() }} to {{ $assignmentGroups->lastItem() }} of {{ $assignmentGroups->total() }} entries
-                        </div>
-                        <div>
-                            {{ $assignmentGroups->links() }}
-                        </div>
-                    </div>
-                @endif
             </div>
         </div>
     </div>
@@ -396,6 +305,7 @@
 @endpush
 
 @push('scripts')
+    @include('backend.includes.plugins.datatable')
     @include('backend.includes.plugins.select2')
     @include('backend.includes.plugins.toastr')
 
@@ -404,7 +314,49 @@
             const assignmentModal = new bootstrap.Modal(document.getElementById('assignmentModal'));
             const deleteModal = new bootstrap.Modal(document.getElementById('deleteAssignmentModal'));
             const assignmentBaseUrl = "{{ url('user-store-assignments') }}";
+            const assignmentDatatableUrl = @json(route('user-store-assignments.datatable'));
             const userSearchUrl = $('#assignment_user_id').data('search-url');
+            const assignmentTable = $('#assignment-table').DataTable({
+                processing: true,
+                serverSide: true,
+                deferRender: true,
+                searchDelay: 400,
+                searching: false,
+                order: [[1, 'asc']],
+                dom: '<"d-flex justify-content-between align-items-center mb-3"<"d-flex align-items-center"l><"d-flex align-items-center"i>>rt<"d-flex justify-content-between align-items-center mt-3"ip>',
+                language: {
+                    processing: '<div class="py-4">Loading assignments...</div>',
+                    emptyTable: 'No user store assignments found.',
+                    zeroRecords: 'No matching assignments found.',
+                    paginate: {
+                        previous: "<i class='ri-arrow-left-s-line'></i>",
+                        next: "<i class='ri-arrow-right-s-line'></i>"
+                    }
+                },
+                pageLength: 10,
+                lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
+                ajax: {
+                    url: assignmentDatatableUrl,
+                    data: function (d) {
+                        d.search_text = $('#search').val();
+                        d.status = $('#status').val();
+                    }
+                },
+                columns: [
+                    { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false, width: '60px' },
+                    { data: 'user_display', name: 'user_display' },
+                    { data: 'role_display', name: 'role_display', orderable: false, searchable: false },
+                    { data: 'stores_display', name: 'stores_display', orderable: false, searchable: false },
+                    { data: 'status_display', name: 'status_display', orderable: false, searchable: false },
+                    { data: 'assigned_info', name: 'assigned_info', orderable: false, searchable: false },
+                    { data: 'actions', name: 'actions', orderable: false, searchable: false, width: '140px' }
+                ]
+            });
+
+            $('#assignment-table').on('xhr.dt', function (_event, _settings, json) {
+                const total = json?.recordsFiltered ?? 0;
+                $('#assignment-count-badge').text(`${total} user(s)`);
+            });
 
             function formatUserText(user) {
                 if (user.text && !user.name) {
@@ -525,6 +477,27 @@
                 assignmentModal.show();
             });
 
+            $('#btn-filter-assignments').on('click', function () {
+                assignmentTable.ajax.reload();
+            });
+
+            $('#btn-reset-filters').on('click', function () {
+                $('#search').val('');
+                $('#status').val('');
+                assignmentTable.ajax.reload();
+            });
+
+            $('#search').on('keydown', function (event) {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    assignmentTable.ajax.reload();
+                }
+            });
+
+            $('#status').on('change', function () {
+                assignmentTable.ajax.reload();
+            });
+
             $(document).on('click', '.btn-edit-assignment', function () {
                 const id = $(this).data('id');
                 resetForm();
@@ -560,7 +533,7 @@
                     success: function (response) {
                         toastr.success(response.message || 'Assignment saved successfully.');
                         assignmentModal.hide();
-                        window.location.reload();
+                        assignmentTable.ajax.reload(null, false);
                     },
                     error: function (xhr) {
                         if (xhr.status === 422) {
@@ -601,7 +574,7 @@
                     success: function (response) {
                         toastr.success(response.message || 'Assignment deleted successfully.');
                         deleteModal.hide();
-                        window.location.reload();
+                        assignmentTable.ajax.reload(null, false);
                     },
                     error: function (xhr) {
                         toastr.error(xhr.responseJSON?.message || 'Failed to delete assignment.');
