@@ -21,6 +21,7 @@ use App\Http\Controllers\Backend\Asset\AssignKvToAssetController;
 
 use App\Http\Controllers\Backend\Asset\AssignAssetToBrandController;
 use App\Http\Controllers\Backend\Asset\VmIssueFixController;
+use App\Http\Controllers\Admin\UserStoreAssignmentController;
 
 use App\Http\Controllers\Backend\Asset\ImportExport\AssetImportController;
 
@@ -50,6 +51,8 @@ Route::middleware([
         Route::resource('/users',UsersController::class);
     });
 
+
+
     Route::resources([
         'brands'                    => BrandController::class,
         'categories'                => CategoryController::class,
@@ -62,6 +65,7 @@ Route::middleware([
         'key-visual-files'          => KeyVisualFilesController::class,
         'visual-merchandising'      => VisualMerchandisingController::class,
         'visual-merchandising-files'=> VisualMerchandisingFileController::class,
+        'user-store-assignments'    => UserStoreAssignmentController::class,
     ]);
 
     Route::prefix('vm')->name('vm.')->group(function () {
