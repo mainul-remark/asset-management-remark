@@ -248,7 +248,7 @@
 @push('scripts')
     @include('backend.includes.plugins.datatable')
     @include('backend.includes.plugins.select2')
-
+    @include('backend.includes.plugins.toastr')
     <script>
         const statusConfig = {
             assigned:   { label: 'Assigned',   cls: 'bg-warning-transparent text-warning' },
@@ -453,6 +453,8 @@
                 processData: false,
                 contentType: false,
                 success: function (res) {
+                    if (res.success)
+                        toastr.success(res.message);
                     $('#vmFixPhotos').modal('hide');
                     if (window.vmFixTable) window.vmFixTable.ajax.reload(null, false);
                 },
@@ -480,6 +482,8 @@
                 processData: false,
                 contentType: false,
                 success: function (res) {
+                    if (res.success)
+                        toastr.success(res.message);
                     $('#assignVmFixPerson').modal('hide');
                     if (window.vmFixTable) window.vmFixTable.ajax.reload(null, false);
                 },

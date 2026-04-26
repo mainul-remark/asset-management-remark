@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\VisualMerchandising;
 use App\Models\VmIssueFix;
+use http\Env\Response;
 use Illuminate\Http\Request;
 use Mainul\CustomHelperFunctions\Helpers\CustomHelper;
 
@@ -97,15 +98,21 @@ class VmIssueFixController extends Controller
 
     public function assignUser(Request $request, $vmIssueFix)
     {
-        $vm = VisualMerchandising::findOrFail($vmIssueFix);
-        if (!$vm)
-        {
-            return back()->withErrors('Vm Issue Not Found');
+        try {
+            $vm = VisualMerchandising::findOrFail($vmIssueFix);
+            if (!$vm)
+            {
+//            return back()->withErrors('Vm Issue Not Found');
+                return response()->json(['message' => 'Vm Issue Not Found', 'success' => false]);
+            }
+            $vm->update([
+                'assigned_by'   => auth()->id(),
+                'assigned_to'   => $request->assigned_to,
+            ]);
+            return response()->json(['success' => true, 'message' => 'Assigned User for this issue successfully',]);
+        } catch (\Exception $exception) {
+            return response()->json(['success' => false, 'message' => 'something went wrong, Please try after sometime']);
         }
-        $vm->update([
-            'assigned_by'   => auth()->id(),
-            'assigned_to'   => $request->assigned_to,
-        ]);
         return back()->with('success', 'Assigned User for this issue successfully');
     }
 
@@ -114,8 +121,7 @@ class VmIssueFixController extends Controller
         try {
             $vm = VisualMerchandising::findOrFail($vmIssueFix);
             if (!$vm)
-                return back()->withErrors('Vm Issue Not Found');
-
+                return response()->json(['message' => 'Vm Issue Not Found', 'success' => false]);
             if ($vm->fix_proof)
             {
                 foreach (json_decode($vm->fix_proof) as $file)
@@ -137,25 +143,35 @@ class VmIssueFixController extends Controller
                 'success'   => true,
                 'message'   => 'Proof Files successfully uploaded',
             ]);
-            return back()->with('success', 'Proof successfully uploaded');
         } catch (\Exception $exception) {
             return response()->json([
                 'success'   => false,
                 'message'   => 'Something went wrong. Please try again',
             ]);
-            return back()->withErrors([$exception->getMessage()]);
         }
 
     }
 
     public function changeFixStatus(Request $request, $vmId)
     {
-        $vm = VisualMerchandising::findOrFail($vmId);
-        if (!$vm)
-            return back()->withErrors('Vm Issue Not Found');
-        $vm->update([
-            'issue_fix_status'  => $request->issue_fix_status,
-        ]);
-        return back()->with('success', 'Proof successfully updated');
+        try {
+            $vm = VisualMerchandising::findOrFail($vmId);
+            if (!$vm)
+//            return back()->withErrors('Vm Issue Not Found');
+                return response()->json(['message' => 'Vm Issue Not Found', 'success' => false]);
+            $vm->update([
+                'issue_fix_status'  => $request->issue_fix_status,
+            ]);
+
+            return response()->json([
+                'success'   => true,
+                'message'   => 'Work Status successfully updated',
+            ]);
+        } catch (\Exception $exception) {
+            return response()->json([
+                'success'   => false,
+                'message'   => 'Something went wrong. Please try again',
+            ]);
+        }
     }
 }
