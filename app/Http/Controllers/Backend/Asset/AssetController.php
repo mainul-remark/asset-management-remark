@@ -180,7 +180,7 @@ HTML;
     {
 
         return response()->json(
-            Asset::with(['assetType:id,name', 'store:id,title,code'])->findOrFail($id)
+            Asset::with(['assetType:id,name,total_kv_slot,is_digital,total_self,has_kv_space,need_asset_planogram,has_asset_self', 'store:id,title,code'])->findOrFail($id)
         );
     }
 

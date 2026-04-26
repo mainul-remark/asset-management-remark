@@ -643,9 +643,9 @@
                                             <div class="invalid-feedback" id="error-asset_kv_key_visual_files_id"></div>
                                         </div>
                                         <div class="col-md-6 d-none" id="asset-kv-slot-group">
-                                            <label for="asset_kv_key_visual_slot_number" class="form-label">KV File <span class="text-danger">*</span></label>
+                                            <label for="asset_kv_key_visual_slot_number" class="form-label">KV Slot <span class="text-danger">*</span></label>
                                             <select class="form-select select-ele" id="asset_kv_key_visual_slot_number" name="key_visual_slot_number" disabled>
-                                                <option value="">Select Key Visual First</option>
+                                                <option value="">Select Key Slot</option>
                                             </select>
                                             <div class="invalid-feedback" id="error-asset_kv_key_visual_slot_number"></div>
                                         </div>
@@ -1738,6 +1738,7 @@
             assignments: [],
             editingAssignmentId: '',
             formVisible: false,
+
         };
 
         function getAssetTypeMeta(typeId) {
@@ -1800,6 +1801,7 @@
             const fieldMap = {
                 key_visual_id: '#asset_kv_key_visual_id',
                 key_visual_files_id: '#asset_kv_key_visual_files_id',
+                slot_number: '#asset_kv_key_visual_slot_number',
             };
 
             Object.entries(errors || {}).forEach(([field, messages]) => {
@@ -1831,6 +1833,55 @@
 
             $('#asset-kv-file-group').toggleClass('d-none', !hasKeyVisual);
             $('#asset-kv-size-group').toggleClass('d-none', !hasKvFile);
+
+            // $('#asset_kv_key_visual_slot_number').prop('disabled', false).html('<option value="">Select Slot</option>' + Array.from({length: assetKvState.asset.asset_type.total_kv_slot}, (_, i) => `<option value="${i+1}">${i+1}</option>`).join(''));
+
+            $('#asset-kv-slot-group').toggleClass('d-none', !hasKvFile); // show kv slot number option
+
+            populateAssetKvSlotOptions();
+        }
+
+        // ADD this (place after populateAssetKvSizeOption)
+        function populateAssetKvSlotOptions(selectedSlot = '') {
+            const $slot = $('#asset_kv_key_visual_slot_number');
+            const hasKvFile = !!$('#asset_kv_key_visual_files_id').val();
+            const slotLimit = getAssetKvSlotLimit();
+
+            if (!hasKvFile || slotLimit < 1) {
+                $slot
+                    .html('<option value="">Select Key Slot</option>')
+                    .prop('disabled', true)
+                    .val('')
+                    .trigger('change.select2');
+                return;
+            }
+
+            const editingId = String(assetKvState.editingAssignmentId || '');
+            const usedSlots = new Set(
+                (assetKvState.assignments || [])
+                    .filter(item => String(item.id) !== editingId)
+                    .map(item => Number(item.slot_number))
+                    .filter(value => Number.isInteger(value) && value > 0)
+            );
+
+            const currentSelected = Number(selectedSlot || $slot.val() || 0);
+            let options = '<option value="">Select Key Slot</option>';
+
+            for (let slot = 1; slot <= slotLimit; slot++) {
+                const isOccupied = usedSlots.has(slot);
+                const keepSelected = currentSelected === slot;
+                options += `<option value="${slot}" ${isOccupied && !keepSelected ? 'disabled' : ''}>${slot}${isOccupied && !keepSelected ? ' (Occupied)' : ''}</option>`;
+            }
+
+            $slot.html(options).prop('disabled', false);
+
+            if (currentSelected > 0 && currentSelected <= slotLimit) {
+                $slot.val(String(currentSelected));
+            } else {
+                $slot.val('');
+            }
+
+            $slot.trigger('change.select2');
         }
 
         function resetAssetKvSummary() {
@@ -2026,9 +2077,12 @@
                 .trigger('change.select2');
         }
 
+
+
         function syncAssetKvSelectionStatus() {
             const lockMessage = getAssetKvActiveLockMessage();
             const selectedFile = keyVisualFiles.find(file => String(file.id) === String($('#asset_kv_key_visual_files_id').val()));
+            const selectedSlot = $('#asset_kv_key_visual_slot_number').val();
             let message = lockMessage;
 
             if (!message) {
@@ -2036,6 +2090,8 @@
                     message = 'Select a key visual for this asset.';
                 } else if (!selectedFile) {
                     message = 'Choose a key visual file to continue.';
+                } else if (!selectedSlot) {
+                    message = 'Choose a KV slot to continue.';
                 } else {
                     message = `${selectedFile.name || 'Selected file'} | ${formatAssetKvFileMeta(selectedFile)}`;
                 }
@@ -2057,6 +2113,7 @@
             populateAssetKvKeyVisualOptions();
             populateAssetKvFileOptions();
             populateAssetKvSizeOption();
+            populateAssetKvSlotOptions();
             syncAssetKvSelectionStatus();
             renderAssetKvSummary();
         }
@@ -2073,6 +2130,7 @@
             populateAssetKvKeyVisualOptions(assignment.key_visual_id);
             populateAssetKvFileOptions(assignment.key_visual_files_id);
             populateAssetKvSizeOption(assignment.key_visual_files_id);
+            populateAssetKvSlotOptions(assignment.slot_number);
             syncAssetKvSelectionStatus();
             renderAssetKvSummary();
         }
@@ -2159,6 +2217,13 @@
         $('#asset_kv_key_visual_files_id').on('change', function () {
             clearAssetKvErrors();
             populateAssetKvSizeOption($(this).val());
+            populateAssetKvSlotOptions();
+            syncAssetKvSelectionStatus();
+        });
+
+        // ADD new slot change handler
+        $('#asset_kv_key_visual_slot_number').on('change', function () {
+            clearAssetKvErrors();
             syncAssetKvSelectionStatus();
         });
 
@@ -2184,6 +2249,7 @@
                 asset_id: assetKvState.assetId,
                 key_visual_id: $('#asset_kv_key_visual_id').val(),
                 key_visual_files_id: $('#asset_kv_key_visual_files_id').val(),
+                slot_number: $('#asset_kv_key_visual_slot_number').val(),
             };
 
             setAssetKvSaveLoading(true);
