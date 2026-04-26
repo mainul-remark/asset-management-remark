@@ -15,6 +15,7 @@ use Laravel\Jetstream\HasTeams;
 use Laravel\Sanctum\HasApiTokens;
 use Mainul\CustomHelperFunctions\Helpers\CustomHelper;
 use Uzzal\Acl\Traits\AccessControlled;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class User extends Authenticatable
 {
@@ -276,6 +277,11 @@ class User extends Authenticatable
         return $this->hasOne(Store::class, 'store_manager_id');
     }
 
+    public function userStoreAssignments(): HasMany
+    {
+        return $this->hasMany(UserStoreAssignment::class, 'user_id');
+    }
+
     public function assignAssetToStores()
     {
         return $this->hasMany(AssignAssetToStore::class, 'assigned_by_user_id');
@@ -319,6 +325,11 @@ class User extends Authenticatable
     public function vmIssueFixAssignedTo()
     {
         return $this->hasMany(VisualMerchandising::class, 'assigned_to');
+    }
+
+    public function userStoreAssignmentsAssignedBy()
+    {
+        return $this->hasMany(UserStoreAssignment::class, 'assigned_by');
     }
 
 }

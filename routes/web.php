@@ -45,6 +45,7 @@ Route::middleware([
     Route::post('stores/{store}/layouts', [StoreController::class, 'uploadLayout'])->name('stores.upload-layout');
     Route::get('key-visuals/next-unique-code', [KeyVisualController::class, 'nextUniqueCode'])->name('key-visuals.next-unique-code');
     Route::get('assets/next-name', [AssetController::class, 'nextName'])->name('assets.next-name');
+    Route::get('user-store-assignments/users/search', [UserStoreAssignmentController::class, 'searchUsers'])->name('user-store-assignments.users.search');
 
     Route::prefix('admin')->middleware(['resource.maker','auth.acl'])->group(function () {
         Route::resource('/roles',RoleController::class);

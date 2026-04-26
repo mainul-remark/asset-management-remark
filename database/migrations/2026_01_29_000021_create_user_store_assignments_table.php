@@ -15,6 +15,7 @@ return new class extends Migration {
             $table->unsignedBigInteger('store_id');
             $table->unsignedBigInteger('user_id');
             $table->unsignedBigInteger('role_id')->nullable();
+            $table->string('employee_id')->nullable();
             $table
                 ->tinyInteger('status')
                 ->default(1)

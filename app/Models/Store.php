@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Mainul\CustomHelperFunctions\Helpers\CustomHelper;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Store extends Model
 {
@@ -109,7 +110,7 @@ class Store extends Model
         return $this->belongsTo(User::class, 'store_manager_id');
     }
 
-    public function storeLayouts()
+    public function storeLayouts(): HasMany
     {
         return $this->hasMany(StoreLayout::class);
     }
@@ -134,18 +135,23 @@ class Store extends Model
         return $this->belongsTo(Thana::class);
     }
 
-    public function assets()
+    public function assets(): HasMany
     {
         return $this->hasMany(Asset::class);
     }
 
-    public function assignAssetToStores()
+    public function assignAssetToStores(): HasMany
     {
         return $this->hasMany(AssignAssetToStore::class);
     }
 
-    public function visualMerchandisings()
+    public function visualMerchandisings(): HasMany
     {
         return $this->hasMany(VisualMerchandising::class);
+    }
+
+    public function userStoreAssignments(): HasMany
+    {
+        return $this->hasMany(UserStoreAssignment::class);
     }
 }
