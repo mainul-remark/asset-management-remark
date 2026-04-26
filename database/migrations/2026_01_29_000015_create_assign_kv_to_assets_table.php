@@ -30,6 +30,10 @@ return new class extends Migration {
                 ->default('pending')
                 ->nullable();
             $table->string('instalation_date')->nullable();
+            $table
+                ->tinyInteger('slot_number')
+                ->default(0)
+                ->nullable();
 
             $table->timestamps();
             $table->softDeletes();

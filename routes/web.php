@@ -22,6 +22,8 @@ use App\Http\Controllers\Backend\Asset\AssignKvToAssetController;
 use App\Http\Controllers\Backend\Asset\AssignAssetToBrandController;
 use App\Http\Controllers\Backend\Asset\VmIssueFixController;
 
+use App\Http\Controllers\Backend\Asset\ImportExport\AssetImportController;
+
 Route::get('/', function () {
     if (auth()->check())
         return redirect('/dashboard');
@@ -94,6 +96,8 @@ Route::middleware([
         Route::get('/assign-asset-to-brand/{assignAssetToBrand}/edit', [AssignAssetToBrandController::class, 'edit'])->name('assets.assign-asset-to-brand.edit');
         Route::put('/assign-asset-to-brand/{assignAssetToBrand}', [AssignAssetToBrandController::class, 'update'])->name('assets.assign-asset-to-brand.update');
         Route::delete('/assign-asset-to-brand/{assignAssetToBrand}', [AssignAssetToBrandController::class, 'destroy'])->name('assets.assign-asset-to-brand.destroy');
+
+        Route::post('/import-assets', [AssetImportController::class, 'import'])->name('assets.import-assets');
     });
 
     Route::prefix('kv')->group(function () {

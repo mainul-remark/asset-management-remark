@@ -50,6 +50,9 @@
                     <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
                         <div class="card-title">Asset Management</div>
                         <div class="d-flex flex-wrap align-items-center gap-2 ms-auto">
+                            <button type="button" data-bs-toggle="modal" data-bs-target="#assetImportModal" class="btn btn-sm btn-teal btn-wave">
+                                <i class="ri-pages-line me-1"></i> Import Asset
+                            </button>
                             <a href="{{ route('asset-types.index') }}" class="btn btn-sm btn-secondary btn-wave">
                                 <i class="ri-pages-line me-1"></i> Asset Category
                             </a>
@@ -639,6 +642,13 @@
                                             </select>
                                             <div class="invalid-feedback" id="error-asset_kv_key_visual_files_id"></div>
                                         </div>
+                                        <div class="col-md-6 d-none" id="asset-kv-slot-group">
+                                            <label for="asset_kv_key_visual_slot_number" class="form-label">KV File <span class="text-danger">*</span></label>
+                                            <select class="form-select select-ele" id="asset_kv_key_visual_slot_number" name="key_visual_slot_number" disabled>
+                                                <option value="">Select Key Visual First</option>
+                                            </select>
+                                            <div class="invalid-feedback" id="error-asset_kv_key_visual_slot_number"></div>
+                                        </div>
                                         <div class="col-md-6 d-none" id="asset-kv-size-group">
                                             <label for="asset_kv_key_visual_size_id" class="form-label">KV Size</label>
                                             <select class="form-select select-ele" id="asset_kv_key_visual_size_id" disabled>
@@ -704,6 +714,7 @@
         </div>
     </div>
 
+    {{-- ────────────────── asset kv delete Modal ──────────────────────── --}}
     <div class="modal fade" id="assetKvDeleteModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-sm modal-dialog-centered">
             <div class="modal-content text-center">
@@ -907,6 +918,34 @@
         </div>
     </div>
 
+    {{-- ── Asset Import Modal ─────────────────────────────────────────── --}}
+    <div class="modal fade" id="assetImportModal">
+        <div class="modal-dialog modal-sm modal-dialog-centered">
+            <div class="modal-content ">
+                <div class="modal-header">
+                    <div>
+                        <h1 class="modal-title fs-5 mb-1">Import Assets</h1>
+                        <p class="text-muted fs-12 mb-0">Import Bulk Assets at a time. Check <a href="{{ asset('import-samples/import-asset.xlsx') }}" class="text-danger">Sample Exel File.</a></p>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4 pb-2">
+                    <form action="{{ route('assets.import-assets') }}" method="post" enctype="multipart/form-data" id="importAssetForm">
+                        @csrf
+                        <div>
+                            <label for="uploadAssetFile">Import Exel File</label>
+                            <input type="file" name="file" id="uploadAssetFile" class="form-control" >
+                        </div>
+                        <div class="mt-3 ms-auto text-end">
+                            <button type="submit" class="btn btn-success" id="importAssetSubmitBtn">Upload</button>
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
 @endsection
 
 @push('styles')
@@ -1044,6 +1083,7 @@
 @push('scripts')
     @include('backend.includes.plugins.datatable')
     @include('backend.includes.plugins.select2')
+    @include('backend.includes.plugins.toastr')
     <script>
         const apiUrl = id => base_url + 'assets' + (id ? '/' + id : '');
         function showToast(message, type) {
@@ -2550,5 +2590,98 @@
                 complete: () => setAssetBrandDeleteLoading(false)
             });
         });
+
+        // import assets
+        $(document).on('submit', '#importAssetForm', function (event) {
+            event.preventDefault();
+
+            var data = new FormData(this);
+            $('#importAssetSubmitBtn').attr('disabled', true);
+            sendAjaxRequest('asset/import-assets', 'POST', data).then(function (response) {
+                if (typeof response === 'string') {
+                    response = JSON.parse(response);
+                }
+
+                if (response.success) {
+                    toastr.success(response.message);
+                    $('#assetImportModal').modal('hide');
+                    dataTable.ajax.reload();
+                } else {
+                    showImportErrors(response);
+                }
+
+            }).catch(function(err) {
+                // 422 errors land here — extract the JSON response body
+                toastr.clear();
+                let response = null;
+
+                // jQuery AJAX error object: err.responseJSON or err.responseText
+                if (err && err.responseJSON) {
+                    response = err.responseJSON;
+                } else if (err && err.responseText) {
+                    try { response = JSON.parse(err.responseText); } catch(e) {}
+                }
+
+                setTimeout(function() {
+                    toastr.clear(); // 👈 clear AFTER blank toastr has appeared
+
+                    if (response && response.errors && response.errors.length > 0) {
+                        showImportErrors(response);
+                    } else {
+                        toastr.error(response?.message || "Server communication failed.");
+                    }
+                }, 100);
+            });
+            $('#importAssetSubmitBtn').attr('disabled', false);
+        });
+
+        function showImportErrors(response) {
+            // Clear any existing toasts immediately
+            toastr.remove();
+
+            let errorTable = `
+        <table style="width:100%; font-size:12px; border-collapse:collapse; margin-top:10px; border: 1px solid rgba(255,255,255,0.3);">
+            <thead>
+                <tr style="background-color: rgba(0,0,0,0.1);">
+                    <th style="text-align:left; border: 1px solid rgba(255,255,255,0.3); padding:6px;">Row</th>
+                    <th style="text-align:left; border: 1px solid rgba(255,255,255,0.3); padding:6px;">Error</th>
+                </tr>
+            </thead>
+            <tbody>`;
+
+            response.errors.forEach(function(item) {
+                let errorDetails = Array.isArray(item.errors) ? item.errors.join('<br>') : item.errors;
+                errorTable += `
+            <tr>
+                <td style="padding:6px; border: 1px solid rgba(255,255,255,0.3); vertical-align: top; text-align:center;">${item.row}</td>
+                <td style="padding:6px; border: 1px solid rgba(255,255,255,0.3);">${errorDetails}</td>
+            </tr>`;
+            });
+
+            errorTable += '</tbody></table>';
+
+            toastr.error(errorTable, response.message, {
+                closeButton: true,
+                timeOut: 0,
+                extendedTimeOut: 0,
+                tapToDismiss: false,
+                escapeHtml: false,
+                // This ensures the toast is wide enough for a table
+                toastClass: 'toastr-error-wide'
+            });
+        }
     </script>
+    <style>
+        /* Make room for the table */
+        .toastr-error-wide {
+            width: 400px !important;
+            max-width: 90vw !important;
+        }
+
+        /* Ensure the toastr doesn't hide the HTML content */
+        #toast-container > .toast-error {
+            background-image: none !important; /* Removes the error icon to save space */
+            padding-left: 15px !important;
+        }
+    </style>
 @endpush

@@ -24,6 +24,7 @@ class AssignKvToAsset extends Model
         'instalation_proof',
         'instalation_status',
         'instalation_date',
+        'slot_number',
     ];
 
     protected $searchableFields = ['*'];
