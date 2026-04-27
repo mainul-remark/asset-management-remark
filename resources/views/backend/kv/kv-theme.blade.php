@@ -1202,6 +1202,7 @@
 <script src="{{ asset('backend/build/assets/libs/filepond-plugin-file-validate-size/filepond-plugin-file-validate-size.min.js') }}"></script>
 {{--<script src="{{ asset('backend/build/select2-4.1.0/select2.min.js') }}"></script>--}}
 @include('backend.includes.plugins.select2')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 $(function () {
     // CONSTANTS
@@ -1833,19 +1834,33 @@ $(function () {
         const id = $(this).data('id');
         const name = $(this).data('name') || 'this brand';
         if (!id) return;
-        if (!window.confirm(`Delete brand "${name}"?`)) return;
+        // if (!window.confirm(`Delete brand "${name}"?`)) return;
+            Swal.fire({
+                title: "Are you sure to delete brand "+name+"?",
+                text: "You won't be able to revert this!",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Yes, delete it!"
+            }).then((result) => {
+                if (result.isConfirmed)
+                {
+                    $.ajax({
+                        url: `${BRAND_URL}/${id}`,
+                        type: 'DELETE',
+                        success: function (res) {
+                            removeBrandPaneItem(id);
+                            showToast(res.message || 'Brand deleted successfully.', 'success');
+                        },
+                        error: function () {
+                            showToast('Failed to delete brand.', 'danger');
+                        },
+                    });
+                }
+            });
 
-        $.ajax({
-            url: `${BRAND_URL}/${id}`,
-            type: 'DELETE',
-            success: function (res) {
-                removeBrandPaneItem(id);
-                showToast(res.message || 'Brand deleted successfully.', 'success');
-            },
-            error: function () {
-                showToast('Failed to delete brand.', 'danger');
-            },
-        });
+
     });
 
     $(document).on('click', '.kv-sidebar-category-delete', function (e) {
@@ -1853,18 +1868,30 @@ $(function () {
         const id = $(this).data('id');
         const name = $(this).data('name') || 'this category';
         if (!id) return;
-        if (!window.confirm(`Delete category "${name}"?`)) return;
-
-        $.ajax({
-            url: `${CAT_URL}/${id}`,
-            type: 'DELETE',
-            success: function (res) {
-                removeCategoryPaneItem(id);
-                showToast(res.message || 'Category deleted successfully.', 'success');
-            },
-            error: function () {
-                showToast('Failed to delete category.', 'danger');
-            },
+        // if (!window.confirm(`Delete category "${name}"?`)) return;
+        Swal.fire({
+            title: "Are you sure to delete category "+name+"?",
+            text: "You won't be able to revert this!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Yes, delete it!"
+        }).then((result) => {
+            if (result.isConfirmed)
+            {
+                $.ajax({
+                    url: `${CAT_URL}/${id}`,
+                    type: 'DELETE',
+                    success: function (res) {
+                        removeCategoryPaneItem(id);
+                        showToast(res.message || 'Category deleted successfully.', 'success');
+                    },
+                    error: function () {
+                        showToast('Failed to delete category.', 'danger');
+                    },
+                });
+            }
         });
     });
 

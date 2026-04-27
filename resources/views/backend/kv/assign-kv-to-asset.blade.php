@@ -12,7 +12,7 @@
                             <i class="ri-filter-3-line text-primary fs-16"></i>
                             <span class="fw-semibold fs-14">Assign Filters</span>
                         </div>
-                        <div class="row g-2">com1
+                        <div class="row g-2">
                             <div class="col-md-3">
                                 <label for="filter-division" class="form-label fs-12 mb-1">Division</label>
                                 <select id="filter-division" class="form-select form-select-sm select-ele">
