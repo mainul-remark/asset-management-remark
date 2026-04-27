@@ -100,6 +100,19 @@ class KeyVisualFilesController extends Controller
         ]);
     }
 
+    public function getByKeyVisual(KeyVisual $keyVisual): \Illuminate\Http\JsonResponse
+    {
+        $files = KeyVisualFiles::with(['keyVisualSize:id,name,width,height,unit_name'])
+            ->where('key_visual_id', $keyVisual->id)
+            ->latest()
+            ->get();
+
+        return response()->json([
+            'key_visual' => $keyVisual->only(['id', 'name', 'unique_code']),
+            'files'      => $files,
+        ]);
+    }
+
     public function destroy(string $id)
     {
         $kvFile = KeyVisualFiles::findOrFail($id);

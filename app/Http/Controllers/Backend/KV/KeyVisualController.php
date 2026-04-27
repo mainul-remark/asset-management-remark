@@ -8,6 +8,7 @@ use App\Models\AssetType;
 use App\Models\Brand;
 use App\Models\Category;
 use App\Models\KeyVisual;
+use App\Models\KeyVisualSize;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -18,10 +19,11 @@ class KeyVisualController extends Controller
     public function index()
     {
         return view('backend.kv.kv-theme', [
-            'keyVisuals' => KeyVisual::with('assetType:id,name', 'brands:id,name,code', 'categories:id,name,code')->latest()->get(),
-            'assetTypes' => AssetType::orderBy('name')->get(['id', 'name']),
-            'brands'     => Brand::orderBy('name')->get(['id', 'name', 'code']),
-            'categories' => Category::orderBy('name')->get(['id', 'name', 'code']),
+            'keyVisuals'     => KeyVisual::with('assetType:id,name', 'brands:id,name,code', 'categories:id,name,code')->latest()->get(),
+            'assetTypes'     => AssetType::orderBy('name')->get(['id', 'name']),
+            'brands'         => Brand::orderBy('name')->get(['id', 'name', 'code']),
+            'categories'     => Category::orderBy('name')->get(['id', 'name', 'code']),
+            'keyVisualSizes' => KeyVisualSize::orderBy('name')->get(['id', 'name', 'width', 'height', 'unit_name']),
         ]);
     }
     public function old()

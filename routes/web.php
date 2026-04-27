@@ -56,6 +56,8 @@ Route::middleware([
 
 
 
+    Route::get('key-visuals/{keyVisual}/files', [KeyVisualFilesController::class, 'getByKeyVisual'])->name('key-visuals.files');
+
     Route::resources([
         'brands'                    => BrandController::class,
         'categories'                => CategoryController::class,
