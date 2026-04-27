@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Role;
+use App\Models\Store;
 use App\Models\User;
 use App\Models\UserRole;
 use Illuminate\Http\Request;
@@ -17,7 +18,17 @@ class UsersController extends Controller
 {
     public function index(Request $request){
         if (!$request->ajax()) {
-            return view('backend.user-management.users.index');
+            return view('backend.user-management.users.index', [
+                'stores' => Store::query()
+                    ->where('status', 1)
+                    ->whereNull('deleted_at')
+                    ->orderBy('title')
+                    ->get(['id', 'title', 'code']),
+                'roles' => Role::query()
+                    ->where('role_id', '!=', 1)
+                    ->orderBy('name')
+                    ->get(['role_id', 'name']),
+            ]);
         }
         try {
             $users = User::with(['roles:role_id,name'])

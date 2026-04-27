@@ -47,6 +47,7 @@ Route::middleware([
     Route::get('assets/next-name', [AssetController::class, 'nextName'])->name('assets.next-name');
     Route::get('user-store-assignments/users/search', [UserStoreAssignmentController::class, 'searchUsers'])->name('user-store-assignments.users.search');
     Route::get('user-store-assignments/datatable', [UserStoreAssignmentController::class, 'datatable'])->name('user-store-assignments.datatable');
+    Route::get('user-store-assignments/users/{user}/current', [UserStoreAssignmentController::class, 'currentByUser'])->name('user-store-assignments.current-by-user');
 
     Route::prefix('admin')->middleware(['resource.maker','auth.acl'])->group(function () {
         Route::resource('/roles',RoleController::class);

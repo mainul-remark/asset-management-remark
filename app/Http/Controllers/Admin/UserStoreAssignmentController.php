@@ -220,6 +220,26 @@ HTML;
         ]);
     }
 
+    public function currentByUser(User $user): JsonResponse
+    {
+        $assignment = UserStoreAssignment::query()
+            ->where('user_id', $user->id)
+            ->latest('id')
+            ->first();
+
+        if (! $assignment) {
+            return response()->json([
+                'exists' => false,
+                'data' => null,
+            ]);
+        }
+
+        return response()->json([
+            'exists' => true,
+            'data' => UserStoreAssignment::loadAssignmentGroupByUserId((int) $user->id),
+        ]);
+    }
+
     public function store(UserStoreAssignmentRequest $request): JsonResponse
     {
         try {

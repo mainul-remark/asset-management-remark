@@ -16,161 +16,163 @@
 
 {{--User YajraDatatable script --}}
 
-<script>
+{{--<script>--}}
 
-    $(document).ready(function () {
-        let table =  $('#userDataTablexxxxx').DataTable({
-            dom         : 'Blfrtip',
-            serverSide  :   true,
-            processing  :   true,
-            searchDelay :   500,
-            search      :   { smart: false},
-            order       :   [[0,'DESC']],
-            columnDefs: [
-                { width: '7%', targets: 0 },
-            ],
-            ajax: {
-                url : "{{route('users.index')}}",
-                 data: function (d) {
-                     d.from_date = $('#from_date').val();
-                     d.to_date   = $('#to_date').val();
-                     console.log(d)
-                 }
-            },
-            columns : [
-                {
-                    data: 'profile_image',
-                    title: 'Image',
-                    searchable: false,
-                    render: function (data, type, row, meta) {
-                        return '<img src="' + data + '" alt="User Image" class="rounded-circle" style="width: 50px; height: 50px;">';
-                    }
-                },
-                { data: 'name',  title: 'Name', searchable:true },
-                { data: 'email', title: 'Email', searchable:true },
-                { data: 'mobile_no', title: 'Mobile', searchable:true },
-                {
-                    data: 'created_at',
-                    title: 'Joined At',
-                    render: function (data, type, row) {
-                        return '<span class="badge bg-outline-secondary px-2">' + data + '</span>';
-                    }
-                },
-                {
-                    data: 'account_type',
-                    title: 'Type',
-                    render: function (data, type, row) {
-                        return '<span class="badge bg-outline-info px-2">' + data + '</span>';
-                    }
-                },
-                {
-                    data: 'roles',
-                    title: 'Role',
-                    render: function (data) {
-                        if (data && data.trim() !== '') {
-                            return data.split(', ')
-                                .map(role => '<span class="badge bg-outline-primary px-2">' + role.trim() + '</span>')
-                                .join(' ');
-                        }
-                        return '<span class="badge bg-outline-warning px-2">User</span>';
-                    }
-                },
-                {
-                    data: 'is_active',
-                    title: 'Status',
-                    searchable: true,
-                    render: function (data, type, row) {
-                        return data === 1
-                            ? '<span class="badge bg-outline-success px-2">Active</span>'
-                            : data === 0
-                                ? '<span class="badge bg-outline-danger px-2">Inactive</span>'
-                                : '';
-                    }
-                },
-                {
-                    data: null,
-                    title: 'Action',
-                    searchable: false,
-                    className: "text-center",
-                    render: function (data, type, row) {
-                        let viewUrl  = "/admin/users/" + row.id;
-                        let editUrl  = "/admin/users/" + row.id + "/edit";
-                        let deleteId = row.id;
+{{--    $(document).ready(function () {--}}
+{{--        let table =  $('#userDataTablexxxxx').DataTable({--}}
+{{--            dom         : 'Blfrtip',--}}
+{{--            serverSide  :   true,--}}
+{{--            processing  :   true,--}}
+{{--            searchDelay :   500,--}}
+{{--            search      :   { smart: false},--}}
+{{--            order       :   [[0,'DESC']],--}}
+{{--            columnDefs: [--}}
+{{--                { width: '7%', targets: 0 },--}}
+{{--            ],--}}
+{{--            ajax: {--}}
+{{--                url : "{{route('users.index')}}",--}}
+{{--                 data: function (d) {--}}
+{{--                     d.from_date = $('#from_date').val();--}}
+{{--                     d.to_date   = $('#to_date').val();--}}
+{{--                     console.log(d)--}}
+{{--                 }--}}
+{{--            },--}}
+{{--            columns : [--}}
+{{--                {--}}
+{{--                    data: 'profile_image',--}}
+{{--                    title: 'Image',--}}
+{{--                    searchable: false,--}}
+{{--                    render: function (data, type, row, meta) {--}}
+{{--                        return '<img src="' + data + '" alt="User Image" class="rounded-circle" style="width: 50px; height: 50px;">';--}}
+{{--                    }--}}
+{{--                },--}}
+{{--                { data: 'name',  title: 'Name', searchable:true },--}}
+{{--                { data: 'email', title: 'Email', searchable:true },--}}
+{{--                { data: 'mobile_no', title: 'Mobile', searchable:true },--}}
+{{--                {--}}
+{{--                    data: 'created_at',--}}
+{{--                    title: 'Joined At',--}}
+{{--                    render: function (data, type, row) {--}}
+{{--                        return '<span class="badge bg-outline-secondary px-2">' + data + '</span>';--}}
+{{--                    }--}}
+{{--                },--}}
+{{--                {--}}
+{{--                    data: 'account_type',--}}
+{{--                    title: 'Type',--}}
+{{--                    render: function (data, type, row) {--}}
+{{--                        return '<span class="badge bg-outline-info px-2">' + data + '</span>';--}}
+{{--                    }--}}
+{{--                },--}}
+{{--                {--}}
+{{--                    data: 'roles',--}}
+{{--                    title: 'Role',--}}
+{{--                    render: function (data) {--}}
+{{--                        if (data && data.trim() !== '') {--}}
+{{--                            return data.split(', ')--}}
+{{--                                .map(role => '<span class="badge bg-outline-primary px-2">' + role.trim() + '</span>')--}}
+{{--                                .join(' ');--}}
+{{--                        }--}}
+{{--                        return '<span class="badge bg-outline-warning px-2">User</span>';--}}
+{{--                    }--}}
+{{--                },--}}
+{{--                {--}}
+{{--                    data: 'is_active',--}}
+{{--                    title: 'Status',--}}
+{{--                    searchable: true,--}}
+{{--                    render: function (data, type, row) {--}}
+{{--                        return data === 1--}}
+{{--                            ? '<span class="badge bg-outline-success px-2">Active</span>'--}}
+{{--                            : data === 0--}}
+{{--                                ? '<span class="badge bg-outline-danger px-2">Inactive</span>'--}}
+{{--                                : '';--}}
+{{--                    }--}}
+{{--                },--}}
+{{--                {--}}
+{{--                    data: null,--}}
+{{--                    title: 'Action',--}}
+{{--                    searchable: false,--}}
+{{--                    className: "text-center",--}}
+{{--                    render: function (data, type, row) {--}}
+{{--                        let viewUrl  = "/admin/users/" + row.id;--}}
+{{--                        let editUrl  = "/admin/users/" + row.id + "/edit";--}}
+{{--                        let deleteId = row.id;--}}
 
-                        const accessRole = @json(hasRole(['super-admin']));
+{{--                        const accessRole = @json(hasRole(['super-admin']));--}}
 
-                        let html  = '';
-                        html += '<a href="' + viewUrl + '" class="btn btn-sm btn-outline-secondary me-1" title="View">';
-                        html += '<i class="ri-eye-line"></i>';
-                        html += '</a>';
+{{--                        let html  = '';--}}
 
-                        html += '<a href="' + editUrl + '" class="btn btn-sm btn-outline-primary me-1" title="Edit">';
-                        html += '<i class="ri-edit-2-line"></i>';
-                        html += '</a>';
 
-                        if(accessRole){
-                            let deleteUrl = "/admin/users/" + deleteId;
-                            html += '<button type="button" class="btn btn-sm btn-outline-danger deleteUserBtn" data-id="' + deleteId + '" data-url="'+deleteUrl+'" title="Delete">';
-                            html += '<i class="ri-delete-bin-line"></i>';
-                            html += '</button>';
-                        }
+{{--                        html += '<a href="' + viewUrl + '" class="btn btn-sm btn-outline-secondary me-1" title="View">';--}}
+{{--                        html += '<i class="ri-eye-line"></i>';--}}
+{{--                        html += '</a>';--}}
 
-                        return html;
-                    }
-                }
+{{--                        html += '<a href="' + editUrl + '" class="btn btn-sm btn-outline-primary me-1" title="Edit x">';--}}
+{{--                        html += '<i class="ri-edit-2-line"></i>';--}}
+{{--                        html += '</a>';--}}
 
-            ],
-            buttons: [
-                {
-                    extend: 'copy',
-                    title: 'User list',
-                    exportOptions: {
-                        columns: [1, 2, 3, 4, 5, 6, 7]
-                    }
-                },
-                {
-                    extend: 'csv',
-                    title: 'Admin User list',
-                    exportOptions: {
-                        columns: [1, 2, 3, 4, 5, 6, 7]
-                    }
+{{--                        if(accessRole){--}}
+{{--                            let deleteUrl = "/admin/users/" + deleteId;--}}
+{{--                            html += '<button type="button" class="btn btn-sm btn-outline-danger deleteUserBtn" data-id="' + deleteId + '" data-url="'+deleteUrl+'" title="Delete">';--}}
+{{--                            html += '<i class="ri-delete-bin-line"></i>';--}}
+{{--                            html += '</button>';--}}
+{{--                        }--}}
 
-                },
-                {
-                    extend: 'excel',
-                    title: 'User list',
-                    exportOptions: {
-                        columns: [1, 2, 3, 4, 5, 6, 7]
-                    }
-                },
-                {
-                    extend: 'print',
-                    title: 'User list',
-                    exportOptions: {
-                        columns: [1, 2, 3, 4, 5, 6, 7]
-                    }
-                }
-            ],
-        });
-        // ✅ সঠিক draw event (same id + same instance)
-        table.on('draw.dt', function () {
-            let data = table.rows().data();
-            console.log(data);
-        });
+{{--                        return html;--}}
+{{--                    }--}}
+{{--                }--}}
 
-        $('#filter_form').on('submit', function(e) {
-            e.preventDefault();
-            table.draw();
-        });
-        $('.ajax_reload').on('click', function(e) {
-            e.preventDefault();
-            // Optional: clear filters
-            $('#from_date').val('');
-            $('#to_date').val('');
-            table.ajax.reload();
-        });
-    });
-</script>
+{{--            ],--}}
+{{--            buttons: [--}}
+{{--                {--}}
+{{--                    extend: 'copy',--}}
+{{--                    title: 'User list',--}}
+{{--                    exportOptions: {--}}
+{{--                        columns: [1, 2, 3, 4, 5, 6, 7]--}}
+{{--                    }--}}
+{{--                },--}}
+{{--                {--}}
+{{--                    extend: 'csv',--}}
+{{--                    title: 'Admin User list',--}}
+{{--                    exportOptions: {--}}
+{{--                        columns: [1, 2, 3, 4, 5, 6, 7]--}}
+{{--                    }--}}
+
+{{--                },--}}
+{{--                {--}}
+{{--                    extend: 'excel',--}}
+{{--                    title: 'User list',--}}
+{{--                    exportOptions: {--}}
+{{--                        columns: [1, 2, 3, 4, 5, 6, 7]--}}
+{{--                    }--}}
+{{--                },--}}
+{{--                {--}}
+{{--                    extend: 'print',--}}
+{{--                    title: 'User list',--}}
+{{--                    exportOptions: {--}}
+{{--                        columns: [1, 2, 3, 4, 5, 6, 7]--}}
+{{--                    }--}}
+{{--                }--}}
+{{--            ],--}}
+{{--        });--}}
+{{--        // ✅ সঠিক draw event (same id + same instance)--}}
+{{--        table.on('draw.dt', function () {--}}
+{{--            let data = table.rows().data();--}}
+{{--            console.log(data);--}}
+{{--        });--}}
+
+{{--        $('#filter_form').on('submit', function(e) {--}}
+{{--            e.preventDefault();--}}
+{{--            table.draw();--}}
+{{--        });--}}
+{{--        $('.ajax_reload').on('click', function(e) {--}}
+{{--            e.preventDefault();--}}
+{{--            // Optional: clear filters--}}
+{{--            $('#from_date').val('');--}}
+{{--            $('#to_date').val('');--}}
+{{--            table.ajax.reload();--}}
+{{--        });--}}
+{{--    });--}}
+{{--</script>--}}
 
 
 
@@ -251,6 +253,13 @@
                         const accessRole = @json(hasRole(['super-admin']));
 
                         let html  = '';
+                        const userName = $('<div>').text(row.name || '').html();
+                        const userEmail = $('<div>').text(row.email || '').html();
+
+                        html += '<a href="javascript:void(0)" class="btn btn-sm btn-outline-secondary me-1 open-store-assign-modal" data-user-id="'+row.id+'" data-user-name="'+userName+'" data-user-email="'+userEmail+'" title="Assign Store">';
+                        html += '<i class="ri-store-2-line"></i>';
+                        html += '</a>';
+
                         html += '<a href="' + viewUrl + '" class="btn btn-sm btn-outline-secondary me-1" title="View">';
                         html += '<i class="ri-eye-line"></i>';
                         html += '</a>';
