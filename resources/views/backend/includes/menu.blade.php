@@ -122,6 +122,9 @@
                         <li class="slide">
                             <a href="{{ route('key-visuals.assign-kvs') }}" class="side-menu__item">Assign KV</a>
                         </li>
+                        <li class="slide">
+                            <a href="{{ route('key-visuals.kv-installation') }}" class="side-menu__item">KV Installation</a>
+                        </li>
                     </ul>
                 </li>
                 <!-- End::slide -->

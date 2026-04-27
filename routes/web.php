@@ -22,6 +22,7 @@ use App\Http\Controllers\Backend\Asset\AssignKvToAssetController;
 use App\Http\Controllers\Backend\Asset\AssignAssetToBrandController;
 use App\Http\Controllers\Backend\Asset\VmIssueFixController;
 use App\Http\Controllers\Admin\UserStoreAssignmentController;
+use App\Http\Controllers\Backend\KV\KvInstallationController;
 
 use App\Http\Controllers\Backend\Asset\ImportExport\AssetImportController;
 
@@ -117,6 +118,10 @@ Route::middleware([
         Route::get('/assign-kv-to-asset/{assignKvToAsset}/edit', [AssignKvToAssetController::class, 'edit'])->name('key-visuals.assign-kvs.edit');
         Route::put('/assign-kv-to-asset/{assignKvToAsset}', [AssignKvToAssetController::class, 'update'])->name('key-visuals.assign-kvs.update');
         Route::delete('/assign-kv-to-asset/{assignKvToAsset}', [AssignKvToAssetController::class, 'destroy'])->name('key-visuals.assign-kvs.destroy');
+
+        Route::name('key-visuals.')->group(function () {
+            Route::get('/kv-installation', [KvInstallationController::class, 'kvInstallation'])->name('kv-installation');
+        });
     });
 
     Route::get('key-visualsx', [KeyVisualController::class, 'old']);
