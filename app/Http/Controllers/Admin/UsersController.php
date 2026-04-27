@@ -31,8 +31,11 @@ class UsersController extends Controller
             ]);
         }
         try {
-            $users = User::with(['roles:role_id,name'])
-                ->select('id','name','email','profile_image','created_at')
+            $users = User::with([
+                    'roles:role_id,name',
+                    'userStoreAssignments.store:id,title',
+                ])
+                ->select('id','name','email','employee_id','profile_image','created_at')
                 ->latest()
                 ->get();
 
@@ -41,11 +44,20 @@ class UsersController extends Controller
                 'data' => $users->map(function ($user) {
 
                     $roleNames = $user->roles->pluck('name')->filter()->values();
+                    $assignedStoreTitles = $user->userStoreAssignments
+                        ->map(fn ($assignment) => $assignment->store?->title)
+                        ->filter()
+                        ->unique()
+                        ->sort()
+                        ->values();
 
                     return [
                         'id'            => $user->id,
                         'name'          => $user->name,
                         'email'         => $user->email,
+                        'employee_id'   => $user->employee_id,
+                        'assigned_stores' => $assignedStoreTitles->all(),
+                        'assigned_store_names' => $assignedStoreTitles->implode(', '),
 //                        'mobile_no'     => $user->mobile_no,
 //                        'account_type'  => $user->account_type,
                         'profile_image' => (!empty($user->profile_image) && file_exists(public_path($user->profile_image)))

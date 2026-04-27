@@ -223,6 +223,25 @@
                   }
               },
               {
+                  data: 'assigned_store_names',
+                  title: 'Assigned Stores',
+                  render: function (data, type, row) {
+                      const stores = Array.isArray(row.assigned_stores) ? row.assigned_stores : [];
+
+                      if (type !== 'display') {
+                          return data || '';
+                      }
+
+                      if (stores.length) {
+                          return stores
+                              .map(store => '<span class="badge bg-outline-secondary px-2 me-1 mb-1">' + $('<div>').text(store).html() + '</span>')
+                              .join('');
+                      }
+
+                      return '<span class="text-muted">No stores assigned</span>';
+                  }
+              },
+              {
                   data: 'created_at',
                   title: 'Created_at',
                   render: function (data) {
@@ -255,8 +274,9 @@
                         let html  = '';
                         const userName = $('<div>').text(row.name || '').html();
                         const userEmail = $('<div>').text(row.email || '').html();
+                        const userEmployeeId = $('<div>').text(row.employee_id || '').html();
 
-                        html += '<a href="javascript:void(0)" class="btn btn-sm btn-outline-secondary me-1 open-store-assign-modal" data-user-id="'+row.id+'" data-user-name="'+userName+'" data-user-email="'+userEmail+'" title="Assign Store">';
+                        html += '<a href="javascript:void(0)" class="btn btn-sm btn-outline-secondary me-1 open-store-assign-modal" data-user-id="'+row.id+'" data-user-name="'+userName+'" data-user-email="'+userEmail+'" data-user-employee-id="'+userEmployeeId+'" title="Assign Store">';
                         html += '<i class="ri-store-2-line"></i>';
                         html += '</a>';
 

@@ -40,7 +40,7 @@ class UserStoreAssignmentController extends Controller
         $search = trim((string) $request->input('search_text', ''));
 
         $query = User::query()
-            ->select(['users.id', 'users.name', 'users.email'])
+            ->select(['users.id', 'users.name', 'users.email', 'users.employee_id'])
             ->with([
                 'userStoreAssignments' => fn ($assignmentQuery) => $assignmentQuery
                     ->with([
@@ -61,10 +61,14 @@ class UserStoreAssignmentController extends Controller
                 $nestedQuery
                     ->where('users.name', 'like', '%' . $search . '%')
                     ->orWhere('users.email', 'like', '%' . $search . '%')
+                    ->orWhere('users.employee_id', 'like', '%' . $search . '%')
                     ->orWhereHas('userStoreAssignments.store', function ($storeQuery) use ($search) {
                         $storeQuery
                             ->where('title', 'like', '%' . $search . '%')
                             ->orWhere('code', 'like', '%' . $search . '%');
+                    })
+                    ->orWhereHas('userStoreAssignments', function ($assignmentQuery) use ($search) {
+                        $assignmentQuery->where('employee_id', 'like', '%' . $search . '%');
                     })
                     ->orWhereHas('userStoreAssignments.role', function ($roleQuery) use ($search) {
                         $roleQuery->where('name', 'like', '%' . $search . '%');

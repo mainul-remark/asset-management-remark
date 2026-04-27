@@ -145,6 +145,7 @@
                                 <span class="summary-label">Selected User</span>
                                 <div class="summary-name" id="assignment_modal_user_name">-</div>
                                 <div class="summary-email" id="assignment_modal_user_email">-</div>
+                                <div class="summary-email" id="assignment_modal_user_employee_id">Employee ID: -</div>
                             </div>
                             <div class="assignment-user-summary__state">
                                 <span class="badge bg-light text-dark border" id="assignment-modal-mode-badge">New assignment</span>
@@ -155,7 +156,7 @@
                             <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
                                 <div>
                                     <div class="summary-label">Current Assignment</div>
-                                    <div class="summary-name fs-14" id="assignment-current-role">No role</div>
+                                    <div class="summary-name fs-14 d-none" id="assignment-current-role">No role</div>
                                     <div class="summary-email" id="assignment-current-meta">No assignment yet</div>
                                 </div>
                                 <button type="button" class="btn btn-sm btn-danger-light d-none" id="btn-delete-user-assignment">
@@ -255,6 +256,7 @@
     @include('backend.user-management.datatables.datatable-script')
     @include('backend.user-management.toasts')
     @include('backend.user-management.partials.user.user-index-script')
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         $(function () {
             const storeAssignModalEl = document.getElementById('storeAssignModal');
@@ -266,6 +268,7 @@
                 userId: '',
                 userName: '',
                 userEmail: '',
+                userEmployeeId: '',
                 assignmentId: '',
                 hasExistingAssignment: false,
             };
@@ -291,6 +294,7 @@
                 assignmentState.userId = '';
                 assignmentState.userName = '';
                 assignmentState.userEmail = '';
+                assignmentState.userEmployeeId = '';
                 assignmentState.assignmentId = '';
                 assignmentState.hasExistingAssignment = false;
 
@@ -303,6 +307,7 @@
                 $('#modal_assignment_status').val('1');
                 $('#assignment_modal_user_name').text('-');
                 $('#assignment_modal_user_email').text('-');
+                $('#assignment_modal_user_employee_id').text('Employee ID: -');
                 $('#assignment-current-role').text('No role');
                 $('#assignment-current-meta').text('No assignment yet');
                 $('#assignment-current-stores').empty();
@@ -401,10 +406,12 @@
                 assignmentState.userId = String($(this).data('user-id') || '');
                 assignmentState.userName = $(this).data('user-name') || 'Selected User';
                 assignmentState.userEmail = $(this).data('user-email') || '';
+                assignmentState.userEmployeeId = $(this).data('user-employee-id') || '';
 
                 $('#modal_assignment_user_id').val(assignmentState.userId);
                 $('#assignment_modal_user_name').text(assignmentState.userName);
                 $('#assignment_modal_user_email').text(assignmentState.userEmail || 'No email available');
+                $('#assignment_modal_user_employee_id').text(`Employee ID: ${assignmentState.userEmployeeId || 'N/A'}`);
                 $('#storeAssignModalTitle').text(`Manage Store Assignment: ${assignmentState.userName}`);
 
                 storeAssignModal.show();
@@ -460,26 +467,38 @@
                     return;
                 }
 
-                if (!confirm(`Remove all store assignments for ${assignmentState.userName}?`)) {
-                    return;
-                }
-
+                // if (!confirm(`Remove all store assignments for ${assignmentState.userName}?`)) {
+                //     return;
+                // }
                 $(this).prop('disabled', true);
-
-                $.ajax({
-                    url: `${assignmentBaseUrl}/${assignmentId}`,
-                    type: 'DELETE',
-                    success: function (response) {
-                        showAjaxToast('success', response.message || 'Store assignment deleted successfully.');
-                        renderEmptyAssignmentState();
-                    },
-                    error: function (xhr) {
-                        showAjaxToast('error', xhr.responseJSON?.message || 'Failed to delete store assignment.');
-                    },
-                    complete: function () {
-                        $('#btn-delete-user-assignment').prop('disabled', false);
+                Swal.fire({
+                    title: `Are you sure?`,
+                    text: `Remove all store assignments for ${assignmentState.userName}?`,
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#3085d6",
+                    cancelButtonColor: "#d33",
+                    confirmButtonText: "Yes, Remove !"
+                }).then((result) => {
+                    if (result.isConfirmed)
+                    {
+                        $.ajax({
+                            url: `${assignmentBaseUrl}/${assignmentId}`,
+                            type: 'DELETE',
+                            success: function (response) {
+                                showAjaxToast('success', response.message || 'Store assignment deleted successfully.');
+                                renderEmptyAssignmentState();
+                            },
+                            error: function (xhr) {
+                                showAjaxToast('error', xhr.responseJSON?.message || 'Failed to delete store assignment.');
+                            },
+                            complete: function () {
+                                $('#btn-delete-user-assignment').prop('disabled', false);
+                            }
+                        });
                     }
                 });
+                $(this).prop('disabled', false);
             });
 
             storeAssignModalEl.addEventListener('hidden.bs.modal', function () {
