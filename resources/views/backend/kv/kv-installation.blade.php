@@ -131,8 +131,8 @@
                         <option>Select an option</option>
                         <option value="pending">Pending</option>
                         <option value="planned">Planned</option>
-                        <option value="planned">Installed</option>
-                        <option value="planned">Verified</option>
+                        <option value="installed">Installed</option>
+                        <option value="verified">Verified</option>
                     </select>
                 </div>
                 <div class="col-6 col-md-4">
@@ -154,7 +154,7 @@
         <!-- Installation Table -->
         <div class="content-card">
             <div class="table-responsive">
-                <table class="table inst-table mb-0">
+                <table class="table inst-table mb-0" >
                     <thead>
                     <tr>
 {{--                        <th style="width:36px;"><input type="checkbox" class="form-check-input"></th>--}}
@@ -186,7 +186,7 @@
                                 <div class="d-flex align-items-center gap-2">
                                     <div class="inst-kv-thumb"><img src="{{ asset($assignedAssetkeyVisual?->keyVisual->kv_thumb) }}" alt="{{ $assignedAssetkeyVisual?->keyVisual->name }}"></div>
                                     <div>
-                                        <span class="inst-kv-id">{{ $assignedAssetkeyVisual?->keyVisual->unique_code }}</span>
+                                        <span class="inst-kv-id">KV: {{ $assignedAssetkeyVisual?->keyVisual->unique_code }}</span>
                                         <span class="inst-badge-new">File: {{ $assignedAssetkeyVisual?->keyVisualFile?->kv_file_code ?? '' }}</span>
                                     </div>
                                 </div>
@@ -198,11 +198,11 @@
                                         <i class="bi bi-calendar-event me-1"></i>Planned
                                     </button>
                                     <ul class="dropdown-menu inst-status-dropdown">
-                                        <li><a class="dropdown-item inst-status-dd-item active" href="#" data-status="pending"><i class="bi bi-calendar-event me-1"></i>Pending <i class="bi bi-check ms-auto"></i></a></li>
-                                        <li><a class="dropdown-item inst-status-dd-item " href="#" data-status="Planned"><i class="bi bi-calendar-event me-1"></i>Planned <i class="bi bi-check ms-auto"></i></a></li>
-                                        <li><a class="dropdown-item inst-status-dd-item" href="#" data-status="Installed"><i class="bi bi-check-circle me-1"></i>Installed</a></li>
+                                        <li><a class="dropdown-item inst-status-dd-item active" href="#" data-status="pending" data-asset-assigned-kv-id="{{ $assignedAssetkeyVisual->id }}"><i class="bi bi-calendar-event me-1"></i>Pending <i class="bi bi-check ms-auto"></i></a></li>
+                                        <li><a class="dropdown-item inst-status-dd-item " href="#" data-status="Planned" data-asset-assigned-kv-id="{{ $assignedAssetkeyVisual->id }}"><i class="bi bi-calendar-event me-1"></i>Planned <i class="bi bi-check ms-auto"></i></a></li>
+                                        <li><a class="dropdown-item inst-status-dd-item" href="#" data-status="Installed" data-asset-assigned-kv-id="{{ $assignedAssetkeyVisual->id }}"><i class="bi bi-check-circle me-1"></i>Installed</a></li>
                                         <li>
-                                            <a class="dropdown-item inst-status-dd-item " href="#">
+                                            <a class="dropdown-item inst-status-dd-item @if(!isset($assignedAssetkeyVisual->instalation_proof)) disabled @endif" href="#" data-status="verified" data-asset-assigned-kv-id="{{ $assignedAssetkeyVisual->id }}">
                                                 <i class="bi bi-shield-check me-1"></i>Verified
 {{--                                                <i class="bi bi-shield-check me-1"></i>Upload an image to enable 'Verified'--}}
                                             </a>
@@ -225,6 +225,7 @@
 {{--                            </td>--}}
                             <td>
                                 <button class="btn-action" data-bs-toggle="modal" data-bs-target="#installationDetailModal"><i class="bi bi-eye"></i></button>
+                                <button class="btn-action upload-proof-image" data-asset-assign-kv-id="{{ $assignedAssetkeyVisual->id }}"><i class="bi bi-image"></i></button>
                             </td>
                         </tr>
                     @endforeach
@@ -290,6 +291,32 @@
 
 @section('modal')
 
+    <!-- ========== INSTALLATION PROOF UPLOAD MODAL ========== -->
+    <div class="modal fade" id="installationProofModal">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Upload Files</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div>
+                        <form id="installationProofForm" action="{{ route('key-visuals.update-asset-assigned-kv-data', ['for' => 'proof']) }}" method="post" enctype="multipart/form-data">
+                            @csrf
+                            <input type="hidden" name="asset_assign_kv_id" id="assetAssignKvId">
+                            <div class="mt-2">
+                                <label for="installationFiles">Installation Files</label>
+                                <input type="file" name="instalation_proof[]" class="form-control" multiple />
+                            </div>
+                            <div class="mt-2">
+                                <input type="submit" class="btn btn-sm btn-success" value="Upload Installation Files">
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     <!-- ========== NEW INSTALLATION MODAL ========== -->
     <div class="modal fade" id="newInstallationModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
@@ -478,6 +505,7 @@
 @include('backend.includes.plugins.datatable')
 @include('backend.includes.plugins.select2')
 @include('backend.includes.plugins.sweetalert2')
+@include('backend.includes.plugins.toastr')
 <script src="{{ asset('backend/build/assets/libs/filepond/filepond.min.js') }}"></script>
 <script src="{{ asset('backend/build/assets/libs/filepond-plugin-image-preview/filepond-plugin-image-preview.min.js') }}"></script>
 <script src="{{ asset('backend/build/assets/libs/filepond-plugin-image-exif-orientation/filepond-plugin-image-exif-orientation.min.js') }}"></script>
@@ -488,7 +516,33 @@
 <script>
     $(document).on('click', '.inst-status-dd-item', function () {
         event.preventDefault();
+        var currentElement = $(this);
         var currentStatus = $(this).data('status');
+        var assetAssignedKvId = $(this).data('asset-assigned-kv-id');
+        $(this).closest('.inst-status-dropdown').find('.inst-status-dd-item').removeClass('active'); // remove active class
+        $(this).addClass('active').css({color: "white"});
+        console.log(currentStatus);
+        sendAjaxRequest('kv/update-asset-assigned-kv-data?for=status', 'POST', {status: currentStatus, assigned_asset_kv_id: assetAssignedKvId}).then(function (response) {
+            if (!response.success)
+            {
+                toastr.error(response.message);
+            } else {
+                toastr.success(response.message);
+                if (response.data)
+                {
+                    if (response.data.status == 'verified')
+                        currentElement.closest('.inst-status-btn').addClass('disabled');
+                }
+            }
+        })
+    })
+    $(document).on('click', '.upload-proof-image', function () {
+        $('#assetAssignKvId').val($(this).data('asset-assign-kv-id'));
+        // var formData = new FormData($('#installationProofForm'));
+        // sendAjaxRequest('kv/update-asset-assigned-kv-data?for=proof', "POST", formData ).then(function (response) {
+        //     console.log(response);
+        // });
+        $('#installationProofModal').modal('show');
     })
 </script>
 @endpush
