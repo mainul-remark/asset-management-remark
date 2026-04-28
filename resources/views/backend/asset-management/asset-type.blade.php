@@ -20,7 +20,7 @@
                     @endphp
                     <div class="card-body">
                         <div class="table-responsive">
-                            <table id="data-table" class="table table-bordered text-nowrap w-100">
+                            <table id="data-table" class="table table-bordered text-nowrap w-100" data-datatable-manual="true">
                                 <thead>
                                     <tr>
                                         <th>#</th>
@@ -527,6 +527,31 @@
     @include('backend.includes.plugins.datatable')
     <script>
     $(document).ready(function () {
+        const hasImageColumn = @json($hasImage);
+        const nameColumnIndex = hasImageColumn ? 2 : 1;
+        const nonOrderableColumns = hasImageColumn ? [0, 1, -1] : [0, -1];
+        const nonSearchableColumns = hasImageColumn ? [0, 1, -1] : [0, -1];
+
+        $('#data-table').DataTable({
+            dom: '<"d-flex justify-content-between align-items-center mb-3"<"d-flex align-items-center"l><"d-flex align-items-center gap-2"f>>rt<"d-flex justify-content-between align-items-center mt-3"ip>',
+            language: {
+                searchPlaceholder: "Search data...",
+                sSearch: "",
+                lengthMenu: "Show _MENU_ entries",
+                info: "Showing _START_ to _END_ of _TOTAL_ data",
+                infoEmpty: "No data found",
+                zeroRecords: "No matching records found",
+                paginate: { previous: "<i class='ri-arrow-left-s-line'></i>", next: "<i class='ri-arrow-right-s-line'></i>" }
+            },
+            pageLength: 10,
+            lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+            order: [[nameColumnIndex, 'asc']],
+            columnDefs: [
+                { orderable: false, targets: nonOrderableColumns },
+                { searchable: false, targets: nonSearchableColumns }
+            ],
+            stateSave: false
+        });
 
         // ── Bootstrap modals & global AJAX setup ──────────────────────────────
         const assetTypeModal = new bootstrap.Modal(document.getElementById('assetTypeModal'));

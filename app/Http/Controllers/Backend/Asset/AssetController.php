@@ -417,9 +417,13 @@ HTML;
         $assetType = AssetType::findOrFail($request->asset_type_id);
         $store     = Store::findOrFail($request->store_id);
 
-        // 3-char code from asset type name (letters only, uppercase)
-        $typeCode  = strtoupper(substr(preg_replace('/[^a-zA-Z]/', '', $assetType->name), 0, 3));
-        $storeCode = strtoupper($store->code);
+        // Use asset_types.code if set, else fall back to first 3 letters of name
+        $typeCode  = strtoupper(
+            !empty($assetType->code)
+                ? $assetType->code
+                : substr(preg_replace('/[^a-zA-Z]/', '', $assetType->name), 0, 3)
+        );
+        $storeCode = strtoupper($store->store_code);
         $prefix    = $typeCode . '-' . $storeCode . '-';
 
         $seq = 1;

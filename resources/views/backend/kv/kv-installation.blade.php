@@ -187,7 +187,7 @@
                                     <div class="inst-kv-thumb"><img src="{{ asset($assignedAssetkeyVisual?->keyVisual->kv_thumb) }}" alt="{{ $assignedAssetkeyVisual?->keyVisual->name }}"></div>
                                     <div>
                                         <span class="inst-kv-id">{{ $assignedAssetkeyVisual?->keyVisual->unique_code }}</span>
-                                        <span class="inst-badge-new">New</span>
+                                        <span class="inst-badge-new">File: {{ $assignedAssetkeyVisual?->keyVisualFile?->kv_file_code ?? '' }}</span>
                                     </div>
                                 </div>
 {{--                                <a href="#" class="inst-change-kv"><i class="bi bi-arrow-repeat me-1"></i>Change KV</a>--}}

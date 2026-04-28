@@ -13,7 +13,10 @@ class AssetTypeController extends Controller
     public function index()
     {
         return view('backend.asset-management.asset-type', [
-            'assetTypes' => AssetType::latest()->get(),
+            'assetTypes' => AssetType::query()
+                ->orderBy('name')
+                ->orderBy('id')
+                ->get(),
         ]);
     }
 
