@@ -58,7 +58,7 @@ class AssetType extends Model
             'has_asset_self'        => $request->has_asset_self ?? 0,
             'total_kv_slot'         => $request->total_kv_slot ?? 0,
             'code'                  => $request->code ?? '',
-            'is_double_side'        => $request->total_kv_slot ?? 0,
+            'is_double_side'        => $request->is_double_side ?? 0,
         ];
 
         if ($request->hasFile('default_image')) {

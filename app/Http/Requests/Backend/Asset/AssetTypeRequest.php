@@ -39,7 +39,7 @@ class AssetTypeRequest extends FormRequest
             'has_asset_self'        => ['nullable', 'in:0,1'],
             'is_double_side'        => ['nullable', 'in:0,1'],
             'total_kv_slot'       => ['nullable', 'integer', 'min:0', 'max:127'],
-            'code'              => ['required'],
+            'code'                  => ['required'],
         ];
     }
 

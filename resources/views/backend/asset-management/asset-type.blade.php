@@ -16,7 +16,7 @@
                     @php
                         $hasImage      = $assetTypes->contains(fn($r) => $r->default_image);
                         $hasDimensions = $assetTypes->contains(fn($r) => $r->height || $r->width);
-                        $hasProperties = $assetTypes->contains(fn($r) => $r->is_digital || $r->has_kv_space || $r->total_self > 0 || $r->need_asset_image || $r->need_asset_planogram || $r->has_asset_self);
+                        $hasProperties = $assetTypes->contains(fn($r) => $r->is_digital || $r->has_kv_space || $r->total_self > 0 || $r->need_asset_image || $r->need_asset_planogram || $r->has_asset_self || $r->is_double_side);
                     @endphp
                     <div class="card-body">
                         <div class="table-responsive">
@@ -45,7 +45,7 @@
                                             @endif
                                         </td>
                                         @endif
-                                        <td class="fw-semibold">{{ $assetType->name }}</td>
+                                        <td class="fw-semibold">{{ $assetType->name }} ({{ $assetType->code ?? '' }})</td>
                                         @if($hasDimensions)
                                         <td>
                                             @if($assetType->height || $assetType->width)
@@ -59,25 +59,28 @@
                                         </td>
                                         @endif
                                         @if($hasProperties)
-                                        <td>
-                                            @if($assetType->is_digital)
-                                                <span class="badge bg-info-transparent me-1">Digital</span>
-                                            @endif
-                                            @if($assetType->has_kv_space)
-                                                <span class="badge bg-warning-transparent me-1">KV ({{ $assetType->total_kv_slot ?? 0 }})</span>
-                                            @endif
-                                            @if($assetType->need_asset_image)
-                                                <span class="badge bg-primary-transparent me-1">Asset Image</span>
-                                            @endif
-                                            @if($assetType->need_asset_planogram)
-                                                <span class="badge bg-secondary-transparent me-1">Planogram</span>
-                                            @endif
-                                            @if($assetType->has_asset_self)
-                                                <span class="badge bg-teal-transparent me-1">Self ({{ $assetType->total_self ?? 0 }})</span>
-                                            @elseif($assetType->total_self > 0)
-                                                <span class="badge bg-light text-dark border">{{ $assetType->total_self }} Shelf</span>
-                                            @endif
-                                        </td>
+                                            <td>
+                                                @if($assetType->is_digital)
+                                                    <span class="badge bg-info-transparent me-1">Digital</span>
+                                                @endif
+                                                @if($assetType->has_kv_space)
+                                                    <span class="badge bg-warning-transparent me-1">KV ({{ $assetType->total_kv_slot ?? 0 }})</span>
+                                                @endif
+                                                @if($assetType->need_asset_image)
+                                                    <span class="badge bg-primary-transparent me-1">Asset Image</span>
+                                                @endif
+                                                @if($assetType->need_asset_planogram)
+                                                    <span class="badge bg-secondary-transparent me-1">Planogram</span>
+                                                @endif
+                                                    @if($assetType->is_double_side)
+                                                        <span class="badge bg-teal-transparent me-1">Both Side</span>
+                                                    @endif
+                                                @if($assetType->has_asset_self)
+                                                    <span class="badge bg-teal-transparent me-1">Self ({{ $assetType->total_self ?? 0 }})</span>
+                                                @elseif($assetType->total_self > 0)
+                                                    <span class="badge bg-light text-dark border">{{ $assetType->total_self }} Shelf</span>
+                                                @endif
+                                            </td>
                                         @endif
                                         <td>
                                             @if($assetType->status == 1)
@@ -147,10 +150,10 @@
                                 </div>
                                 <div class="col-4">
                                     <label for="code" class="form-label">
-                                        Asset Code <span class="text-danger">*</span>
+                                        Asset Type Code <span class="text-danger">*</span>
                                     </label>
                                     <input type="text" class="form-control" id="code" name="code"
-                                        placeholder="e.g. Billboard, LED Screen, Banner">
+                                        placeholder="BIL">
                                     <div class="invalid-feedback" id="error-code"></div>
                                 </div>
                             </div>
@@ -315,11 +318,13 @@
                                     <div class="form-text">Number of shelf units</div>
                                 </div>
                                 <div class="col-md-4" id="total-kv-slot-wrap">
-                                    <label for="total_kv_slot" class="form-label">Total KV Slot</label>
-                                    <input type="number" min="0" class="form-control"
-                                        id="total_kv_slot" name="total_kv_slot" placeholder="0">
-                                    <div class="invalid-feedback" id="error-total_kv_slot"></div>
-                                    <div class="form-text">Number of KV Slots</div>
+                                    <div class="switch-option-card">
+                                        <label for="total_kv_slot" class="form-label">Total KV Slot</label>
+                                        <input type="number" min="0" class="form-control"
+                                               id="total_kv_slot" name="total_kv_slot" placeholder="0">
+                                        <div class="invalid-feedback" id="error-total_kv_slot"></div>
+                                        <div class="form-text">Number of KV Slots</div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -637,7 +642,7 @@
         });
 
         function populateForm(data) {
-            ['name', 'height', 'width', 'total_self', 'total_kv_slot']
+            ['name', 'height', 'width', 'total_self', 'total_kv_slot', 'code']
                 .forEach(f => $('#' + f).val(data[f] ?? ''));
 
             // DB column is `dimention_unit_name` (typo), form field is `dimension_unit_name`
@@ -782,7 +787,7 @@
 
             formData.set('_token', csrfToken);
 
-            ['status', 'is_digital', 'has_kv_space', 'has_default_dimension', 'need_asset_image', 'need_asset_planogram', 'has_asset_self']
+            ['status', 'is_digital', 'has_kv_space', 'has_default_dimension', 'need_asset_image', 'need_asset_planogram', 'has_asset_self', 'is_double_side']
                 .forEach(f => formData.set(f, $(`#${f}`).is(':checked') ? 1 : 0));
 
             if (id) formData.append('_method', 'PUT');
