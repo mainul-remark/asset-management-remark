@@ -46,6 +46,7 @@ Route::middleware([
     Route::post('stores/{store}/layouts', [StoreController::class, 'uploadLayout'])->name('stores.upload-layout');
     Route::get('key-visuals/next-unique-code', [KeyVisualController::class, 'nextUniqueCode'])->name('key-visuals.next-unique-code');
     Route::get('assets/next-name', [AssetController::class, 'nextName'])->name('assets.next-name');
+    Route::get('asset-types/next-code', [AssetTypeController::class, 'nextCode'])->name('asset-types.next-code');
     Route::get('user-store-assignments/users/search', [UserStoreAssignmentController::class, 'searchUsers'])->name('user-store-assignments.users.search');
     Route::get('user-store-assignments/datatable', [UserStoreAssignmentController::class, 'datatable'])->name('user-store-assignments.datatable');
     Route::get('user-store-assignments/users/{user}/current', [UserStoreAssignmentController::class, 'currentByUser'])->name('user-store-assignments.current-by-user');
@@ -108,6 +109,7 @@ Route::middleware([
         Route::delete('/assign-asset-to-brand/{assignAssetToBrand}', [AssignAssetToBrandController::class, 'destroy'])->name('assets.assign-asset-to-brand.destroy');
 
         Route::post('/import-assets', [AssetImportController::class, 'import'])->name('assets.import-assets');
+        Route::post('/check-asset-type-code', [AssetTypeController::class, 'checkTypeCode'])->name('assets.check-asset-type-code');
     });
 
     Route::prefix('kv')->group(function () {

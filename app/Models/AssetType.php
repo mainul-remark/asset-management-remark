@@ -39,8 +39,49 @@ class AssetType extends Model
 
     protected $table = 'asset_types';
 
+    public static function generateUniqueCodeFromName(string $name, ?int $ignoreId = null): string
+    {
+        $baseCode = static::buildCodeSeed($name);
+        $candidate = $baseCode;
+        $suffix = 2;
+
+        while (static::withTrashed()
+            ->when($ignoreId, fn ($query) => $query->where('id', '!=', $ignoreId))
+            ->where('code', $candidate)
+            ->exists()) {
+            $candidate = $baseCode . $suffix;
+            $suffix++;
+        }
+
+        return $candidate;
+    }
+
+    protected static function buildCodeSeed(string $name): string
+    {
+        preg_match_all('/[A-Za-z0-9]+/', strtoupper($name), $matches);
+        $words = $matches[0] ?? [];
+
+        if (count($words) > 1) {
+            $seed = implode('', array_map(fn ($word) => substr($word, 0, 1), $words));
+
+            return $seed !== '' ? $seed : 'AST';
+        }
+
+        if (! empty($words[0])) {
+            return substr($words[0], 0, 3);
+        }
+
+        return 'AST';
+    }
+
     public static function updateOrCreateAssetType($request, ?self $assetType = null): self
     {
+        $resolvedCode = strtoupper(trim((string) ($request->code ?? '')));
+
+        if ($resolvedCode === '') {
+            $resolvedCode = static::generateUniqueCodeFromName((string) $request->name, $assetType?->id);
+        }
+
         $data = [
             'name'                  => $request->name,
             'height'                => $request->height,
@@ -57,7 +98,7 @@ class AssetType extends Model
             'need_asset_planogram'  => $request->need_asset_planogram ?? 0,
             'has_asset_self'        => $request->has_asset_self ?? 0,
             'total_kv_slot'         => $request->total_kv_slot ?? 0,
-            'code'                  => $request->code ?? '',
+            'code'                  => $resolvedCode,
             'is_double_side'        => $request->is_double_side ?? 0,
         ];
 

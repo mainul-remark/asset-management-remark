@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Backend\Asset;
 
+use App\Models\AssetType;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -12,9 +13,24 @@ class AssetTypeRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation(): void
+    {
+        $ignoreId = $this->routeAssetTypeId();
+        $name = trim((string) $this->input('name', ''));
+        $code = strtoupper(trim((string) $this->input('code', '')));
+
+        if ($code === '' && $name !== '') {
+            $code = AssetType::generateUniqueCodeFromName($name, $ignoreId);
+        }
+
+        $this->merge([
+            'code' => $code,
+        ]);
+    }
+
     public function rules(): array
     {
-        $ignoreId = $this->route('asset_type')?->id;
+        $ignoreId = $this->routeAssetTypeId();
 
         return [
             'name' => [
@@ -39,7 +55,12 @@ class AssetTypeRequest extends FormRequest
             'has_asset_self'        => ['nullable', 'in:0,1'],
             'is_double_side'        => ['nullable', 'in:0,1'],
             'total_kv_slot'       => ['nullable', 'integer', 'min:0', 'max:127'],
-            'code'                  => ['required'],
+            'code' => [
+                'required',
+                'string',
+                'max:191',
+                Rule::unique('asset_types', 'code')->ignore($ignoreId),
+            ],
         ];
     }
 
@@ -79,6 +100,22 @@ class AssetTypeRequest extends FormRequest
             'total_kv_slot.integer'  => 'Total KV Slot must be a whole number.',
             'total_kv_slot.min'      => 'Total KV Slot cannot be negative.',
             'total_kv_slot.max'      => 'Total KV Slot cannot exceed 127.',
+
+            'code.required' => 'Asset type code is required.',
+            'code.string'   => 'Asset type code must be valid text.',
+            'code.max'      => 'Asset type code cannot exceed 191 characters.',
+            'code.unique'   => 'This asset type code is already in use.',
         ];
+    }
+
+    protected function routeAssetTypeId(): ?int
+    {
+        $assetType = $this->route('asset_type');
+
+        if ($assetType instanceof AssetType) {
+            return $assetType->id;
+        }
+
+        return is_numeric($assetType) ? (int) $assetType : null;
     }
 }

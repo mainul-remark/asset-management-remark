@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Backend\Asset\AssetTypeRequest;
 use App\Models\AssetType;
 use App\Models\AssignKvToAsset;
+use Illuminate\Http\Request;
 use Mainul\CustomHelperFunctions\Helpers\CustomHelper;
 
 class AssetTypeController extends Controller
@@ -21,6 +22,21 @@ class AssetTypeController extends Controller
     }
 
     public function create() {}
+
+    public function nextCode(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'asset_type_id' => ['nullable', 'integer'],
+        ]);
+
+        return response()->json([
+            'code' => AssetType::generateUniqueCodeFromName(
+                $validated['name'],
+                isset($validated['asset_type_id']) ? (int) $validated['asset_type_id'] : null
+            ),
+        ]);
+    }
 
     public function store(AssetTypeRequest $request)
     {
@@ -59,5 +75,21 @@ class AssetTypeController extends Controller
         return response()->json([
             'message' => 'Asset type deleted successfully.',
         ]);
+    }
+
+    public function checkTypeCode(Request $request)
+    {
+        if (AssetType::where('code', $request->code)->exists())
+        {
+            return response()->json([
+                'success' => false,
+                'message' => 'Asset Category Code already exists.',
+            ]);
+        } else {
+            return response()->json([
+                'success' => true,
+                'message' => 'Asset Category Code available.',
+            ]);
+        }
     }
 }
