@@ -253,7 +253,7 @@
                                             <div class="kv-card-meta"><i class="bi bi-aspect-ratio me-1"></i>{{ $keyVisual->minimum_res_width ?? 0 }} x {{ $keyVisual->minimum_res_height ?? 0 }} px</div>
                                         @endif
                                         <div class="d-flex gap-1 mt-2">
-                                            <button type="button" class="btn btn-sm btn-outline-primary me-1 view-kv-files-modal" data-kv-id="{{ $keyVisual->id }}" data-kv-name="{{ $keyVisual->name }}" data-kv-code="{{ $keyVisual->unique_code }}" title="Manage KV Files"><i class="ri-file-line"></i></button>
+                                            <button type="button" class="btn btn-sm btn-outline-primary me-1 view-kv-files-modal" data-kv-id="{{ $keyVisual->id }}" data-kv-name="{{ $keyVisual->name }}" data-kv-code="{{ $keyVisual->unique_code }}" data-kv-type="{{ $keyVisual->kv_type }}" title="Manage KV Files"><i class="ri-file-line"></i></button>
 {{--                                            <a href="javascript:void(0)" class="btn btn-sm btn-outline-primary btn-view" data-kv-id="{{ $keyVisual->id }}"><i class="ri-eye-line me-1"></i></a>--}}
                                             <button type="button" class="btn btn-sm btn-outline-primary btn-edit" data-id="{{ $keyVisual->id }}">
                                                 <i class="ri-edit-box-line me-1"></i>
@@ -331,7 +331,7 @@
                                     @endif
                                 </div>
                                 <div class="kv-list-actions">
-                                    <button type="button" class="btn btn-sm btn-outline-primary me-1 view-kv-files-modal" data-kv-id="{{ $keyVisual->id }}" data-kv-name="{{ $keyVisual->name }}" data-kv-code="{{ $keyVisual->unique_code }}" title="Manage KV Files"><i class="ri-file-line"></i></button>
+                                    <button type="button" class="btn btn-sm btn-outline-primary me-1 view-kv-files-modal" data-kv-id="{{ $keyVisual->id }}" data-kv-name="{{ $keyVisual->name }}" data-kv-code="{{ $keyVisual->unique_code }}" data-kv-type="{{ $keyVisual->kv_type }}" title="Manage KV Files"><i class="ri-file-line"></i></button>
                                     <button type="button" class="btn btn-sm btn-outline-info btn-view" data-id="{{ $keyVisual->id }}" title="View">
                                         <i class="ri-eye-line"></i>
                                     </button>
@@ -818,6 +818,7 @@
                                 <tr>
                                     <th style="width:76px;">Preview</th>
                                     <th>Name</th>
+                                    <th>File Code</th>
                                     <th>Dimensions</th>
                                     <th>KV Size</th>
                                     <th>File Type</th>
@@ -897,7 +898,7 @@
                             <label class="form-label fw-medium">Upload File <span class="text-danger">*</span></label>
                             <input type="file" class="filepond-kvf-file" id="kvf-file-upload"
                                 accept="image/jpeg,image/png,image/jpg,image/gif,image/svg+xml,image/webp,video/mp4,video/quicktime,video/x-msvideo,video/x-matroska,video/webm">
-                            <div class="form-text mt-1">Images: max 5 MB &bull; Videos: max 10 MB</div>
+                            <div class="form-text mt-1" id="kvf-upload-hint">Images: max 5 MB &bull; Videos: max 10 MB</div>
                             <div class="invalid-feedback d-block" id="error-kvf-file-upload"></div>
                             <div id="kvf-existing-file-wrap" class="mt-2 d-none">
                                 <div id="kvf-file-preview" class="mb-2 text-center"></div>
@@ -2535,6 +2536,7 @@ $(function () {
     // ── MANAGE KV FILES ────────────────────────────────────────────
     (function () {
         let manageKvId    = null;
+        let manageKvType  = 'image';
         let needsRefresh  = false;
 
         const KVF_BY_KV_URL = (kvId) => BASE + 'key-visuals/' + kvId + '/files';
@@ -2548,19 +2550,25 @@ $(function () {
         const kvfFilePond = FilePond.create(document.querySelector('.filepond-kvf-file'), {
             allowMultiple: false, instantUpload: false, allowProcess: false,
             allowRevert: false, maxFiles: 1, credits: false,
-            acceptedFileTypes: [
-                'image/jpeg','image/png','image/jpg','image/gif','image/svg+xml','image/webp',
-                'video/mp4','video/quicktime','video/x-msvideo','video/x-matroska','video/webm',
-            ],
+            acceptedFileTypes: ['image/jpeg','image/png','image/jpg','image/gif','image/svg+xml','image/webp'],
             maxFileSize: '10MB',
-            labelIdle: '<i class="ri-upload-cloud-2-line" style="font-size:1.45rem;color:var(--text-muted)"></i><br><span class="text-muted fs-13">Drag & drop image/video or <span class="filepond--label-action">browse</span></span>',
+            labelIdle: '<i class="ri-upload-cloud-2-line" style="font-size:1.45rem;color:var(--text-muted)"></i><br><span class="text-muted fs-13">Drag &amp; drop image or <span class="filepond--label-action">browse</span></span>',
             beforeAddFile: function (item) {
                 const file = item?.file ?? item;
                 if (!file) return false;
                 const type = String(file.type || '');
                 const isImage = type.startsWith('image/');
-                const maxBytes = isImage ? 5 * 1024 * 1024 : 10 * 1024 * 1024;
+                const isVideo = type.startsWith('video/');
                 $('#error-kvf-file-upload').text('');
+                if (manageKvType === 'image' && !isImage) {
+                    $('#error-kvf-file-upload').text('This key visual only accepts image files.');
+                    return false;
+                }
+                if (manageKvType === 'video' && !isVideo) {
+                    $('#error-kvf-file-upload').text('This key visual only accepts video files.');
+                    return false;
+                }
+                const maxBytes = isImage ? 5 * 1024 * 1024 : 10 * 1024 * 1024;
                 if ((file.size || 0) > maxBytes) {
                     $('#error-kvf-file-upload').text(isImage ? 'Image must not exceed 5 MB.' : 'Video must not exceed 10 MB.');
                     return false;
@@ -2704,6 +2712,7 @@ $(function () {
             $('#kvFileForm .is-invalid').removeClass('is-invalid');
             $('#kvFileForm .invalid-feedback').text('');
             kvfMetaToken++;
+            configureKvfFilePond(manageKvType);
         }
 
         function openKvfFormModal(mode) {
@@ -2776,9 +2785,14 @@ $(function () {
                     : '—';
                 const safeName  = String(f.name || '').replace(/"/g, '&quot;');
 
+                const fileCode = f.kv_file_code
+                    ? `<span class="badge bg-primary-transparent font-monospace" style="font-size:0.72rem;letter-spacing:0.03em;">${f.kv_file_code}</span>`
+                    : '<span class="text-muted">—</span>';
+
                 return `<tr>
                     <td>${preview}</td>
                     <td class="fw-semibold" style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${safeName}">${f.name || '—'}</td>
+                    <td class="text-nowrap">${fileCode}</td>
                     <td>${dims}</td>
                     <td class="text-nowrap">${kvSize}</td>
                     <td>${typeBadge}</td>
@@ -2796,9 +2810,27 @@ $(function () {
             $('#kvf-tbody').html(rows);
         }
 
+        // ── FILE TYPE CONSTANTS ─────────────────────────────────
+        const IMAGE_MIMES_KVF = ['image/jpeg','image/png','image/jpg','image/gif','image/svg+xml','image/webp'];
+        const VIDEO_MIMES_KVF = ['video/mp4','video/quicktime','video/x-msvideo','video/x-matroska','video/webm'];
+
+        function configureKvfFilePond(kvType) {
+            const isVideo = kvType === 'video';
+            kvfFilePond.setOptions({
+                acceptedFileTypes: isVideo ? VIDEO_MIMES_KVF : IMAGE_MIMES_KVF,
+                labelIdle: isVideo
+                    ? '<i class="ri-video-line" style="font-size:1.45rem;color:var(--text-muted)"></i><br><span class="text-muted fs-13">Drag &amp; drop video or <span class="filepond--label-action">browse</span></span>'
+                    : '<i class="ri-upload-cloud-2-line" style="font-size:1.45rem;color:var(--text-muted)"></i><br><span class="text-muted fs-13">Drag &amp; drop image or <span class="filepond--label-action">browse</span></span>',
+            });
+            $('#kvf-upload-hint').html(isVideo
+                ? 'Videos only &bull; MP4 / MOV / AVI / MKV / WEBM &bull; max 10 MB'
+                : 'Images only &bull; JPG / PNG / GIF / SVG / WEBP &bull; max 5 MB');
+        }
+
         // ── OPEN MANAGE MODAL ───────────────────────────────────
         $(document).on('click', '.view-kv-files-modal', function () {
-            manageKvId = $(this).data('kv-id');
+            manageKvId   = $(this).data('kv-id');
+            manageKvType = String($(this).data('kv-type') || 'image');
             const kvName = String($(this).data('kv-name') || 'Key Visual');
             const kvCode = String($(this).data('kv-code') || '');
             $('#manage-kv-name').text(kvName);

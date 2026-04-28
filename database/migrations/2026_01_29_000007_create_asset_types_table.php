@@ -73,6 +73,15 @@ return new class extends Migration {
                 ->default(1)
                 ->nullable();
 
+            $table
+                ->string('code', 191)
+                ->nullable()
+                ->unique();
+            $table
+                ->tinyInteger('is_double_side')
+                ->default(0)
+                ->nullable();
+
             $table->timestamps();
             $table->softDeletes();
         });

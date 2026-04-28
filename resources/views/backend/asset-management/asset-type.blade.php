@@ -137,13 +137,21 @@
                         <div class="form-section mb-4">
                             <p class="form-section-label"><i class="ri-information-line me-1"></i>Basic Information</p>
                             <div class="row g-3">
-                                <div class="col-12">
+                                <div class="col-8">
                                     <label for="name" class="form-label">
                                         Asset Category Name <span class="text-danger">*</span>
                                     </label>
                                     <input type="text" class="form-control" id="name" name="name"
                                         placeholder="e.g. Billboard, LED Screen, Banner">
                                     <div class="invalid-feedback" id="error-name"></div>
+                                </div>
+                                <div class="col-4">
+                                    <label for="code" class="form-label">
+                                        Asset Code <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="text" class="form-control" id="code" name="code"
+                                        placeholder="e.g. Billboard, LED Screen, Banner">
+                                    <div class="invalid-feedback" id="error-code"></div>
                                 </div>
                             </div>
                         </div>
@@ -286,6 +294,17 @@
                                         </div>
                                         <small class="text-muted d-block mt-1">Asset contains self-managed sections</small>
                                         <div class="invalid-feedback" id="error-has_asset_self"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="switch-option-card">
+                                        <div class="form-check form-switch mb-0">
+                                            <input class="form-check-input form-checked-teal" type="checkbox"
+                                                role="switch" id="is_double_side">
+                                            <label class="form-check-label fw-medium" for="is_double_side">Both Side Asset?</label>
+                                        </div>
+                                        <small class="text-muted d-block mt-1">Asset contains Both Side View?</small>
+                                        <div class="invalid-feedback" id="error-is_double_side"></div>
                                     </div>
                                 </div>
                                 <div class="col-md-4 d-none" id="total-self-wrap">
@@ -629,6 +648,7 @@
             $('#has_kv_space').prop('checked',          data.has_kv_space == 1);
             $('#has_default_dimension').prop('checked', data.has_default_dimension == 1);
             $('#need_asset_image').prop('checked',      data.need_asset_image == 1);
+            $('#is_double_side').prop('checked',        data.is_double_side == 1);
             $('#need_asset_planogram').prop('checked',  data.need_asset_planogram == 1);
             $('#has_asset_self').prop('checked',        data.has_asset_self == 1);
 
@@ -653,6 +673,7 @@
             $('#has_kv_space').prop('checked', true);
             $('#has_default_dimension').prop('checked', false);
             $('#need_asset_image').prop('checked', false);
+            $('#is_double_side').prop('checked', false);
             $('#need_asset_planogram').prop('checked', false);
             $('#has_asset_self').prop('checked', false);
             toggleDimensionFields(false);

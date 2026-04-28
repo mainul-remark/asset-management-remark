@@ -22,6 +22,7 @@ class KeyVisualFiles extends Model
         'aspect_ratio',
         'file_type',
         'file_duration',
+        'kv_file_code',
         'status',
     ];
 
@@ -36,6 +37,23 @@ class KeyVisualFiles extends Model
         'aspect_ratio' => 'float',
         'status' => 'integer',
     ];
+
+    public static function generateUniqueKvFileCode(int $keyVisualId): string
+    {
+        $keyVisual = \App\Models\KeyVisual::select('unique_code')->find($keyVisualId);
+        $prefix = $keyVisual?->unique_code
+            ? strtoupper($keyVisual->unique_code) . '-F'
+            : 'KVF-';
+
+        $attempt = 1;
+        do {
+            $code = $prefix . str_pad($attempt, 3, '0', STR_PAD_LEFT);
+            $exists = static::withTrashed()->where('kv_file_code', $code)->exists();
+            $attempt++;
+        } while ($exists && $attempt <= 9999);
+
+        return $code;
+    }
 
     public function keyVisualSize()
     {

@@ -158,13 +158,13 @@
                     <thead>
                     <tr>
 {{--                        <th style="width:36px;"><input type="checkbox" class="form-check-input"></th>--}}
-                        <th>Store Name + Code <i class="bi bi-arrow-down-up" style="font-size:0.6rem;"></i></th>
+                        <th>Store Name <i class="bi bi-arrow-down-up" style="font-size:0.6rem;"></i></th>
                         <th>Branding Medium</th>
 {{--                        <th>Branding ID</th>--}}
                         <th>KV ID</th>
                         <th>Status <i class="bi bi-arrow-down-up" style="font-size:0.6rem;"></i></th>
                         <th>Photos</th>
-                        <th>Last Updated</th>
+{{--                        <th>Last Updated</th>--}}
                         <th style="width:36px;"></th>
                     </tr>
                     </thead>
@@ -174,8 +174,8 @@
                         <tr>
 {{--                            <td><input type="checkbox" class="form-check-input"></td>--}}
                             <td>
-                                <div class="inst-store-name">{{ $assignedAssetkeyVisual?->store?->title ?? '' }}</div>
-                                <div class="inst-store-meta">{{ $assignedAssetkeyVisual?->store?->address ?? '' }}</div>
+                                <div class="inst-store-name">{{ $assignedAssetkeyVisual?->asset?->store?->title ?? '' }}</div>
+                                <div class="inst-store-meta">{{ $assignedAssetkeyVisual?->asset?->store?->address ?? '' }}</div>
                             </td>
                             <td>
                                 <div class="fw-semibold" style="font-size:0.85rem;">{{ $assignedAssetkeyVisual?->asset?->assetType?->name ?? '' }}</div>
@@ -187,7 +187,7 @@
                                     <div class="inst-kv-thumb"><img src="{{ asset($assignedAssetkeyVisual?->keyVisual->kv_thumb) }}" alt="{{ $assignedAssetkeyVisual?->keyVisual->name }}"></div>
                                     <div>
                                         <span class="inst-kv-id">{{ $assignedAssetkeyVisual?->keyVisual->unique_code }}</span>
-{{--                                        <span class="inst-badge-new">New</span>--}}
+                                        <span class="inst-badge-new">New</span>
                                     </div>
                                 </div>
 {{--                                <a href="#" class="inst-change-kv"><i class="bi bi-arrow-repeat me-1"></i>Change KV</a>--}}
@@ -199,10 +199,10 @@
                                     </button>
                                     <ul class="dropdown-menu inst-status-dropdown">
                                         <li><a class="dropdown-item inst-status-dd-item active" href="#" data-status="pending"><i class="bi bi-calendar-event me-1"></i>Pending <i class="bi bi-check ms-auto"></i></a></li>
-                                        <li><a class="dropdown-item inst-status-dd-item active" href="#" data-status="Planned"><i class="bi bi-calendar-event me-1"></i>Planned <i class="bi bi-check ms-auto"></i></a></li>
+                                        <li><a class="dropdown-item inst-status-dd-item " href="#" data-status="Planned"><i class="bi bi-calendar-event me-1"></i>Planned <i class="bi bi-check ms-auto"></i></a></li>
                                         <li><a class="dropdown-item inst-status-dd-item" href="#" data-status="Installed"><i class="bi bi-check-circle me-1"></i>Installed</a></li>
                                         <li>
-                                            <a class="dropdown-item inst-status-dd-item disabled" href="#">
+                                            <a class="dropdown-item inst-status-dd-item " href="#">
                                                 <i class="bi bi-shield-check me-1"></i>Verified
 {{--                                                <i class="bi bi-shield-check me-1"></i>Upload an image to enable 'Verified'--}}
                                             </a>
@@ -219,202 +219,66 @@
                                     <span class="inst-no-photos">No photos</span>
                                 @endif
                             </td>
-                            <td>
-                                <div class="inst-date">05/01/2025</div>
-                                <div class="inst-store-meta">Store Manager</div>
-                            </td>
+{{--                            <td>--}}
+{{--                                <div class="inst-date">05/01/2025</div>--}}
+{{--                                <div class="inst-store-meta">Store Manager</div>--}}
+{{--                            </td>--}}
                             <td>
                                 <button class="btn-action" data-bs-toggle="modal" data-bs-target="#installationDetailModal"><i class="bi bi-eye"></i></button>
                             </td>
                         </tr>
                     @endforeach
 
-
-                    <!-- Row 2: Dhaka Central Mall -->
-                    <tr>
-                        <td><input type="checkbox" class="form-check-input"></td>
-                        <td>
-                            <div class="inst-store-name">Dhaka Central Mall</div>
-                            <div class="inst-store-meta">DHA &bull; Gulshan-2, Dhaka</div>
-                        </td>
-                        <td>
-                            <div class="fw-semibold" style="font-size:0.85rem;">Billboard</div>
-                            <div class="inst-store-meta">Lily Skincare</div>
-                        </td>
-                        <td><span class="inst-branding-id">BB-DHA-LIS-001</span></td>
-                        <td>
-                            <div class="d-flex align-items-center gap-2">
-                                <div class="inst-kv-thumb"><img src="https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=80&h=50&fit=crop" alt="KV"></div>
-                                <span class="inst-kv-id">LIS_BB_001</span>
-                                <i class="bi bi-arrow-right text-muted" style="font-size:0.7rem;"></i>
-                                <div class="inst-kv-thumb"><img src="https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=80&h=50&fit=crop" alt="KV"></div>
-                                <span class="inst-kv-id">LIS_BB_002</span>
-                            </div>
-                            <a href="#" class="inst-change-kv"><i class="bi bi-arrow-repeat me-1"></i>Change KV</a>
-                        </td>
-                        <td>
-                            <div class="dropdown">
-                                <button class="inst-status-btn inst-status-planned dropdown-toggle" data-bs-toggle="dropdown">
-                                    <i class="bi bi-calendar-event me-1"></i>Planned
-                                </button>
-                                <ul class="dropdown-menu inst-status-dropdown">
-                                    <li><a class="dropdown-item inst-status-dd-item active" href="#"><i class="bi bi-calendar-event me-1"></i>Planned <i class="bi bi-check ms-auto"></i></a></li>
-                                    <li><a class="dropdown-item inst-status-dd-item" href="#"><i class="bi bi-check-circle me-1"></i>Installed</a></li>
-                                    <li><a class="dropdown-item inst-status-dd-item disabled" href="#"><i class="bi bi-shield-check me-1"></i>Upload an image to enable 'Verified'</a></li>
-                                </ul>
-                            </div>
-                        </td>
-                        <td><span class="inst-no-photos">No photos</span></td>
-                        <td>
-                            <div class="inst-date">03/01/2025</div>
-                            <div class="inst-store-meta">Store Manager</div>
-                        </td>
-                        <td>
-                            <button class="btn-action" data-bs-toggle="modal" data-bs-target="#installationDetailModal"><i class="bi bi-eye"></i></button>
-                        </td>
-                    </tr>
-
-                    <!-- Row 3: Barisal City Center -->
-                    <tr>
-                        <td><input type="checkbox" class="form-check-input"></td>
-                        <td>
-                            <div class="inst-store-name">Barisal City Center</div>
-                            <div class="inst-store-meta">BAR &bull; Band Road, Barisal</div>
-                        </td>
-                        <td>
-                            <div class="fw-semibold" style="font-size:0.85rem;">In-Store Static</div>
-                            <div class="inst-store-meta">Unilever</div>
-                        </td>
-                        <td><span class="inst-branding-id">IS-BAR-UNI-005</span></td>
-                        <td>
-                            <div class="d-flex align-items-center gap-2">
-                                <div class="inst-kv-thumb"><img src="https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=80&h=50&fit=crop" alt="KV"></div>
-                                <div>
-                                    <span class="inst-kv-id">UNI_IS_001</span>
-                                    <span class="inst-badge-new">New</span>
-                                </div>
-                            </div>
-                            <a href="#" class="inst-change-kv"><i class="bi bi-arrow-repeat me-1"></i>Change KV</a>
-                        </td>
-                        <td>
-                            <div class="dropdown">
-                                <button class="inst-status-btn inst-status-installed dropdown-toggle" data-bs-toggle="dropdown">
-                                    <i class="bi bi-check-circle me-1"></i>Installed
-                                </button>
-                                <ul class="dropdown-menu inst-status-dropdown">
-                                    <li><a class="dropdown-item inst-status-dd-item" href="#"><i class="bi bi-calendar-event me-1"></i>Planned</a></li>
-                                    <li><a class="dropdown-item inst-status-dd-item active" href="#"><i class="bi bi-check-circle me-1"></i>Installed <i class="bi bi-check ms-auto"></i></a></li>
-                                    <li><a class="dropdown-item inst-status-dd-item disabled" href="#"><i class="bi bi-shield-check me-1"></i>Upload an image to enable 'Verified'</a></li>
-                                </ul>
-                            </div>
-                            <div class="mt-1"><a href="#" class="inst-upload-img"><i class="bi bi-camera me-1"></i>Upload Image</a></div>
-                        </td>
-                        <td><span class="inst-no-photos">No photos</span></td>
-                        <td>
-                            <div class="inst-date">04/01/2025</div>
-                            <div class="inst-store-meta">Regional Manager</div>
-                        </td>
-                        <td>
-                            <button class="btn-action" data-bs-toggle="modal" data-bs-target="#installationDetailModal"><i class="bi bi-eye"></i></button>
-                        </td>
-                    </tr>
-
-                    <!-- Row 4: Chittagong Plaza -->
-                    <tr>
-                        <td><input type="checkbox" class="form-check-input"></td>
-                        <td>
-                            <div class="inst-store-name">Chittagong Plaza</div>
-                            <div class="inst-store-meta">CTG &bull; Agrabad, Chittagong</div>
-                        </td>
-                        <td>
-                            <div class="fw-semibold" style="font-size:0.85rem;">Gondola Branding</div>
-                            <div class="inst-store-meta">Cavotin Haircare</div>
-                        </td>
-                        <td><span class="inst-branding-id">GB-CTG-CAV-002</span></td>
-                        <td>
-                            <div class="d-flex align-items-center gap-2">
-                                <div class="inst-kv-thumb"><img src="https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=80&h=50&fit=crop" alt="KV"></div>
-                                <span class="inst-kv-id">CAV_GB_001</span>
-                                <i class="bi bi-arrow-right text-muted" style="font-size:0.7rem;"></i>
-                                <div class="inst-kv-thumb"><img src="https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=80&h=50&fit=crop" alt="KV"></div>
-                                <span class="inst-kv-id">CAV_GB_002</span>
-                            </div>
-                            <a href="#" class="inst-change-kv"><i class="bi bi-arrow-repeat me-1"></i>Change KV</a>
-                        </td>
-                        <td>
-                            <div class="dropdown">
-                                <button class="inst-status-btn inst-status-installed dropdown-toggle" data-bs-toggle="dropdown">
-                                    <i class="bi bi-check-circle me-1"></i>Installed
-                                </button>
-                                <ul class="dropdown-menu inst-status-dropdown">
-                                    <li><a class="dropdown-item inst-status-dd-item" href="#"><i class="bi bi-calendar-event me-1"></i>Planned</a></li>
-                                    <li><a class="dropdown-item inst-status-dd-item active" href="#"><i class="bi bi-check-circle me-1"></i>Installed <i class="bi bi-check ms-auto"></i></a></li>
-                                    <li><a class="dropdown-item inst-status-dd-item disabled" href="#"><i class="bi bi-shield-check me-1"></i>Upload an image to enable 'Verified'</a></li>
-                                </ul>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="inst-photo-thumb"><img src="https://images.unsplash.com/photo-1583209814683-c023dd293cc6?w=60&h=40&fit=crop" alt="Photo"></div>
-                        </td>
-                        <td>
-                            <div class="inst-date">02/01/2025</div>
-                            <div class="inst-store-meta">Regional Manager</div>
-                        </td>
-                        <td>
-                            <button class="btn-action" data-bs-toggle="modal" data-bs-target="#installationDetailModal"><i class="bi bi-eye"></i></button>
-                        </td>
-                    </tr>
-
                     <!-- Row 5: Sylhet Shopping Center -->
-                    <tr>
-                        <td><input type="checkbox" class="form-check-input"></td>
-                        <td>
-                            <div class="inst-store-name">Sylhet Shopping Center</div>
-                            <div class="inst-store-meta">SYL &bull; Zindabazar, Sylhet</div>
-                        </td>
-                        <td>
-                            <div class="fw-semibold" style="font-size:0.85rem;">LED Screen</div>
-                            <div class="inst-store-meta">Samsung</div>
-                        </td>
-                        <td><span class="inst-branding-id">LS-SYL-SAM-003</span></td>
-                        <td>
-                            <div class="d-flex align-items-center gap-2">
-                                <div class="inst-kv-thumb inst-kv-thumb-video">
-                                    <i class="bi bi-play-circle"></i>
-                                </div>
-                                <div>
-                                    <span class="inst-kv-id">SAM_LS_002</span>
-                                    <div class="inst-store-meta">Duration: 0:45</div>
-                                </div>
-                            </div>
-                            <a href="#" class="inst-change-kv"><i class="bi bi-arrow-repeat me-1"></i>Change KV</a>
-                        </td>
-                        <td>
-                            <div class="dropdown">
-                                <button class="inst-status-btn inst-status-verified dropdown-toggle" data-bs-toggle="dropdown">
-                                    <i class="bi bi-shield-check me-1"></i>Verified
-                                </button>
-                                <ul class="dropdown-menu inst-status-dropdown">
-                                    <li><a class="dropdown-item inst-status-dd-item" href="#"><i class="bi bi-calendar-event me-1"></i>Planned</a></li>
-                                    <li><a class="dropdown-item inst-status-dd-item" href="#"><i class="bi bi-check-circle me-1"></i>Installed</a></li>
-                                    <li><a class="dropdown-item inst-status-dd-item active" href="#"><i class="bi bi-shield-check me-1"></i>Verified <i class="bi bi-check ms-auto"></i></a></li>
-                                </ul>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="d-flex gap-1">
-                                <div class="inst-photo-thumb"><img src="https://images.unsplash.com/photo-1571781926291-c477ebfd024b?w=60&h=40&fit=crop" alt="Photo"></div>
-                                <div class="inst-photo-thumb"><img src="https://images.unsplash.com/photo-1588006173527-b56e7fdd8596?w=60&h=40&fit=crop" alt="Photo"></div>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="inst-date">01/01/2025</div>
-                            <div class="inst-store-meta">Store Manager</div>
-                        </td>
-                        <td>
-                            <button class="btn-action" data-bs-toggle="modal" data-bs-target="#installationDetailModal"><i class="bi bi-eye"></i></button>
-                        </td>
-                    </tr>
+{{--                    <tr>--}}
+{{--                        <td><input type="checkbox" class="form-check-input"></td>--}}
+{{--                        <td>--}}
+{{--                            <div class="inst-store-name">Sylhet Shopping Center</div>--}}
+{{--                            <div class="inst-store-meta">SYL &bull; Zindabazar, Sylhet</div>--}}
+{{--                        </td>--}}
+{{--                        <td>--}}
+{{--                            <div class="fw-semibold" style="font-size:0.85rem;">LED Screen</div>--}}
+{{--                            <div class="inst-store-meta">Samsung</div>--}}
+{{--                        </td>--}}
+{{--                        <td><span class="inst-branding-id">LS-SYL-SAM-003</span></td>--}}
+{{--                        <td>--}}
+{{--                            <div class="d-flex align-items-center gap-2">--}}
+{{--                                <div class="inst-kv-thumb inst-kv-thumb-video">--}}
+{{--                                    <i class="bi bi-play-circle"></i>--}}
+{{--                                </div>--}}
+{{--                                <div>--}}
+{{--                                    <span class="inst-kv-id">SAM_LS_002</span>--}}
+{{--                                    <div class="inst-store-meta">Duration: 0:45</div>--}}
+{{--                                </div>--}}
+{{--                            </div>--}}
+{{--                            <a href="#" class="inst-change-kv"><i class="bi bi-arrow-repeat me-1"></i>Change KV</a>--}}
+{{--                        </td>--}}
+{{--                        <td>--}}
+{{--                            <div class="dropdown">--}}
+{{--                                <button class="inst-status-btn inst-status-verified dropdown-toggle" data-bs-toggle="dropdown">--}}
+{{--                                    <i class="bi bi-shield-check me-1"></i>Verified--}}
+{{--                                </button>--}}
+{{--                                <ul class="dropdown-menu inst-status-dropdown">--}}
+{{--                                    <li><a class="dropdown-item inst-status-dd-item" href="#"><i class="bi bi-calendar-event me-1"></i>Planned</a></li>--}}
+{{--                                    <li><a class="dropdown-item inst-status-dd-item" href="#"><i class="bi bi-check-circle me-1"></i>Installed</a></li>--}}
+{{--                                    <li><a class="dropdown-item inst-status-dd-item active" href="#"><i class="bi bi-shield-check me-1"></i>Verified <i class="bi bi-check ms-auto"></i></a></li>--}}
+{{--                                </ul>--}}
+{{--                            </div>--}}
+{{--                        </td>--}}
+{{--                        <td>--}}
+{{--                            <div class="d-flex gap-1">--}}
+{{--                                <div class="inst-photo-thumb"><img src="https://images.unsplash.com/photo-1571781926291-c477ebfd024b?w=60&h=40&fit=crop" alt="Photo"></div>--}}
+{{--                                <div class="inst-photo-thumb"><img src="https://images.unsplash.com/photo-1588006173527-b56e7fdd8596?w=60&h=40&fit=crop" alt="Photo"></div>--}}
+{{--                            </div>--}}
+{{--                        </td>--}}
+{{--                        <td>--}}
+{{--                            <div class="inst-date">01/01/2025</div>--}}
+{{--                            <div class="inst-store-meta">Store Manager</div>--}}
+{{--                        </td>--}}
+{{--                        <td>--}}
+{{--                            <button class="btn-action" data-bs-toggle="modal" data-bs-target="#installationDetailModal"><i class="bi bi-eye"></i></button>--}}
+{{--                        </td>--}}
+{{--                    </tr>--}}
                     </tbody>
                 </table>
             </div>
@@ -621,4 +485,10 @@
 <script src="{{ asset('backend/build/assets/libs/filepond-plugin-file-validate-size/filepond-plugin-file-validate-size.min.js') }}"></script>
 {{--<script src="{{ asset('backend/build/select2-4.1.0/select2.min.js') }}"></script>--}}
 
+<script>
+    $(document).on('click', '.inst-status-dd-item', function () {
+        event.preventDefault();
+        var currentStatus = $(this).data('status');
+    })
+</script>
 @endpush

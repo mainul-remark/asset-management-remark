@@ -157,6 +157,12 @@ class KeyVisualFilesController extends Controller
 
         $validated['status'] = (int) $validated['status'];
 
+        if ($kvFile === null) {
+            $validated['kv_file_code'] = KeyVisualFiles::generateUniqueKvFileCode((int) $validated['key_visual_id']);
+        } elseif (empty($kvFile->kv_file_code)) {
+            $validated['kv_file_code'] = KeyVisualFiles::generateUniqueKvFileCode((int) $kvFile->key_visual_id);
+        }
+
         if ($request->hasFile('kv_file_upload')) {
             $file = $request->file('kv_file_upload');
             $directory = 'backend/assets/uploaded-files/key-visual-files';

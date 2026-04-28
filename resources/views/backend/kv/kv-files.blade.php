@@ -211,6 +211,25 @@ $(function () {
     const MAX_IMAGE_FILE_SIZE = 5 * 1024 * 1024;
     const MAX_VIDEO_FILE_SIZE = 10 * 1024 * 1024;
 
+    const IMAGE_MIMES = ['image/jpeg','image/png','image/jpg','image/gif','image/svg+xml','image/webp'];
+    const VIDEO_MIMES = ['video/mp4','video/quicktime','video/x-msvideo','video/x-matroska','video/webm'];
+
+    function configureFilePondByKvType() {
+        const kvType = $('#key_visual_id option:selected').data('kv-type') || '';
+        const isVideo = kvType === 'video';
+        const isImage = kvType === 'image';
+        if (isVideo) {
+            kvFilePond.setOptions({ acceptedFileTypes: VIDEO_MIMES });
+            $('#kv-upload-hint').html('Videos only &bull; MP4 / MOV / AVI / MKV / WEBM &bull; max 10 MB');
+        } else if (isImage) {
+            kvFilePond.setOptions({ acceptedFileTypes: IMAGE_MIMES });
+            $('#kv-upload-hint').html('Images only &bull; JPG / PNG / GIF / SVG / WEBP &bull; max 5 MB');
+        } else {
+            kvFilePond.setOptions({ acceptedFileTypes: [...IMAGE_MIMES, ...VIDEO_MIMES] });
+            $('#kv-upload-hint').html('Images: max 5 MB &bull; Videos: max 10 MB');
+        }
+    }
+
     function getUploadSizeLimit(file) {
         const fileType = String(file?.type || '');
 
@@ -256,9 +275,22 @@ $(function () {
                 return false;
             }
 
-            const limit = getUploadSizeLimit(file);
+            const type = String(file.type || '');
+            const isImage = type.startsWith('image/');
+            const isVideo = type.startsWith('video/');
+            const kvType = $('#key_visual_id option:selected').data('kv-type') || '';
             $('#error-kv_file_upload').text('');
 
+            if (kvType === 'image' && !isImage) {
+                $('#error-kv_file_upload').text('This key visual only accepts image files.');
+                return false;
+            }
+            if (kvType === 'video' && !isVideo) {
+                $('#error-kv_file_upload').text('This key visual only accepts video files.');
+                return false;
+            }
+
+            const limit = getUploadSizeLimit(file);
             if ((file.size || 0) > limit.maxBytes) {
                 $('#error-kv_file_upload').text(limit.message);
                 return false;
@@ -406,6 +438,7 @@ $(function () {
         $('#existing-file-wrap').addClass('d-none');
         kvFilePond.removeFiles();
         clearErrors();
+        configureFilePondByKvType();
     }
 
     function applyFileMeta(file) {
@@ -520,6 +553,12 @@ $(function () {
         return Number.isNaN(number) ? value : number.toFixed(4);
     }
 
+    $('#key_visual_id').on('change', function () {
+        kvFilePond.removeFiles();
+        $('#error-kv_file_upload').text('');
+        configureFilePondByKvType();
+    });
+
     $('#btn-add-file').on('click', function () {
         resetForm();
         $('#fileModalLabel').text('Add Key Visual File');
@@ -536,6 +575,7 @@ $(function () {
                 $('#kv_file_id').val(data.id);
                 $('#name').val(data.name || '');
                 $('#key_visual_id').val(data.key_visual_id || '');
+                configureFilePondByKvType();
                 $('#key_visual_size_id').val(data.key_visual_size_id || '');
                 fallbackSizeId = data.key_visual_size_id || '';
                 setMediaDimensions();

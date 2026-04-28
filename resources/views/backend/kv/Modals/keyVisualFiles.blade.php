@@ -20,7 +20,7 @@
                             <select class="form-select select-ele" id="key_visual_id" name="key_visual_id">
                                 <option value="">Select key visual</option>
                                 @foreach($keyVisuals as $keyVisual)
-                                    <option value="{{ $keyVisual->id }}">
+                                    <option value="{{ $keyVisual->id }}" data-kv-type="{{ $keyVisual->kv_type }}">
                                         {{ $keyVisual->name }}{{ $keyVisual->unique_code ? ' (' . $keyVisual->unique_code . ')' : '' }}
                                     </option>
                                 @endforeach
@@ -63,7 +63,7 @@
                                    accept="image/jpeg,image/png,image/jpg,image/gif,image/svg+xml,image/webp,video/mp4,video/quicktime,video/x-msvideo,video/x-matroska,video/webm">
                             <input type="hidden" id="media_width" name="media_width">
                             <input type="hidden" id="media_height" name="media_height">
-                            <div class="form-text">Images: max 5 MB. Videos: max 10 MB.</div>
+                            <div class="form-text" id="kv-upload-hint">Images: max 5 MB. Videos: max 10 MB.</div>
                             <div class="invalid-feedback d-block" id="error-kv_file_upload"></div>
                             <div id="existing-file-wrap" class="small text-muted mt-2 d-none">
                                 Current file: <a id="existing-file-link" href="#" target="_blank" rel="noopener">Open file</a>
