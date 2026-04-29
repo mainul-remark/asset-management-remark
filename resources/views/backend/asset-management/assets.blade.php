@@ -193,25 +193,32 @@
                                         </button>
                                     </div>
                                 </div>
-                                <div class="col-md-6 d-none" id="planogram-field-wrap">
-                                    <label for="planogram_pdf" class="form-label">Planogram PDF <span class="text-danger d-none" id="planogram-required-star">*</span></label>
-                                    <div class="pdf-upload-zone" id="pdfUploadZone">
-                                        <div id="pdf-placeholder" class="upload-placeholder-inner">
-                                            <i class="ri-file-pdf-2-line fs-2 text-muted"></i>
-                                            <p class="mb-1 text-muted fs-12 mt-1">Click to select PDF</p>
-                                            <p class="mb-0 fs-11" style="color:#adb5bd">PDF only &mdash; Max 10 MB</p>
+                                
+                                <div class="d-none" id="planogram-field-wrap">
+                                    <div class="col-md-6 " id="">
+                                        <label for="planogram_pdf" class="form-label">Planogram PDF <span class="text-danger d-none" id="planogram-required-star">*</span></label>
+                                        <div class="pdf-upload-zone" id="pdfUploadZone">
+                                            <div id="pdf-placeholder" class="upload-placeholder-inner">
+                                                <i class="ri-file-pdf-2-line fs-2 text-muted"></i>
+                                                <p class="mb-1 text-muted fs-12 mt-1">Click to select PDF</p>
+                                                <p class="mb-0 fs-11" style="color:#adb5bd">PDF only &mdash; Max 10 MB</p>
+                                            </div>
+                                            <div id="pdf-selected" class="d-none text-center">
+                                                <i class="ri-file-pdf-2-line fs-2 text-danger"></i>
+                                                <p class="mb-0 fs-12 mt-1 text-truncate px-2" id="pdf-filename"></p>
+                                            </div>
+                                            <input type="file" class="d-none" id="planogram_pdf" name="planogram_pdf" accept=".pdf">
                                         </div>
-                                        <div id="pdf-selected" class="d-none text-center">
-                                            <i class="ri-file-pdf-2-line fs-2 text-danger"></i>
-                                            <p class="mb-0 fs-12 mt-1 text-truncate px-2" id="pdf-filename"></p>
+                                        <div class="invalid-feedback d-block" id="error-planogram_pdf"></div>
+                                        <div id="existing-pdf-wrap" class="d-none mt-1">
+                                            <a href="#" target="_blank" id="existing-planogram-link" class="btn btn-sm btn-info-light">
+                                                <i class="ri-external-link-line me-1"></i>View current PDF
+                                            </a>
                                         </div>
-                                        <input type="file" class="d-none" id="planogram_pdf" name="planogram_pdf" accept=".pdf">
                                     </div>
-                                    <div class="invalid-feedback d-block" id="error-planogram_pdf"></div>
-                                    <div id="existing-pdf-wrap" class="d-none mt-1">
-                                        <a href="#" target="_blank" id="existing-planogram-link" class="btn btn-sm btn-info-light">
-                                            <i class="ri-external-link-line me-1"></i>View current PDF
-                                        </a>
+                                    <div class="col-md-6">
+                                        <label for="">Planogram Assigned Brands</label>
+                                        <select name="planogram_" id=""></select>
                                     </div>
                                 </div>
                             </div>
