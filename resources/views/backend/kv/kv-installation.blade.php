@@ -195,14 +195,18 @@
                             <td>
                                 <div class="dropdown">
                                     <button class="inst-status-btn inst-status-planned dropdown-toggle" data-bs-toggle="dropdown">
-                                        <i class="bi bi-calendar-event me-1"></i>Planned
+                                        <i class="bi bi-calendar-event me-1"></i>
+                                        {{ $assignedAssetkeyVisual->instalation_status == 'pending' ? 'Pending' : '' }}
+                                        {{ $assignedAssetkeyVisual->instalation_status == 'planned' ? 'Planned' : '' }}
+                                        {{ $assignedAssetkeyVisual->instalation_status == 'installed' ? 'Installed' : '' }}
+                                        {{ $assignedAssetkeyVisual->instalation_status == 'verified' ? 'Verified' : '' }}
                                     </button>
                                     <ul class="dropdown-menu inst-status-dropdown">
-                                        <li><a class="dropdown-item inst-status-dd-item active" href="#" data-status="pending" data-asset-assigned-kv-id="{{ $assignedAssetkeyVisual->id }}"><i class="bi bi-calendar-event me-1"></i>Pending <i class="bi bi-check ms-auto"></i></a></li>
-                                        <li><a class="dropdown-item inst-status-dd-item " href="#" data-status="Planned" data-asset-assigned-kv-id="{{ $assignedAssetkeyVisual->id }}"><i class="bi bi-calendar-event me-1"></i>Planned <i class="bi bi-check ms-auto"></i></a></li>
-                                        <li><a class="dropdown-item inst-status-dd-item" href="#" data-status="Installed" data-asset-assigned-kv-id="{{ $assignedAssetkeyVisual->id }}"><i class="bi bi-check-circle me-1"></i>Installed</a></li>
+                                        <li><a class="dropdown-item inst-status-dd-item {{ $assignedAssetkeyVisual->instalation_status == 'pending' ? 'active' : '' }}" href="#" data-status="pending" data-asset-assigned-kv-id="{{ $assignedAssetkeyVisual->id }}"><i class="bi bi-calendar-event me-1"></i>Pending <i class="bi bi-check ms-auto"></i></a></li>
+                                        <li><a class="dropdown-item inst-status-dd-item {{ $assignedAssetkeyVisual->instalation_status == 'planned' ? 'active' : '' }}" href="#" data-status="Planned" data-asset-assigned-kv-id="{{ $assignedAssetkeyVisual->id }}"><i class="bi bi-calendar-event me-1"></i>Planned <i class="bi bi-check ms-auto"></i></a></li>
+                                        <li><a class="dropdown-item inst-status-dd-item {{ $assignedAssetkeyVisual->instalation_status == 'installed' ? 'active' : '' }}" href="#" data-status="Installed" data-asset-assigned-kv-id="{{ $assignedAssetkeyVisual->id }}"><i class="bi bi-check-circle me-1"></i>Installed</a></li>
                                         <li>
-                                            <a class="dropdown-item inst-status-dd-item @if(!isset($assignedAssetkeyVisual->instalation_proof)) disabled @endif" href="#" data-status="verified" data-asset-assigned-kv-id="{{ $assignedAssetkeyVisual->id }}">
+                                            <a class="dropdown-item inst-status-dd-item {{ $assignedAssetkeyVisual->instalation_status == 'verified' ? 'active' : '' }} @if(!isset($assignedAssetkeyVisual->instalation_proof)) disabled @endif" href="#" data-status="verified" data-asset-assigned-kv-id="{{ $assignedAssetkeyVisual->id }}">
                                                 <i class="bi bi-shield-check me-1"></i>Verified
 {{--                                                <i class="bi bi-shield-check me-1"></i>Upload an image to enable 'Verified'--}}
                                             </a>
@@ -538,11 +542,19 @@
     })
     $(document).on('click', '.upload-proof-image', function () {
         $('#assetAssignKvId').val($(this).data('asset-assign-kv-id'));
-        // var formData = new FormData($('#installationProofForm'));
-        // sendAjaxRequest('kv/update-asset-assigned-kv-data?for=proof', "POST", formData ).then(function (response) {
-        //     console.log(response);
-        // });
         $('#installationProofModal').modal('show');
+    })
+    $(document).on('submit', '#installationProofForm', function () {
+        // $('#assetAssignKvId').val($(this).data('asset-assign-kv-id'));
+        var formData = new FormData($('#installationProofForm'));
+        sendAjaxRequest('kv/update-asset-assigned-kv-data?for=proof', "POST", formData ).then(function (response) {
+            console.log(response);
+            // if (response.success)
+            // {
+            //     $('#installationProofModal').modal('hide');
+            // }
+        });
+
     })
 </script>
 @endpush

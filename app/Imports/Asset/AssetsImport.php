@@ -169,8 +169,8 @@ class AssetsImport implements ToCollection, WithHeadingRow, SkipsEmptyRows
         // --- Numeric / tinyInt fields ---
         foreach (['has_kv_slot', 'is_common_asset', 'has_self', 'status'] as $field) {
             if (isset($row[$field]) && $row[$field] !== '' && $row[$field] !== null) {
-                if (!is_numeric($row[$field]) || !in_array((int) $row[$field], [0, 1], true)) {
-                    $errors[] = ucwords(str_replace('_', ' ', $field)) . " must be 0 or 1 (got \"{$row[$field]}\").";
+                if (!in_array(strtolower((string) $row[$field]), ['yes', 'no'], true)) {
+                    $errors[] = ucwords(str_replace('_', ' ', $field)) . " must be Yes or No (got \"{$row[$field]}\").";
                 }
             }
         }
