@@ -202,12 +202,12 @@
                                         {{ $assignedAssetkeyVisual->instalation_status == 'verified' ? 'Verified' : '' }}
                                     </button>
                                     <ul class="dropdown-menu inst-status-dropdown">
-                                        <li><a class="dropdown-item inst-status-dd-item {{ $assignedAssetkeyVisual->instalation_status == 'pending' ? 'active' : '' }}" href="#" data-status="pending" data-asset-assigned-kv-id="{{ $assignedAssetkeyVisual->id }}"><i class="bi bi-calendar-event me-1"></i>Pending <i class="bi bi-check ms-auto"></i></a></li>
-                                        <li><a class="dropdown-item inst-status-dd-item {{ $assignedAssetkeyVisual->instalation_status == 'planned' ? 'active' : '' }}" href="#" data-status="Planned" data-asset-assigned-kv-id="{{ $assignedAssetkeyVisual->id }}"><i class="bi bi-calendar-event me-1"></i>Planned <i class="bi bi-check ms-auto"></i></a></li>
-                                        <li><a class="dropdown-item inst-status-dd-item {{ $assignedAssetkeyVisual->instalation_status == 'installed' ? 'active' : '' }}" href="#" data-status="Installed" data-asset-assigned-kv-id="{{ $assignedAssetkeyVisual->id }}"><i class="bi bi-check-circle me-1"></i>Installed</a></li>
+                                        <li><a class="dropdown-item inst-status-dd-item {{ $assignedAssetkeyVisual->instalation_status == 'pending' ? 'active' : '' }}" href="#" data-status="pending" data-asset-assigned-kv-id="{{ $assignedAssetkeyVisual->id }}"><i class="bi bi-calendar-event me-1"></i>Pending @if($assignedAssetkeyVisual->instalation_status == 'pending') <i class="bi bi-check ms-auto"></i>@endif</a></li>
+                                        <li><a class="dropdown-item inst-status-dd-item {{ $assignedAssetkeyVisual->instalation_status == 'planned' ? 'active' : '' }}" href="#" data-status="planned" data-asset-assigned-kv-id="{{ $assignedAssetkeyVisual->id }}"><i class="bi bi-calendar-event me-1"></i>Planned @if($assignedAssetkeyVisual->instalation_status == 'planned') <i class="bi bi-check ms-auto"></i>@endif</a></li>
+                                        <li><a class="dropdown-item inst-status-dd-item {{ $assignedAssetkeyVisual->instalation_status == 'installed' ? 'active' : '' }}" href="#" data-status="installed" data-asset-assigned-kv-id="{{ $assignedAssetkeyVisual->id }}"><i class="bi bi-check-circle me-1"></i>Installed @if($assignedAssetkeyVisual->instalation_status == 'installed') <i class="bi bi-check ms-auto"></i>@endif</a></li>
                                         <li>
                                             <a class="dropdown-item inst-status-dd-item {{ $assignedAssetkeyVisual->instalation_status == 'verified' ? 'active' : '' }} @if(!isset($assignedAssetkeyVisual->instalation_proof)) disabled @endif" href="#" data-status="verified" data-asset-assigned-kv-id="{{ $assignedAssetkeyVisual->id }}">
-                                                <i class="bi bi-shield-check me-1"></i>Verified
+                                                <i class="bi bi-shield-check me-1"></i>Verified @if($assignedAssetkeyVisual->instalation_status == 'verified') <i class="bi bi-check ms-auto"></i>@endif
 {{--                                                <i class="bi bi-shield-check me-1"></i>Upload an image to enable 'Verified'--}}
                                             </a>
                                         </li>
@@ -215,8 +215,8 @@
                                 </div>
                             </td>
                             <td>
-                                @if(isset($assignedAssetkeyVisual->istalation_proof))
-                                    @foreach(json_decode($assignedAssetkeyVisual->istalation_proof) as $file)
+                                @if(isset($assignedAssetkeyVisual->instalation_proof))
+                                    @foreach(json_decode($assignedAssetkeyVisual->instalation_proof) as $file)
                                         <div class="inst-photo-thumb"><img src="{{ asset($file) }}" alt="{{ $assignedAssetkeyVisual?->keyVisual->name }} proof Photo"></div>
                                     @endforeach
                                 @else
@@ -310,10 +310,10 @@
                             <input type="hidden" name="asset_assign_kv_id" id="assetAssignKvId">
                             <div class="mt-2">
                                 <label for="installationFiles">Installation Files</label>
-                                <input type="file" name="instalation_proof[]" class="form-control" multiple />
+                                <input type="file" id="installationFiles" name="instalation_proof[]" class="filepond-installation-proof" accept="image/jpeg,image/jpg,image/png,image/gif,image/webp" multiple />
                             </div>
                             <div class="mt-2">
-                                <input type="submit" class="btn btn-sm btn-success" value="Upload Installation Files">
+                                <input type="submit" id="installationProofSubmitBtn" class="btn btn-sm btn-success" value="Upload Installation Files">
                             </div>
                         </form>
                     </div>
@@ -502,6 +502,11 @@
 <link rel="stylesheet" href="{{ asset('backend/build/assets/libs/filepond-plugin-image-preview/filepond-plugin-image-preview.min.css') }}">
 <link rel="stylesheet" href="{{ asset('backend/build/select2-4.1.0/select2.min.css') }}">
 <link rel="stylesheet" href="{{ asset('backend/build/select2-4.1.0/select2-bootstrap-5-theme.min.css') }}">
+<style>
+    .filepond--root {
+        margin-bottom: 0;
+    }
+</style>
 
 @endpush
 
@@ -518,43 +523,110 @@
 {{--<script src="{{ asset('backend/build/select2-4.1.0/select2.min.js') }}"></script>--}}
 
 <script>
-    $(document).on('click', '.inst-status-dd-item', function () {
-        event.preventDefault();
+    FilePond.registerPlugin(
+        FilePondPluginImagePreview,
+        FilePondPluginImageExifOrientation,
+        FilePondPluginFileValidateType,
+        FilePondPluginFileValidateSize
+    );
+
+    const installationProofPond = FilePond.create(document.querySelector('.filepond-installation-proof'), {
+        allowMultiple: true,
+        instantUpload: false,
+        allowProcess: false,
+        allowRevert: false,
+        maxFiles: 10,
+        credits: false,
+        acceptedFileTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'],
+        maxFileSize: '5MB',
+        labelMaxFileSizeExceeded: 'Image is too large',
+        labelMaxFileSize: 'Maximum image size is 5 MB',
+        labelIdle: '<i class="ri-upload-cloud-2-line" style="font-size:1.45rem;color:var(--text-muted)"></i><br><span class="text-muted fs-13">Drag & drop installation photos or <span class="filepond--label-action">browse</span></span>',
+        imagePreviewHeight: 150,
+    });
+
+    document.getElementById('installationProofModal').addEventListener('hidden.bs.modal', function () {
+        document.getElementById('installationProofForm').reset();
+        installationProofPond.removeFiles();
+        $('#assetAssignKvId').val('');
+        $('#installationProofSubmitBtn').prop('disabled', false).val('Upload Installation Files');
+    });
+
+    $(document).on('click', '.inst-status-dd-item', function (e) {
+        e.preventDefault();
         var currentElement = $(this);
         var currentStatus = $(this).data('status');
         var assetAssignedKvId = $(this).data('asset-assigned-kv-id');
         $(this).closest('.inst-status-dropdown').find('.inst-status-dd-item').removeClass('active'); // remove active class
         $(this).addClass('active').css({color: "white"});
-        console.log(currentStatus);
-        sendAjaxRequest('kv/update-asset-assigned-kv-data?for=status', 'POST', {status: currentStatus, assigned_asset_kv_id: assetAssignedKvId}).then(function (response) {
-            if (!response.success)
-            {
-                toastr.error(response.message);
-            } else {
-                toastr.success(response.message);
-                if (response.data)
+        $.ajax({
+            url: '{{ route('key-visuals.update-asset-assigned-kv-data', ['for' => 'status']) }}',
+            type: 'POST',
+            data: {
+                status: currentStatus,
+                assigned_asset_kv_id: assetAssignedKvId,
+                _token: '{{ csrf_token() }}'
+            },
+            success: function (response) {
+                if (!response.success)
                 {
-                    if (response.data.status == 'verified')
+                    toastr.error(response.message);
+                } else {
+                    toastr.success(response.message);
+                    if (response.data && response.data.instalation_status == 'verified') {
                         currentElement.closest('.inst-status-btn').addClass('disabled');
+                    }
                 }
+            },
+            error: function () {
+                toastr.error('Unable to update installation status.');
             }
-        })
+        });
     })
     $(document).on('click', '.upload-proof-image', function () {
         $('#assetAssignKvId').val($(this).data('asset-assign-kv-id'));
         $('#installationProofModal').modal('show');
     })
-    $(document).on('submit', '#installationProofForm', function () {
-        // $('#assetAssignKvId').val($(this).data('asset-assign-kv-id'));
-        var formData = new FormData($('#installationProofForm'));
-        sendAjaxRequest('kv/update-asset-assigned-kv-data?for=proof', "POST", formData ).then(function (response) {
-            console.log(response);
-            // if (response.success)
-            // {
-            //     $('#installationProofModal').modal('hide');
-            // }
+    $(document).on('submit', '#installationProofForm', function (e) {
+        e.preventDefault();
+
+        const files = installationProofPond.getFiles();
+        if (!files.length) {
+            toastr.error('Please select at least one installation photo.');
+            return;
+        }
+
+        const formData = new FormData(this);
+        formData.delete('instalation_proof[]');
+        files.forEach(function (fileItem) {
+            formData.append('instalation_proof[]', fileItem.file);
         });
 
+        const $submitButton = $('#installationProofSubmitBtn');
+        $submitButton.prop('disabled', true).val('Uploading...');
+
+        $.ajax({
+            url: $(this).attr('action'),
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (response) {
+                if (!response.success) {
+                    toastr.error(response.message || 'Unable to upload installation proof.');
+                    $submitButton.prop('disabled', false).val('Upload Installation Files');
+                    return;
+                }
+
+                toastr.success(response.message || 'Installation proof uploaded successfully.');
+                $('#installationProofModal').modal('hide');
+                window.location.reload();
+            },
+            error: function () {
+                toastr.error('Something went wrong while uploading installation proof.');
+                $submitButton.prop('disabled', false).val('Upload Installation Files');
+            }
+        });
     })
 </script>
 @endpush
