@@ -42,6 +42,7 @@ class Store extends Model
         'district_id',
         'thana_id',
         'slug',
+        'store_type',
     ];
 
     protected $searchableFields = ['*'];
@@ -65,28 +66,29 @@ class Store extends Model
 //        $request['store_layout_pdf']    = CustomHelper::fileUpload($request->file('store_layout_pdf'), "stores", 'store_layout', null, null, $store->store_layout_pdf ?? null);
 
         $storeRecord = static::updateOrCreate(['id' => $store?->id], [
-            'title'               => $request->title,
-            'code'                => strtoupper($request->code),
-            'total_area_sqft'     => $request->total_area_sqft,
-            'address'             => $request->address,
-            'area'                => $request->area,
-            'postal_code'         => $request->postal_code,
-            'latitude'            => $request->latitude,
-            'longitude'           => $request->longitude,
-            'monthly_rent'        => $request->monthly_rent,
-            'per_sqr_feet_rent'        => $request->per_sqr_feet_rent,
-            'contact_person'     => $request->contact_person,
-            'shop_official_mobile'=> $request->shop_official_mobile,
-            'shop_official_email' => $request->shop_official_email,
-            'status'              => $request->status,
+            'title'                     => $request->title,
+            'code'                      => strtoupper($request->code),
+            'total_area_sqft'           => $request->total_area_sqft,
+            'address'                   => $request->address,
+            'area'                      => $request->area,
+            'postal_code'               => $request->postal_code,
+            'latitude'                  => $request->latitude,
+            'longitude'                 => $request->longitude,
+            'monthly_rent'              => $request->monthly_rent,
+            'per_sqr_feet_rent'         => $request->per_sqr_feet_rent,
+            'contact_person'            => $request->contact_person,
+            'shop_official_mobile'      => $request->shop_official_mobile,
+            'shop_official_email'       => $request->shop_official_email,
+            'status'                    => $request->status,
 //            'store_manager_id'    => $request->store_manager_id ?: null,
-            'opened_date'         => $request->opened_date,
-            'store_code'         => $request->store_code,
-            'division_id'         => $request->division_id,
-            'district_id'         => $request->district_id,
-            'thana_id'         => $request->thana_id,
-            'slug'              => str()->slug($request->title.'-'.$request->code),
-            'store_layout_pdf'      => CustomHelper::fileUpload($request->file('store_layout_pdf'), "stores", 'store_layout', null, null, $store->store_layout_pdf ?? null),
+            'opened_date'               => $request->opened_date,
+            'store_code'                => $request->store_code,
+            'division_id'               => $request->division_id,
+            'district_id'               => $request->district_id,
+            'thana_id'                  => $request->thana_id,
+            'store_type'                => $request->store_type,
+            'slug'                      => str()->slug($request->title.'-'.$request->code),
+            'store_layout_pdf'          => CustomHelper::fileUpload($request->file('store_layout_pdf'), "stores", 'store_layout', null, null, $store->store_layout_pdf ?? null),
         ]);
 
         // Create a StoreLayout record whenever layout pdf is uploaded

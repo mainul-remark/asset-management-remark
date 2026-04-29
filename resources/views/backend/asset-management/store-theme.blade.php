@@ -160,6 +160,7 @@
                             <tr>
                                 <th>Store Name <i class="bi bi-arrow-down-up" style="font-size:0.65rem;"></i></th>
                                 <th>Location <i class="bi bi-arrow-down-up" style="font-size:0.65rem;"></i></th>
+                                <th>Store Type</th>
                                 <th>Size (sq ft) <i class="bi bi-arrow-down-up" style="font-size:0.65rem;"></i></th>
                                 <th>Monthly Rent <i class="bi bi-arrow-down-up" style="font-size:0.65rem;"></i></th>
                                 <th>Rent/sq ft <i class="bi bi-arrow-down-up" style="font-size:0.65rem;"></i></th>
@@ -168,6 +169,14 @@
                             </tr>
                             </thead>
                             <tbody>
+                            @php
+                                $storeTypeLabels = [
+                                    'join_venture' => 'Join Venture',
+                                    'partner'      => 'Partner',
+                                    'zone'         => 'Zone',
+                                    'zone_jv'      => 'JV + Zone',
+                                ];
+                            @endphp
                             @foreach($stores as $store)
                                 @php
                                     $rentPerSqft = ($store->total_area_sqft > 0 && $store->monthly_rent > 0)
@@ -188,6 +197,7 @@
                                         <i class="bi bi-geo-alt text-muted me-1" style="font-size:0.75rem;"></i>
                                         {{ $store->division?->name ?? '—' }}
                                     </td>
+                                    <td>{{ $storeTypeLabels[$store->store_type] ?? ($store->store_type ? ucwords(str_replace('_', ' ', $store->store_type)) : '—') }}</td>
                                     <td>{{ $store->total_area_sqft ? number_format($store->total_area_sqft) : '—' }}</td>
                                     <td>{{ $store->monthly_rent ? number_format($store->monthly_rent) . '৳' : '—' }}</td>
                                     <td class="text-warning">{{ $rentPerSqft !== '—' ? $rentPerSqft . '৳' : '—' }}</td>
@@ -405,7 +415,7 @@
                     </div>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <form id="storeForm" enctype="multipart/form-data">
+                <form id="storeForm" enctype="multipart/form-data" >
                     <div class="modal-body">
                         <input type="hidden" id="store_id" value="">
 
@@ -423,7 +433,7 @@
                                 <div class="invalid-feedback" id="error-code"></div>
                             </div>
                             <div class="col-6 col-md-2">
-                                <label class="form-label fw-semibold" style="font-size:0.85rem;">Store Code</label>
+                                <label class="form-label fw-semibold" style="font-size:0.85rem;">Store SEP Code</label>
                                 <input type="text" class="form-control form-control-sm" id="store_code" name="store_code" placeholder="e.g. S001">
                                 <div class="invalid-feedback" id="error-store_code"></div>
                             </div>
@@ -494,15 +504,26 @@
                             </div>
                         </div>
                         <div class="row g-3 mb-3">
-                            <div class="col-12 col-md-6">
+                            <div class="col-12 col-md-4">
                                 <label class="form-label fw-semibold" style="font-size:0.85rem;">Area/Locality</label>
                                 <input type="text" class="form-control form-control-sm" id="area" name="area" placeholder="Area or locality name">
                                 <div class="invalid-feedback" id="error-area"></div>
                             </div>
-                            <div class="col-12 col-md-6">
+                            <div class="col-12 col-md-4">
                                 <label class="form-label fw-semibold" style="font-size:0.85rem;">Postal Code</label>
                                 <input type="text" class="form-control form-control-sm" id="postal_code" name="postal_code" placeholder="Postal Code">
                                 <div class="invalid-feedback" id="error-postal_code"></div>
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <label class="form-label fw-semibold" style="font-size:0.85rem;">Store Type</label>
+{{--                                <input type="text" class="form-control form-control-sm" id="store_type" name="store_type" placeholder="Postal Code">--}}
+                                <select class="form-select form-select-sm" id="store_type" name="store_type">
+                                    <option value="join_venture">Join Venture</option>
+                                    <option value="partner">Partner</option>
+                                    <option value="zone">Zone</option>
+                                    <option value="zone_jv">Join Venture + Zone</option>
+                                </select>
+                                <div class="invalid-feedback" id="error-store_type"></div>
                             </div>
                         </div>
                         <div class="row g-3 mb-3">
@@ -608,6 +629,7 @@
                                 <tr><th>Opened Date</th><td id="view-opened"></td></tr>
                                 <tr><th>Manager</th><td id="view-manager"></td></tr>
                                 <tr><th>Status</th><td id="view-status"></td></tr>
+                                <tr><th>Store Type</th><td id="view-store-type"></td></tr>
                             </table>
                         </div>
                         <div class="col-md-6">
@@ -1078,7 +1100,7 @@
         });
 
         // --- Initialize DataTable ---
-        const storesTable = $('#stores-table').DataTable({
+        let storesTable = $('#stores-table').DataTable({
             dom: '<"d-none"f>rt<"d-flex justify-content-between align-items-center mt-3"<"text-muted"i>p>',
             pageLength: 15,
             lengthMenu: [[15, 25, 50, 100, -1], [15, 25, 50, 100, "All"]],
@@ -1094,8 +1116,8 @@
                 }
             },
             columnDefs: [
-                { orderable: false, targets: [5, 6] },
-                { searchable: false, targets: [6] }
+                { orderable: false, targets: [6, 7] },
+                { searchable: false, targets: [7] }
             ]
         });
 
@@ -1106,6 +1128,57 @@
         }
         storesTable.on('draw', updateStoreCount);
         updateStoreCount();
+
+        function reloadStoresTable() {
+            const typeLabels = { join_venture: 'Join Venture', partner: 'Partner', zone: 'Zone', zone_jv: 'JV + Zone' };
+            $.get(base_url + 'stores/json-list', function (stores) {
+                storesTable.destroy();
+                let html = '';
+                stores.forEach(function (s) {
+                    const rentPerSqft = (s.total_area_sqft > 0 && s.monthly_rent > 0)
+                        ? (s.monthly_rent / s.total_area_sqft).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                        : null;
+                    const statusBadge = s.status == 1
+                        ? '<span class="badge badge-current rounded-pill"><i class="bi bi-check-circle me-1"></i>Active</span>'
+                        : '<span class="badge badge-pending rounded-pill"><i class="bi bi-clock me-1"></i>Inactive</span>';
+                    html += `<tr data-size="${s.total_area_sqft || ''}" data-rent="${s.monthly_rent || ''}">
+                        <td><div class="d-flex align-items-center gap-2"><span class="store-icon"><i class="bi bi-shop"></i></span><div><div class="store-name">${escapeHtml(s.title)}</div><div class="store-id">ID: ${escapeHtml(s.code)}</div></div></div></td>
+                        <td><i class="bi bi-geo-alt text-muted me-1" style="font-size:0.75rem;"></i>${s.division ? escapeHtml(s.division.name) : '—'}</td>
+                        <td>${typeLabels[s.store_type] || (s.store_type || '—')}</td>
+                        <td>${s.total_area_sqft ? parseFloat(s.total_area_sqft).toLocaleString('en-US', {maximumFractionDigits:0}) : '—'}</td>
+                        <td>${s.monthly_rent ? parseFloat(s.monthly_rent).toLocaleString('en-US', {maximumFractionDigits:0}) + '৳' : '—'}</td>
+                        <td class="text-warning">${rentPerSqft ? rentPerSqft + '৳' : '—'}</td>
+                        <td>${statusBadge}</td>
+                        <td>
+                            <a href="javascript:void(0)" class="btn-action open-assign-asset-to-store-mdoal" data-id="${s.id}" title="Assigned Assets"><i class="bi bi-cassette"></i></a>
+                            <button class="btn-action btn-view" data-id="${s.id}" title="View"><i class="bi bi-eye"></i></button>
+                            <button class="btn-action btn-edit" data-id="${s.id}" title="Edit"><i class="bi bi-pencil-square"></i></button>
+                            <button class="btn-action text-danger btn-delete" data-id="${s.id}" data-name="${escapeHtml(s.title)}" title="Delete"><i class="bi bi-trash"></i></button>
+                        </td>
+                    </tr>`;
+                });
+                $('#stores-table tbody').html(html);
+                storesTable = $('#stores-table').DataTable({
+                    dom: '<"d-none"f>rt<"d-flex justify-content-between align-items-center mt-3"<"text-muted"i>p>',
+                    pageLength: 15,
+                    lengthMenu: [[15, 25, 50, 100, -1], [15, 25, 50, 100, "All"]],
+                    order: [[0, 'asc']],
+                    language: {
+                        info: "Showing _START_ to _END_ of _TOTAL_ stores",
+                        infoEmpty: "No stores found",
+                        infoFiltered: "(filtered from _MAX_ total stores)",
+                        zeroRecords: "No matching stores found",
+                        paginate: { previous: "<i class='bi bi-chevron-left'></i>", next: "<i class='bi bi-chevron-right'></i>" }
+                    },
+                    columnDefs: [
+                        { orderable: false, targets: [6, 7] },
+                        { searchable: false, targets: [7] }
+                    ]
+                });
+                storesTable.on('draw', updateStoreCount);
+                updateStoreCount();
+            });
+        }
 
         // --- Custom Filters with DataTable ---
         // Search filter
@@ -1271,6 +1344,7 @@
                 $('#shop_official_mobile').val(data.shop_official_mobile);
                 $('#shop_official_email').val(data.shop_official_email);
                 $('#status').val(data.status);
+                $('#store_type').val(data.store_type);
 
                 // Trigger rent calculation
                 $('#total_area_sqft').trigger('input');
@@ -1316,6 +1390,13 @@
                 $('#view-status').html(data.status == 1
                     ? '<span class="badge bg-success-transparent">Active</span>'
                     : '<span class="badge bg-danger-transparent">Inactive</span>');
+                const storeTypeLabels = {
+                    'join_venture': 'Join Venture',
+                    'partner':      'Partner',
+                    'zone':         'Zone',
+                    'zone_jv':      'JV + Zone',
+                };
+                $('#view-store-type').text(storeTypeLabels[data.store_type] || data.store_type || '—');
                 $('#view-address').text(data.address || '—');
                 $('#view-area').text(data.area || '—');
                 $('#view-thana').text(data.thana ? data.thana.name : '—');
@@ -1365,7 +1446,7 @@
                 success: function (res) {
                     deleteModalEl.hide();
                     toastr.success(res.message);
-                    setTimeout(() => location.reload(), 800);
+                    reloadStoresTable();
                 },
                 error: function () {
                     toastr.error('Failed to delete store.');
@@ -1405,7 +1486,7 @@
                 success: function (res) {
                     storeModal.hide();
                     toastr.success(res.message);
-                    setTimeout(() => location.reload(), 800);
+                    reloadStoresTable();
                 },
                 error: function (xhr) {
                     if (xhr.status === 422) {

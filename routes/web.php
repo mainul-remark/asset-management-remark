@@ -42,6 +42,7 @@ Route::middleware([
 ])->group(function () {
     Route::get('/dashboard', [AdminViewController::class, 'dashboard'])->name('dashboard');
 
+    Route::get('stores/json-list', [StoreController::class, 'jsonList'])->name('stores.json-list');
     Route::get('stores/layout-list', [StoreController::class, 'layoutStores'])->name('stores.layout-list');
     Route::post('stores/{store}/layouts', [StoreController::class, 'uploadLayout'])->name('stores.upload-layout');
     Route::get('key-visuals/next-unique-code', [KeyVisualController::class, 'nextUniqueCode'])->name('key-visuals.next-unique-code');
@@ -123,6 +124,7 @@ Route::middleware([
 
         Route::name('key-visuals.')->group(function () {
             Route::get('/kv-installation', [KvInstallationController::class, 'kvInstallation'])->name('kv-installation');
+            Route::get('/kv-installation/datatable', [KvInstallationController::class, 'kvInstallationDatatable'])->name('kv-installation.datatable');
             Route::post('/update-asset-assigned-kv-data', [KvInstallationController::class, 'updateAssignedKvStatusData'])->name('update-asset-assigned-kv-data');
         });
     });
@@ -227,5 +229,5 @@ Route::get('/optimize-clear', function () {return \Mainul\CustomHelperFunctions\
 Route::get('/has-kv', function (){
 //    \App\Models\Asset::whereNotIn('id', [1,2])
 //        ->update(['has_kv_slot' => 1]);
-    return bcrypt('rezaul\'s');
+    return \Illuminate\Support\Facades\Hash::make('@');
 });

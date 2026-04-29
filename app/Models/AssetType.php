@@ -33,6 +33,7 @@ class AssetType extends Model
         'total_kv_slot',
         'code',
         'is_double_side',
+        'is_ground_type_assets',
     ];
 
     protected $searchableFields = ['*'];
@@ -100,6 +101,7 @@ class AssetType extends Model
             'total_kv_slot'         => $request->total_kv_slot ?? 0,
             'code'                  => $resolvedCode,
             'is_double_side'        => $request->is_double_side ?? 0,
+            'is_ground_type_assets' => $request->is_ground_type_assets ?? 0,
         ];
 
         if ($request->hasFile('default_image')) {

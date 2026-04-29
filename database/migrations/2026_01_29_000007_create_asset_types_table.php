@@ -82,6 +82,11 @@ return new class extends Migration {
                 ->default(0)
                 ->nullable();
 
+            $table
+                ->tinyInteger('is_ground_type_assets')
+                ->default(0)
+                ->nullable();
+
             $table->timestamps();
             $table->softDeletes();
         });

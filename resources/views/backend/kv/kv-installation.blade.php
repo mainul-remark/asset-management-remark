@@ -21,10 +21,10 @@
                 <h1 class="page-title mb-1">Branding and Branding Material Installation</h1>
                 <p class="page-subtitle mb-0">Streamlined 3-step workflow: Planned &rarr; Installed &rarr; Verified</p>
             </div>
-            <div class="page-header-actions d-flex gap-2 flex-wrap">
-                <button class="btn btn-outline-secondary btn-sm"><i class="bi bi-clipboard-data me-1"></i>Export Report</button>
-                <button class="btn btn-warning btn-sm text-white" data-bs-toggle="modal" data-bs-target="#newInstallationModal"><i class="bi bi-plus me-1"></i>New Installation</button>
-            </div>
+{{--            <div class="page-header-actions d-flex gap-2 flex-wrap">--}}
+{{--                <button class="btn btn-outline-secondary btn-sm"><i class="bi bi-clipboard-data me-1"></i>Export Report</button>--}}
+{{--                <button class="btn btn-warning btn-sm text-white" data-bs-toggle="modal" data-bs-target="#newInstallationModal"><i class="bi bi-plus me-1"></i>New Installation</button>--}}
+{{--            </div>--}}
         </div>
 
         <!-- Stat Cards Row -->
@@ -77,42 +77,42 @@
         </div>
 
         <!-- Investment & Status Row -->
-        <div class="row g-3 mb-3">
-            <div class="col-12 col-md-6">
-                <div class="content-card p-3">
-                    <h6 class="fw-bold mb-3" style="font-size:0.95rem;"><i class="bi bi-currency-dollar me-1 text-warning"></i>Total Investment</h6>
-                    <div class="d-flex justify-content-between mb-2">
-                        <span class="inst-invest-label">Total Budget:</span>
-                        <span class="inst-invest-value fw-bold">BDT 36,850</span>
-                    </div>
-                    <div class="d-flex justify-content-between mb-2">
-                        <span class="inst-invest-label">Completed Value:</span>
-                        <span class="inst-invest-value fw-bold text-success">BDT 16,500</span>
-                    </div>
-                    <div class="d-flex justify-content-between">
-                        <span class="inst-invest-label">Pending Value:</span>
-                        <span class="inst-invest-value fw-bold text-warning">BDT 20,350</span>
-                    </div>
-                </div>
-            </div>
-            <div class="col-12 col-md-6">
-                <div class="content-card p-3">
-                    <h6 class="fw-bold mb-3" style="font-size:0.95rem;"><i class="bi bi-exclamation-triangle me-1 text-warning"></i>Status Overview</h6>
-                    <div class="d-flex justify-content-between mb-2">
-                        <span class="inst-status-label" style="color:#e67e22;">Planned installations:</span>
-                        <span class="fw-bold" style="color:#2c3e6b;">2</span>
-                    </div>
-                    <div class="d-flex justify-content-between mb-2">
-                        <span class="inst-status-label" style="color:#e67e22;">Awaiting verification:</span>
-                        <span class="fw-bold" style="color:#2c3e6b;">2</span>
-                    </div>
-                    <div class="d-flex justify-content-between">
-                        <span class="inst-status-label" style="color:#e67e22;">Completed & verified:</span>
-                        <span class="fw-bold" style="color:#2c3e6b;">1</span>
-                    </div>
-                </div>
-            </div>
-        </div>
+{{--        <div class="row g-3 mb-3">--}}
+{{--            <div class="col-12 col-md-6">--}}
+{{--                <div class="content-card p-3">--}}
+{{--                    <h6 class="fw-bold mb-3" style="font-size:0.95rem;"><i class="bi bi-currency-dollar me-1 text-warning"></i>Total Investment</h6>--}}
+{{--                    <div class="d-flex justify-content-between mb-2">--}}
+{{--                        <span class="inst-invest-label">Total Budget:</span>--}}
+{{--                        <span class="inst-invest-value fw-bold">BDT 36,850</span>--}}
+{{--                    </div>--}}
+{{--                    <div class="d-flex justify-content-between mb-2">--}}
+{{--                        <span class="inst-invest-label">Completed Value:</span>--}}
+{{--                        <span class="inst-invest-value fw-bold text-success">BDT 16,500</span>--}}
+{{--                    </div>--}}
+{{--                    <div class="d-flex justify-content-between">--}}
+{{--                        <span class="inst-invest-label">Pending Value:</span>--}}
+{{--                        <span class="inst-invest-value fw-bold text-warning">BDT 20,350</span>--}}
+{{--                    </div>--}}
+{{--                </div>--}}
+{{--            </div>--}}
+{{--            <div class="col-12 col-md-6">--}}
+{{--                <div class="content-card p-3">--}}
+{{--                    <h6 class="fw-bold mb-3" style="font-size:0.95rem;"><i class="bi bi-exclamation-triangle me-1 text-warning"></i>Status Overview</h6>--}}
+{{--                    <div class="d-flex justify-content-between mb-2">--}}
+{{--                        <span class="inst-status-label" style="color:#e67e22;">Planned installations:</span>--}}
+{{--                        <span class="fw-bold" style="color:#2c3e6b;">2</span>--}}
+{{--                    </div>--}}
+{{--                    <div class="d-flex justify-content-between mb-2">--}}
+{{--                        <span class="inst-status-label" style="color:#e67e22;">Awaiting verification:</span>--}}
+{{--                        <span class="fw-bold" style="color:#2c3e6b;">2</span>--}}
+{{--                    </div>--}}
+{{--                    <div class="d-flex justify-content-between">--}}
+{{--                        <span class="inst-status-label" style="color:#e67e22;">Completed & verified:</span>--}}
+{{--                        <span class="fw-bold" style="color:#2c3e6b;">1</span>--}}
+{{--                    </div>--}}
+{{--                </div>--}}
+{{--            </div>--}}
+{{--        </div>--}}
 
         <!-- Filters Card -->
         <div class="content-card p-3 mb-3">
@@ -123,12 +123,12 @@
             <div class="row g-2">
                 <div class="col-12 col-md-4">
                     <label class="inst-filter-label">Search</label>
-                    <input type="text" class="form-control form-control-sm" placeholder="Search installations...">
+                    <input type="text" id="filter-search" class="form-control form-control-sm" placeholder="Search installations...">
                 </div>
                 <div class="col-6 col-md-4">
                     <label class="inst-filter-label">Status</label>
-                    <select class="form-select form-select-sm" name="installation_status_filter">
-                        <option>Select an option</option>
+                    <select class="form-select form-select-sm" id="filter-status" name="installation_status_filter">
+                        <option value="">Select an option</option>
                         <option value="pending">Pending</option>
                         <option value="planned">Planned</option>
                         <option value="installed">Installed</option>
@@ -137,10 +137,10 @@
                 </div>
                 <div class="col-6 col-md-4">
                     <label class="inst-filter-label">Store</label>
-                    <select class="form-select form-select-sm">
-                        <option>Select an option</option>
+                    <select class="form-select form-select-sm select-ele" id="filter-store">
+                        <option value="">Select an option</option>
                         @foreach($stores as $store)
-                            <option value="{{ $store->id }}">{{ $store->title.' ('.$store->code.'0' }}</option>
+                            <option value="{{ $store->id }}">{{ $store->title.' ('.$store->code.')' }}</option>
                         @endforeach
 {{--                        <option>Dhaka Central Mall</option>--}}
 {{--                        <option>Barisal City Center</option>--}}
@@ -153,8 +153,8 @@
 
         <!-- Installation Table -->
         <div class="content-card">
-            <div class="table-responsive">
-                <table class="table inst-table mb-0" >
+            <div class="table-responsive py-2 px-3">
+                <table class="table inst-table mb-0" id="installation-table">
                     <thead>
                     <tr>
 {{--                        <th style="width:36px;"><input type="checkbox" class="form-check-input"></th>--}}
@@ -168,123 +168,7 @@
                         <th style="width:36px;"></th>
                     </tr>
                     </thead>
-                    <tbody>
-                    <!-- Row 1: Rajshahi Grand Mall -->
-                    @foreach($assignedAssetkeyVisuals as $assignedAssetkeyVisual)
-                        <tr>
-{{--                            <td><input type="checkbox" class="form-check-input"></td>--}}
-                            <td>
-                                <div class="inst-store-name">{{ $assignedAssetkeyVisual?->asset?->store?->title ?? '' }}</div>
-                                <div class="inst-store-meta">{{ $assignedAssetkeyVisual?->asset?->store?->address ?? '' }}</div>
-                            </td>
-                            <td>
-                                <div class="fw-semibold" style="font-size:0.85rem;">{{ $assignedAssetkeyVisual?->asset?->assetType?->name ?? '' }}</div>
-{{--                                <div class="inst-store-meta">Ponds</div>--}}
-                            </td>
-{{--                            <td><span class="inst-branding-id">WD-RAJ-PON-004</span></td>--}}
-                            <td>
-                                <div class="d-flex align-items-center gap-2">
-                                    <div class="inst-kv-thumb"><img src="{{ asset($assignedAssetkeyVisual?->keyVisual->kv_thumb) }}" alt="{{ $assignedAssetkeyVisual?->keyVisual->name }}"></div>
-                                    <div>
-                                        <span class="inst-kv-id">KV: {{ $assignedAssetkeyVisual?->keyVisual->unique_code }}</span>
-                                        <span class="inst-badge-new">File: {{ $assignedAssetkeyVisual?->keyVisualFile?->kv_file_code ?? '' }}</span>
-                                    </div>
-                                </div>
-{{--                                <a href="#" class="inst-change-kv"><i class="bi bi-arrow-repeat me-1"></i>Change KV</a>--}}
-                            </td>
-                            <td>
-                                <div class="dropdown">
-                                    <button class="inst-status-btn inst-status-planned dropdown-toggle" data-bs-toggle="dropdown">
-                                        <i class="bi bi-calendar-event me-1"></i>
-                                        {{ $assignedAssetkeyVisual->instalation_status == 'pending' ? 'Pending' : '' }}
-                                        {{ $assignedAssetkeyVisual->instalation_status == 'planned' ? 'Planned' : '' }}
-                                        {{ $assignedAssetkeyVisual->instalation_status == 'installed' ? 'Installed' : '' }}
-                                        {{ $assignedAssetkeyVisual->instalation_status == 'verified' ? 'Verified' : '' }}
-                                    </button>
-                                    <ul class="dropdown-menu inst-status-dropdown">
-                                        <li><a class="dropdown-item inst-status-dd-item {{ $assignedAssetkeyVisual->instalation_status == 'pending' ? 'active' : '' }}" href="#" data-status="pending" data-asset-assigned-kv-id="{{ $assignedAssetkeyVisual->id }}"><i class="bi bi-calendar-event me-1"></i>Pending @if($assignedAssetkeyVisual->instalation_status == 'pending') <i class="bi bi-check ms-auto"></i>@endif</a></li>
-                                        <li><a class="dropdown-item inst-status-dd-item {{ $assignedAssetkeyVisual->instalation_status == 'planned' ? 'active' : '' }}" href="#" data-status="planned" data-asset-assigned-kv-id="{{ $assignedAssetkeyVisual->id }}"><i class="bi bi-calendar-event me-1"></i>Planned @if($assignedAssetkeyVisual->instalation_status == 'planned') <i class="bi bi-check ms-auto"></i>@endif</a></li>
-                                        <li><a class="dropdown-item inst-status-dd-item {{ $assignedAssetkeyVisual->instalation_status == 'installed' ? 'active' : '' }}" href="#" data-status="installed" data-asset-assigned-kv-id="{{ $assignedAssetkeyVisual->id }}"><i class="bi bi-check-circle me-1"></i>Installed @if($assignedAssetkeyVisual->instalation_status == 'installed') <i class="bi bi-check ms-auto"></i>@endif</a></li>
-                                        <li>
-                                            <a class="dropdown-item inst-status-dd-item {{ $assignedAssetkeyVisual->instalation_status == 'verified' ? 'active' : '' }} @if(!isset($assignedAssetkeyVisual->instalation_proof)) disabled @endif" href="#" data-status="verified" data-asset-assigned-kv-id="{{ $assignedAssetkeyVisual->id }}">
-                                                <i class="bi bi-shield-check me-1"></i>Verified @if($assignedAssetkeyVisual->instalation_status == 'verified') <i class="bi bi-check ms-auto"></i>@endif
-{{--                                                <i class="bi bi-shield-check me-1"></i>Upload an image to enable 'Verified'--}}
-                                            </a>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </td>
-                            <td>
-                                @if(isset($assignedAssetkeyVisual->instalation_proof))
-                                    @foreach(json_decode($assignedAssetkeyVisual->instalation_proof) as $file)
-                                        <div class="inst-photo-thumb"><img src="{{ asset($file) }}" alt="{{ $assignedAssetkeyVisual?->keyVisual->name }} proof Photo"></div>
-                                    @endforeach
-                                @else
-                                    <span class="inst-no-photos">No photos</span>
-                                @endif
-                            </td>
-{{--                            <td>--}}
-{{--                                <div class="inst-date">05/01/2025</div>--}}
-{{--                                <div class="inst-store-meta">Store Manager</div>--}}
-{{--                            </td>--}}
-                            <td>
-                                <button class="btn-action" data-bs-toggle="modal" data-bs-target="#installationDetailModal"><i class="bi bi-eye"></i></button>
-                                <button class="btn-action upload-proof-image" data-asset-assign-kv-id="{{ $assignedAssetkeyVisual->id }}"><i class="bi bi-image"></i></button>
-                            </td>
-                        </tr>
-                    @endforeach
-
-                    <!-- Row 5: Sylhet Shopping Center -->
-{{--                    <tr>--}}
-{{--                        <td><input type="checkbox" class="form-check-input"></td>--}}
-{{--                        <td>--}}
-{{--                            <div class="inst-store-name">Sylhet Shopping Center</div>--}}
-{{--                            <div class="inst-store-meta">SYL &bull; Zindabazar, Sylhet</div>--}}
-{{--                        </td>--}}
-{{--                        <td>--}}
-{{--                            <div class="fw-semibold" style="font-size:0.85rem;">LED Screen</div>--}}
-{{--                            <div class="inst-store-meta">Samsung</div>--}}
-{{--                        </td>--}}
-{{--                        <td><span class="inst-branding-id">LS-SYL-SAM-003</span></td>--}}
-{{--                        <td>--}}
-{{--                            <div class="d-flex align-items-center gap-2">--}}
-{{--                                <div class="inst-kv-thumb inst-kv-thumb-video">--}}
-{{--                                    <i class="bi bi-play-circle"></i>--}}
-{{--                                </div>--}}
-{{--                                <div>--}}
-{{--                                    <span class="inst-kv-id">SAM_LS_002</span>--}}
-{{--                                    <div class="inst-store-meta">Duration: 0:45</div>--}}
-{{--                                </div>--}}
-{{--                            </div>--}}
-{{--                            <a href="#" class="inst-change-kv"><i class="bi bi-arrow-repeat me-1"></i>Change KV</a>--}}
-{{--                        </td>--}}
-{{--                        <td>--}}
-{{--                            <div class="dropdown">--}}
-{{--                                <button class="inst-status-btn inst-status-verified dropdown-toggle" data-bs-toggle="dropdown">--}}
-{{--                                    <i class="bi bi-shield-check me-1"></i>Verified--}}
-{{--                                </button>--}}
-{{--                                <ul class="dropdown-menu inst-status-dropdown">--}}
-{{--                                    <li><a class="dropdown-item inst-status-dd-item" href="#"><i class="bi bi-calendar-event me-1"></i>Planned</a></li>--}}
-{{--                                    <li><a class="dropdown-item inst-status-dd-item" href="#"><i class="bi bi-check-circle me-1"></i>Installed</a></li>--}}
-{{--                                    <li><a class="dropdown-item inst-status-dd-item active" href="#"><i class="bi bi-shield-check me-1"></i>Verified <i class="bi bi-check ms-auto"></i></a></li>--}}
-{{--                                </ul>--}}
-{{--                            </div>--}}
-{{--                        </td>--}}
-{{--                        <td>--}}
-{{--                            <div class="d-flex gap-1">--}}
-{{--                                <div class="inst-photo-thumb"><img src="https://images.unsplash.com/photo-1571781926291-c477ebfd024b?w=60&h=40&fit=crop" alt="Photo"></div>--}}
-{{--                                <div class="inst-photo-thumb"><img src="https://images.unsplash.com/photo-1588006173527-b56e7fdd8596?w=60&h=40&fit=crop" alt="Photo"></div>--}}
-{{--                            </div>--}}
-{{--                        </td>--}}
-{{--                        <td>--}}
-{{--                            <div class="inst-date">01/01/2025</div>--}}
-{{--                            <div class="inst-store-meta">Store Manager</div>--}}
-{{--                        </td>--}}
-{{--                        <td>--}}
-{{--                            <button class="btn-action" data-bs-toggle="modal" data-bs-target="#installationDetailModal"><i class="bi bi-eye"></i></button>--}}
-{{--                        </td>--}}
-{{--                    </tr>--}}
-                    </tbody>
+                    <tbody></tbody>
                 </table>
             </div>
         </div>
@@ -309,10 +193,10 @@
                             @csrf
                             <input type="hidden" name="asset_assign_kv_id" id="assetAssignKvId">
                             <div class="mt-2">
-                                <label for="installationFiles">Installation Files</label>
+                                <label for="installationFiles" class="mb-2">Installation Files</label>
                                 <input type="file" id="installationFiles" name="instalation_proof[]" class="filepond-installation-proof" accept="image/jpeg,image/jpg,image/png,image/gif,image/webp" multiple />
                             </div>
-                            <div class="mt-2">
+                            <div class="mt-3 text-end">
                                 <input type="submit" id="installationProofSubmitBtn" class="btn btn-sm btn-success" value="Upload Installation Files">
                             </div>
                         </form>
@@ -506,6 +390,11 @@
     .filepond--root {
         margin-bottom: 0;
     }
+    .inst-status-installed {
+        background: rgba(40, 167, 69, 0.3) !important;
+        color: rgba(40, 167, 69, .8) !important;
+        border-color: rgba(40, 167, 69, 1) !important;;
+    }
 </style>
 
 @endpush
@@ -552,6 +441,60 @@
         $('#installationProofSubmitBtn').prop('disabled', false).val('Upload Installation Files');
     });
 
+    const installationTable = $('#installation-table').DataTable({
+        processing: true,
+        serverSide: true,
+        searching: false,
+        searchDelay: 400,
+        ajax: {
+            url: '{{ route('key-visuals.kv-installation.datatable') }}',
+            data: function (d) {
+                d.search_text = $('#filter-search').val();
+                d.installation_status_filter = $('#filter-status').val();
+                d.store_id = $('#filter-store').val();
+            }
+        },
+        columns: [
+            { data: 'store_name', name: 'stores.title' },
+            { data: 'branding_medium', name: 'asset_types.name', orderable: false },
+            { data: 'kv_id', name: 'key_visuals.unique_code', orderable: false },
+            { data: 'status', name: 'assign_kv_to_assets.instalation_status', orderable: false },
+            { data: 'photos', name: 'photos', orderable: false, searchable: false },
+            { data: 'actions', name: 'actions', orderable: false, searchable: false }
+        ],
+        order: [[0, 'asc']],
+        pageLength: 10,
+        lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
+        dom: '<"d-flex justify-content-between align-items-center mb-3"<"d-flex align-items-center"l><"d-flex align-items-center"i>>rt<"d-flex justify-content-between align-items-center mt-3"ip>',
+        language: {
+            processing: '<div class="py-4">Loading installations...</div>',
+            emptyTable: 'No installations found.',
+            zeroRecords: 'No matching installations found.',
+            info: 'Showing _START_ to _END_ of _TOTAL_ installations',
+            infoEmpty: 'No installations found',
+            paginate: {
+                previous: "<i class='ri-arrow-left-s-line'></i>",
+                next: "<i class='ri-arrow-right-s-line'></i>"
+            }
+        }
+    });
+
+    function reloadInstallationTable(resetPaging = false) {
+        installationTable.ajax.reload(null, resetPaging);
+    }
+
+    let installationFilterTimer;
+    $('#filter-search').on('input', function () {
+        clearTimeout(installationFilterTimer);
+        installationFilterTimer = setTimeout(function () {
+            reloadInstallationTable(true);
+        }, 350);
+    });
+
+    $('#filter-status, #filter-store').on('change', function () {
+        reloadInstallationTable(true);
+    });
+
     $(document).on('click', '.inst-status-dd-item', function (e) {
         e.preventDefault();
         var currentElement = $(this);
@@ -560,7 +503,7 @@
         $(this).closest('.inst-status-dropdown').find('.inst-status-dd-item').removeClass('active'); // remove active class
         $(this).addClass('active').css({color: "white"});
         $.ajax({
-            url: '{{ route('key-visuals.update-asset-assigned-kv-data', ['for' => 'status']) }}',
+            url: "{{ route('key-visuals.update-asset-assigned-kv-data', ['for' => 'status']) }}",
             type: 'POST',
             data: {
                 status: currentStatus,
@@ -573,9 +516,7 @@
                     toastr.error(response.message);
                 } else {
                     toastr.success(response.message);
-                    if (response.data && response.data.instalation_status == 'verified') {
-                        currentElement.closest('.inst-status-btn').addClass('disabled');
-                    }
+                    reloadInstallationTable(false);
                 }
             },
             error: function () {
@@ -620,7 +561,7 @@
 
                 toastr.success(response.message || 'Installation proof uploaded successfully.');
                 $('#installationProofModal').modal('hide');
-                window.location.reload();
+                reloadInstallationTable(false);
             },
             error: function () {
                 toastr.error('Something went wrong while uploading installation proof.');

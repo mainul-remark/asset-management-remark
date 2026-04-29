@@ -10,18 +10,18 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('user_store_assignments', function (Blueprint $table) {
+        Schema::create('planogram_histories', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->unsignedBigInteger('store_id');
-            $table->unsignedBigInteger('user_id');
-            $table->unsignedBigInteger('role_id')->nullable();
-            $table->string('employee_id')->nullable();
+            $table->unsignedBigInteger('asset_id');
+            $table->unsignedBigInteger('assigned_by');
+            $table->string('file_path');
             $table
                 ->tinyInteger('status')
                 ->default(1)
                 ->nullable();
-            $table->unsignedBigInteger('assigned_by');
-            $table->timestamp('assigned_at')->nullable();
+            $table->unsignedBigInteger('brand_id')->nullable();
+            $table->timestamp('changed_date')->nullable();
 
             $table->timestamps();
             $table->softDeletes();
@@ -33,6 +33,6 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::dropIfExists('user_store_assignments');
+        Schema::dropIfExists('planogram_histories');
     }
 };

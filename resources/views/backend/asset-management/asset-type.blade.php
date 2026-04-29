@@ -16,7 +16,7 @@
                     @php
                         $hasImage      = $assetTypes->contains(fn($r) => $r->default_image);
                         $hasDimensions = $assetTypes->contains(fn($r) => $r->height || $r->width);
-                        $hasProperties = $assetTypes->contains(fn($r) => $r->is_digital || $r->has_kv_space || $r->total_self > 0 || $r->need_asset_image || $r->need_asset_planogram || $r->has_asset_self || $r->is_double_side);
+                        $hasProperties = $assetTypes->contains(fn($r) => $r->is_digital || $r->has_kv_space || $r->total_self > 0 || $r->need_asset_image || $r->need_asset_planogram || $r->has_asset_self || $r->is_double_side|| $r->is_ground_type_assets);
                     @endphp
                     <div class="card-body">
                         <div class="table-responsive">
@@ -74,6 +74,9 @@
                                                 @endif
                                                     @if($assetType->is_double_side)
                                                         <span class="badge bg-teal-transparent me-1">Both Side</span>
+                                                    @endif
+                                                    @if($assetType->is_ground_type_assets)
+                                                        <span class="badge bg-teal-transparent me-1">Ground Assets</span>
                                                     @endif
                                                 @if($assetType->has_asset_self)
                                                     <span class="badge bg-teal-transparent me-1">Self ({{ $assetType->total_self ?? 0 }})</span>
@@ -308,6 +311,17 @@
                                         </div>
                                         <small class="text-muted d-block mt-1">Asset contains Both Side View?</small>
                                         <div class="invalid-feedback" id="error-is_double_side"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="switch-option-card">
+                                        <div class="form-check form-switch mb-0">
+                                            <input class="form-check-input form-checked-teal" type="checkbox"
+                                                role="switch" id="is_ground_type_assets">
+                                            <label class="form-check-label fw-medium" for="is_ground_type_assets">Is Ground Asset?</label>
+                                        </div>
+                                        <small class="text-muted d-block mt-1">Is Ground Category Asset?</small>
+                                        <div class="invalid-feedback" id="error-is_ground_type_assets"></div>
                                     </div>
                                 </div>
                                 <div class="col-md-4 d-none" id="total-self-wrap">
@@ -734,6 +748,7 @@
             $('#has_default_dimension').prop('checked', data.has_default_dimension == 1);
             $('#need_asset_image').prop('checked',      data.need_asset_image == 1);
             $('#is_double_side').prop('checked',        data.is_double_side == 1);
+            $('#is_ground_type_assets').prop('checked', data.is_ground_type_assets == 1);
             $('#need_asset_planogram').prop('checked',  data.need_asset_planogram == 1);
             $('#has_asset_self').prop('checked',        data.has_asset_self == 1);
 
@@ -761,6 +776,7 @@
             $('#has_default_dimension').prop('checked', false);
             $('#need_asset_image').prop('checked', false);
             $('#is_double_side').prop('checked', false);
+            $('#is_ground_type_assets').prop('checked', false);
             $('#need_asset_planogram').prop('checked', false);
             $('#has_asset_self').prop('checked', false);
             toggleDimensionFields(false);
@@ -869,7 +885,7 @@
 
             formData.set('_token', csrfToken);
 
-            ['status', 'is_digital', 'has_kv_space', 'has_default_dimension', 'need_asset_image', 'need_asset_planogram', 'has_asset_self', 'is_double_side']
+            ['status', 'is_digital', 'has_kv_space', 'has_default_dimension', 'need_asset_image', 'need_asset_planogram', 'has_asset_self', 'is_double_side', 'is_ground_type_assets']
                 .forEach(f => formData.set(f, $(`#${f}`).is(':checked') ? 1 : 0));
 
             if (id) formData.append('_method', 'PUT');
