@@ -111,6 +111,8 @@ Route::middleware([
 
         Route::post('/import-assets', [AssetImportController::class, 'import'])->name('assets.import-assets');
         Route::post('/check-asset-type-code', [AssetTypeController::class, 'checkTypeCode'])->name('assets.check-asset-type-code');
+
+        Route::get('/planogram-histories', [AssetController::class, 'planogramHistories'])->name('assets.planogram-histories');
     });
 
     Route::prefix('kv')->group(function () {

@@ -156,4 +156,9 @@ class Store extends Model
     {
         return $this->hasMany(UserStoreAssignment::class);
     }
+
+    public function planogramHistories()
+    {
+        return $this->hasMany(PlanogramHistory::class);
+    }
 }

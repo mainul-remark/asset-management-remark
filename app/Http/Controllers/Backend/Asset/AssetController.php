@@ -515,4 +515,140 @@ HTML;
             'assigned_to'   => 'nullable|date|after_or_equal:assigned_from',
         ]);
     }
+
+    public function planogramHistories(Request $request)
+    {
+        if ($request->ajax()) {
+            $query = PlanogramHistory::query()
+                ->leftJoin('stores', 'stores.id', '=', 'planogram_histories.store_id')
+                ->leftJoin('assets', 'assets.id', '=', 'planogram_histories.asset_id')
+                ->leftJoin('brands', 'brands.id', '=', 'planogram_histories.brand_id')
+                ->leftJoin('users', 'users.id', '=', 'planogram_histories.assigned_by')
+                ->select([
+                    'planogram_histories.id',
+                    'planogram_histories.store_id',
+                    'planogram_histories.asset_id',
+                    'planogram_histories.brand_id',
+                    'planogram_histories.assigned_by',
+                    'planogram_histories.file_path',
+                    'planogram_histories.status',
+                    'planogram_histories.changed_date',
+                    'stores.title as store_title',
+                    'stores.code as store_code',
+                    'assets.name as asset_name',
+                    'brands.name as brand_name',
+                    'users.name as assigned_by_name',
+                ])
+                ->when($request->filled('store_id'), fn ($query) => $query->where('planogram_histories.store_id', $request->integer('store_id')))
+                ->when($request->filled('asset_id'), fn ($query) => $query->where('planogram_histories.asset_id', $request->integer('asset_id')))
+                ->when($request->filled('brand_id'), fn ($query) => $query->where('planogram_histories.brand_id', $request->integer('brand_id')))
+                ->orderBy('stores.title')
+                ->orderBy('assets.name')
+                ->orderByDesc('planogram_histories.changed_date')
+                ->orderBy('brands.name');
+
+            return DataTables::eloquent($query)
+                ->addIndexColumn()
+                ->addColumn('store_display', function (PlanogramHistory $planogramHistory) {
+                    $title = e($planogramHistory->store_title ?: 'N/A');
+                    $code = $planogramHistory->store_code
+                        ? '<div class="text-muted small">' . e($planogramHistory->store_code) . '</div>'
+                        : '';
+
+                    return <<<HTML
+<div class="planogram-cell">
+    <div class="fw-semibold">{$title}</div>
+    {$code}
+</div>
+HTML;
+                })
+                ->addColumn('asset_display', function (PlanogramHistory $planogramHistory) {
+                    $name = e($planogramHistory->asset_name ?: 'N/A');
+                    $changedAt = $planogramHistory->changed_date
+                        ? Carbon::parse($planogramHistory->changed_date)->format('d M Y, h:i A')
+                        : 'N/A';
+
+                    return <<<HTML
+<div class="planogram-cell">
+    <div class="fw-semibold">{$name}</div>
+    <div class="text-muted small">Changed: {$changedAt}</div>
+</div>
+HTML;
+                })
+                ->addColumn('brand_display', function (PlanogramHistory $planogramHistory) {
+                    if (! $planogramHistory->brand_name) {
+                        return '<span class="text-muted">No brand</span>';
+                    }
+
+                    return '<span class="badge bg-primary-transparent text-primary">' . e($planogramHistory->brand_name) . '</span>';
+                })
+                ->addColumn('assigned_by_display', function (PlanogramHistory $planogramHistory) {
+                    return e($planogramHistory->assigned_by_name ?: 'System');
+                })
+                ->addColumn('status_display', function (PlanogramHistory $planogramHistory) {
+                    $isActive = (int) $planogramHistory->status === 1;
+                    $classes = $isActive
+                        ? 'bg-success-transparent text-success'
+                        : 'bg-danger-transparent text-danger';
+                    $label = $isActive ? 'Active' : 'Inactive';
+
+                    return '<span class="badge ' . $classes . '">' . $label . '</span>';
+                })
+                ->addColumn('actions', function (PlanogramHistory $planogramHistory) {
+                    if (! $planogramHistory->file_path) {
+                        return '<span class="text-muted">No file</span>';
+                    }
+
+                    $fileUrl = e(asset($planogramHistory->file_path));
+                    $storeTitle = e($planogramHistory->store_title ?: 'Store');
+                    $assetName = e($planogramHistory->asset_name ?: 'Asset');
+
+                    return <<<HTML
+<div class="btn-list">
+    <button
+        type="button"
+        class="btn btn-icon btn-sm btn-info-light btn-wave btn-view"
+        data-file-url="{$fileUrl}"
+        data-store-title="{$storeTitle}"
+        data-asset-name="{$assetName}"
+        title="View Planogram"
+    >
+        <i class="ri-eye-line"></i>
+    </button>
+</div>
+HTML;
+                })
+                ->addColumn('store_group', function (PlanogramHistory $planogramHistory) {
+                    return (string) ($planogramHistory->store_id ?: 'store-' . $planogramHistory->id);
+                })
+                ->addColumn('asset_group', function (PlanogramHistory $planogramHistory) {
+                    $changedAt = $planogramHistory->changed_date
+                        ? Carbon::parse($planogramHistory->changed_date)->format('Y-m-d H:i:s')
+                        : 'no-date';
+
+                    return md5(implode('|', [
+                        $planogramHistory->store_id ?: 'no-store',
+                        $planogramHistory->asset_id ?: 'no-asset',
+                        $planogramHistory->file_path ?: 'no-file',
+                        $planogramHistory->assigned_by ?: 'no-user',
+                        (int) $planogramHistory->status,
+                        $changedAt,
+                    ]));
+                })
+                ->rawColumns([
+                    'store_display',
+                    'asset_display',
+                    'brand_display',
+                    'status_display',
+                    'actions',
+                ])
+                ->toJson();
+        }
+
+        return view('backend.asset-management.planogram-history', [
+            'stores' => Store::where('status', 1)->orderBy('title')->get(['id', 'title', 'code']),
+            'assets' => Asset::where('status', 1)->orderBy('name')->get(['id', 'name', 'asset_code']),
+            'brands' => Brand::where('status', 1)->orderBy('name')->get(['id', 'name', 'code']),
+        ]);
+    }
 }

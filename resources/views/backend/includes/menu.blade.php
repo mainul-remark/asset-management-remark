@@ -84,9 +84,9 @@
                         <li class="slide">
                             <a href="{{ route('assets.assign-asset-to-brand') }}" class="side-menu__item">Assign Asset to Brand</a>
                         </li>
-{{--                        <li class="slide">--}}
-{{--                            <a href="{{ route('assets.assigned-assets') }}" class="side-menu__item">Assigned Assets</a>--}}
-{{--                        </li>--}}
+                        <li class="slide">
+                            <a href="{{ route('assets.planogram-histories') }}" class="side-menu__item">Planogram Histories</a>
+                        </li>
 {{--                        <li class="slide">--}}
 {{--                            <a href="{{ route('visual-merchandising-files.index') }}" class="side-menu__item">VM Issues</a>--}}
 {{--                            <a href="{{ route('vm.vm-issues') }}" class="side-menu__item">VM Issues</a>--}}

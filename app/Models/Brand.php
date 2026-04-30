@@ -64,4 +64,9 @@ class Brand extends Model
     {
         return $this->hasMany(AssignAssetToBrand::class);
     }
+
+    public function planogramHistories()
+    {
+        return $this->hasMany(PlanogramHistory::class);
+    }
 }

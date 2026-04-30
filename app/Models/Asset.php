@@ -144,4 +144,9 @@ class Asset extends Model
     {
         return $this->belongsToMany(AssetType::class);
     }
+
+    public function planogramHistories()
+    {
+        return $this->hasMany(PlanogramHistory::class);
+    }
 }
