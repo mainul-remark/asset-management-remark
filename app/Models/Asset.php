@@ -60,9 +60,9 @@ class Asset extends Model
         $data['status']          = $request->boolean('status') ? 1 : 0;
         $data['has_self']        = $request->boolean('has_self') ? 1 : 0;
 
-        if ($data['is_common_asset']) {
-            $data['store_id'] = null;
-        }
+//        if ($data['is_common_asset']) {
+//            $data['store_id'] = null;
+//        }
 
         if (!$data['has_self']) {
             $data['total_self'] = null;
@@ -86,9 +86,9 @@ class Asset extends Model
                 $request->file('planogram_pdf'),
                 'asset-planogram',
                 'asset-planogram',
-                null,
-                null,
-                $asset->planogram_pdf ?? null
+//                null,
+//                null,
+//                $asset->planogram_pdf ?? null
             );
         } else {
             unset($data['planogram_pdf']);

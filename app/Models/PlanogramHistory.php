@@ -6,6 +6,8 @@ use App\Models\Scopes\Searchable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Mainul\CustomHelperFunctions\Helpers\CustomHelper;
+use App\Models\Asset;
 
 class PlanogramHistory extends Model
 {
@@ -30,6 +32,38 @@ class PlanogramHistory extends Model
     protected $casts = [
         'changed_date' => 'datetime',
     ];
+
+    public static function createPlanogramHistory($request)
+    {
+        return static::create([
+            'store_id'     => $request->store_id,
+            'asset_id'     => $request->asset_id,
+            'assigned_by'  => CustomHelper::loggedUser()->id,
+            'file_path'    => $request->file_path,
+            'status'       => 1,
+            'brand_id'     => $request->brand_id,
+            'changed_date' => now(),
+        ]);
+    }
+
+    public static function recordForAsset(Asset $asset, string $filePath, ?int $brandId = null): void
+    {
+        if (! $asset->store_id || ! $filePath) {
+            return;
+        }
+
+        static::where('asset_id', $asset->id)->update(['status' => 0]);
+
+        static::create([
+            'store_id'     => $asset->store_id,
+            'asset_id'     => $asset->id,
+            'assigned_by'  => CustomHelper::loggedUser()->id,
+            'file_path'    => $filePath,
+            'status'       => 1,
+            'brand_id'     => $brandId,
+            'changed_date' => now(),
+        ]);
+    }
 
     public function store()
     {

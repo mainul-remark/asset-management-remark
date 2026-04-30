@@ -13,6 +13,7 @@ use App\Models\District;
 use App\Models\Division;
 use App\Models\KeyVisual;
 use App\Models\KeyVisualFiles;
+use App\Models\PlanogramHistory;
 use App\Models\Store;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -163,7 +164,16 @@ HTML;
             $asset = Asset::updateOrCreateAsset($request);
             if ($asset->store_id) {
                 AssignAssetToStore::assignAssetsToStoreLog($asset);
-
+                if ($asset->planogram_pdf) {
+                    $brandIds = array_filter((array) ($request->planogram_brand_id ?? []));
+                    if (! empty($brandIds)) {
+                        foreach ($brandIds as $brand_id) {
+                            PlanogramHistory::recordForAsset($asset, $asset->planogram_pdf, (int) $brand_id);
+                        }
+                    } else {
+                        PlanogramHistory::recordForAsset($asset, $asset->planogram_pdf);
+                    }
+                }
             }
             if ($asset)
                 $asset->assetTypes()->sync($request->asset_type_id);
@@ -195,12 +205,23 @@ HTML;
     public function update(AssetRequest $request, string $id)
     {
         $asset = Asset::findOrFail($id);
-        $oldStoreId = $asset->store_id;
+        $oldStoreId      = $asset->store_id;
+        $oldPlanogramPdf = $asset->planogram_pdf;
 
-        $asset = DB::transaction(function () use ($request, $asset, $oldStoreId) {
+        $asset = DB::transaction(function () use ($request, $asset, $oldStoreId, $oldPlanogramPdf) {
             $asset = Asset::updateOrCreateAsset($request, $asset);
             if ($asset->store_id && $asset->store_id != $oldStoreId) {
                 AssignAssetToStore::assignAssetsToStoreLog($asset);
+            }
+            if ($asset->store_id && $asset->planogram_pdf && $asset->planogram_pdf !== $oldPlanogramPdf) {
+                $brandIds = array_filter((array) ($request->planogram_brand_id ?? []));
+                if (! empty($brandIds)) {
+                    foreach ($brandIds as $brand_id) {
+                        PlanogramHistory::recordForAsset($asset, $asset->planogram_pdf, (int) $brand_id);
+                    }
+                } else {
+                    PlanogramHistory::recordForAsset($asset, $asset->planogram_pdf);
+                }
             }
             if ($asset)
                 $asset->assetTypes()->sync($request->asset_type_id);
