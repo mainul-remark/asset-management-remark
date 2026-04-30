@@ -139,11 +139,83 @@ class KvInstallationController extends Controller
                 })->implode('');
             })
             ->addColumn('actions', function ($row) {
-                return '<button class="btn-action" data-bs-toggle="modal" data-bs-target="#installationDetailModal"><i class="bi bi-eye"></i></button>'
+                return '<button class="btn-action view-kv-installation" data-kv-installation="'.$row->id.'" data-bs-toggle="modal" data-bs-target="#installationDetailModal"><i class="bi bi-eye"></i></button>'
                     .'<button class="btn-action upload-proof-image" data-asset-assign-kv-id="'.$row->id.'"><i class="bi bi-image"></i></button>';
             })
             ->rawColumns(['store_name', 'branding_medium', 'kv_id', 'status', 'photos', 'actions'])
             ->toJson();
+    }
+
+    public function kvInstallationDetail(Request $request, int $id): JsonResponse
+    {
+        $row = AssignKvToAsset::query()
+            ->leftJoin('assets', 'assign_kv_to_assets.asset_id', '=', 'assets.id')
+            ->leftJoin('asset_types', 'assets.asset_type_id', '=', 'asset_types.id')
+            ->leftJoin('stores', 'assets.store_id', '=', 'stores.id')
+            ->leftJoin('key_visuals', 'assign_kv_to_assets.key_visual_id', '=', 'key_visuals.id')
+            ->leftJoin('key_visual_files', 'assign_kv_to_assets.key_visual_files_id', '=', 'key_visual_files.id')
+            ->leftJoin('users as assigned_by_user', 'assign_kv_to_assets.assigned_by', '=', 'assigned_by_user.id')
+            ->leftJoin('users as installed_by_user', 'assign_kv_to_assets.installed_by', '=', 'installed_by_user.id')
+            ->select([
+                'assign_kv_to_assets.id',
+                'assign_kv_to_assets.instalation_status',
+                'assign_kv_to_assets.instalation_proof',
+                'assign_kv_to_assets.instalation_date',
+                'assign_kv_to_assets.assigned_date',
+                'assign_kv_to_assets.slot_number',
+                'assign_kv_to_assets.created_at',
+                'stores.title as store_title',
+                'stores.code as store_code',
+                'stores.address as store_address',
+                'asset_types.name as asset_type_name',
+                'assets.asset_code',
+                'key_visuals.name as key_visual_name',
+                'key_visuals.unique_code as key_visual_code',
+                'key_visuals.kv_thumb',
+                'key_visual_files.kv_file_code',
+                'assigned_by_user.name as assigned_by_name',
+                'installed_by_user.name as installed_by_name',
+            ])
+            ->where('assign_kv_to_assets.id', $id)
+            ->whereNull('assign_kv_to_assets.deleted_at')
+            ->first();
+
+        if (!$row) {
+            return response()->json(['success' => false, 'message' => 'Record not found.'], 404);
+        }
+
+        $proofFiles = [];
+        if ($row->instalation_proof) {
+            $proofFiles = collect(json_decode($row->instalation_proof, true))
+                ->filter(fn($f) => is_string($f) && $f !== '')
+                ->map(fn($f) => asset($f))
+                ->values()
+                ->all();
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'id'               => $row->id,
+                'status'           => $row->instalation_status ?? 'pending',
+                'store_title'      => $row->store_title,
+                'store_code'       => $row->store_code,
+                'store_address'    => $row->store_address,
+                'asset_type_name'  => $row->asset_type_name,
+                'asset_code'       => $row->asset_code,
+                'key_visual_name'  => $row->key_visual_name,
+                'key_visual_code'  => $row->key_visual_code,
+                'kv_thumb'         => $row->kv_thumb ? asset($row->kv_thumb) : null,
+                'kv_file_code'     => $row->kv_file_code,
+                'assigned_by_name' => $row->assigned_by_name,
+                'installed_by_name'=> $row->installed_by_name,
+                'instalation_date' => $row->instalation_date,
+                'assigned_date'    => $row->assigned_date,
+                'slot_number'      => $row->slot_number,
+                'created_at'       => $row->created_at ? \Carbon\Carbon::parse($row->created_at)->format('d M Y, H:i') : '—',
+                'proof_files'      => $proofFiles,
+            ],
+        ]);
     }
 
     public function updateAssignedKvStatusData(Request $request)

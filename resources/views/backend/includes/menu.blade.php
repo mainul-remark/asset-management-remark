@@ -167,7 +167,7 @@
                             <a href="{{ route('vm.vm-issues') }}" class="side-menu__item">VM Issues</a>
                         </li>
                         <li class="slide">
-                            <a href="" class="side-menu__item">Technical Team</a>
+                            <a href="{{ route('vm.fix-issues') }}" class="side-menu__item">Technical Team</a>
                         </li>
                     </ul>
                 </li>

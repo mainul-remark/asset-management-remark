@@ -277,102 +277,83 @@
                 <div class="modal-header border-0 pb-0">
                     <div>
                         <h5 class="modal-title fw-bold" style="font-size:1.1rem;">Installation Details</h5>
-                        <small class="text-muted">Rajshahi Grand Mall - Ponds</small>
+                        <small class="text-muted" id="inst-detail-subtitle">—</small>
                     </div>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body pt-2">
-                    <!-- Detail Tabs -->
-                    <ul class="nav nav-tabs-custom nav-tabs border-bottom mb-3" role="tablist">
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#instDetailOverview" type="button">Overview</button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#instDetailPhotos" type="button">Photos</button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#instDetailTimeline" type="button">Timeline</button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#instDetailAudit" type="button">Audit</button>
-                        </li>
-                    </ul>
+                    <!-- Loading state -->
+                    <div id="inst-detail-loading" class="text-center py-5">
+                        <div class="spinner-border spinner-border-sm text-secondary" role="status"></div>
+                        <p class="text-muted mt-2 mb-0" style="font-size:0.85rem;">Loading details...</p>
+                    </div>
 
-                    <div class="tab-content">
-                        <!-- Overview Tab -->
-                        <div class="tab-pane fade show active" id="instDetailOverview">
-                            <!-- Status Badge -->
-                            <div class="mb-3">
-                                <span class="inst-detail-status-badge"><i class="bi bi-calendar-event me-1"></i>Planned</span>
-                            </div>
+                    <!-- Detail content (hidden until loaded) -->
+                    <div id="inst-detail-content" style="display:none;">
+                        <!-- Detail Tabs -->
+                        <ul class="nav nav-tabs-custom nav-tabs border-bottom mb-3" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#instDetailOverview" type="button">Overview</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#instDetailPhotos" type="button">Photos <span class="badge bg-secondary ms-1" id="inst-detail-photo-count" style="font-size:0.7rem;">0</span></button>
+                            </li>
+                        </ul>
 
-                            <!-- Info Grid -->
-                            <div class="row g-4">
-                                <div class="col-12 col-md-6">
-                                    <h6 class="inst-detail-section-title">Store Information</h6>
-                                    <table class="table table-sm inst-detail-info-table">
-                                        <tr><td class="inst-detail-info-label">Store Name:</td><td class="fw-semibold">Rajshahi Grand Mall</td></tr>
-                                        <tr><td class="inst-detail-info-label">Store Code:</td><td class="fw-semibold">RAJ</td></tr>
-                                        <tr><td class="inst-detail-info-label">Location:</td><td>Shaheb Bazar, Rajshahi</td></tr>
-                                    </table>
-
-                                    <h6 class="inst-detail-section-title mt-3">Branding Details</h6>
-                                    <table class="table table-sm inst-detail-info-table">
-                                        <tr><td class="inst-detail-info-label">Brand:</td><td class="fw-semibold">Ponds</td></tr>
-                                        <tr><td class="inst-detail-info-label">Medium:</td><td>Window Display</td></tr>
-                                        <tr><td class="inst-detail-info-label">Branding ID:</td><td><span class="inst-branding-id">WD-RAJ-PON-004</span></td></tr>
-                                    </table>
-
-                                    <h6 class="inst-detail-section-title mt-3">KV ID</h6>
-                                    <div class="d-flex align-items-center justify-content-between mb-2">
-                                        <span></span>
-                                        <a href="#" class="inst-change-kv"><i class="bi bi-arrow-repeat me-1"></i>Change KV</a>
-                                    </div>
-                                    <div class="d-flex align-items-center gap-3">
-                                        <div class="inst-detail-kv-preview">
-                                            <img src="https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=120&h=80&fit=crop" alt="KV">
-                                        </div>
-                                        <div>
-                                            <span class="inst-kv-id">PON_WD_001</span>
-                                            <span class="inst-badge-new ms-1">New</span>
-                                        </div>
-                                    </div>
+                        <div class="tab-content">
+                            <!-- Overview Tab -->
+                            <div class="tab-pane fade show active" id="instDetailOverview">
+                                <!-- Status Badge -->
+                                <div class="mb-3">
+                                    <span class="inst-detail-status-badge" id="inst-detail-status-badge"><i class="bi bi-calendar-event me-1"></i>—</span>
                                 </div>
-                                <div class="col-12 col-md-6">
-                                    <h6 class="inst-detail-section-title">Schedule & Assignment</h6>
-                                    <table class="table table-sm inst-detail-info-table">
-                                        <tr><td class="inst-detail-info-label">Created On:</td><td>5 Jan 2025, 17:45</td></tr>
-                                        <tr><td class="inst-detail-info-label">Installation Date:</td><td>20 Jan 2025, 06:00</td></tr>
-                                        <tr><td class="inst-detail-info-label">Assigned To:</td><td>Store Manager</td></tr>
-                                        <tr><td class="inst-detail-info-label">Team Lead:</td><td>Karim Hassan</td></tr>
-                                    </table>
 
-                                    <h6 class="inst-detail-section-title mt-3">Cost Information</h6>
-                                    <table class="table table-sm inst-detail-info-table">
-                                        <tr><td class="inst-detail-info-label">Total Cost:</td><td class="fw-semibold">BDT 5,200</td></tr>
-                                        <tr><td class="inst-detail-info-label">Quantity:</td><td>2</td></tr>
-                                    </table>
+                                <!-- Info Grid -->
+                                <div class="row g-4">
+                                    <div class="col-12 col-md-6">
+                                        <h6 class="inst-detail-section-title">Store Information</h6>
+                                        <table class="table table-sm inst-detail-info-table">
+                                            <tr><td class="inst-detail-info-label">Store Name:</td><td class="fw-semibold" id="inst-detail-store-name">—</td></tr>
+                                            <tr><td class="inst-detail-info-label">Store Code:</td><td class="fw-semibold" id="inst-detail-store-code">—</td></tr>
+                                            <tr><td class="inst-detail-info-label">Location:</td><td id="inst-detail-store-location">—</td></tr>
+                                        </table>
+
+                                        <h6 class="inst-detail-section-title mt-3">Branding Details</h6>
+                                        <table class="table table-sm inst-detail-info-table">
+                                            <tr><td class="inst-detail-info-label">Medium:</td><td class="fw-semibold" id="inst-detail-medium">—</td></tr>
+                                            <tr><td class="inst-detail-info-label">Branding ID:</td><td><span class="inst-branding-id" id="inst-detail-branding-id">—</span></td></tr>
+                                        </table>
+
+                                        <h6 class="inst-detail-section-title mt-3">KV Details</h6>
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="inst-detail-kv-preview" id="inst-detail-kv-preview-wrap">
+                                                <i class="bi bi-image text-muted" style="font-size:1.5rem;"></i>
+                                            </div>
+                                            <div>
+                                                <div class="inst-kv-id" id="inst-detail-kv-code">—</div>
+                                                <div class="inst-badge-new mt-1" id="inst-detail-kv-file-code">—</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-12 col-md-6">
+                                        <h6 class="inst-detail-section-title">Schedule & Assignment</h6>
+                                        <table class="table table-sm inst-detail-info-table">
+                                            <tr><td class="inst-detail-info-label">Created On:</td><td id="inst-detail-created-on">—</td></tr>
+                                            <tr><td class="inst-detail-info-label">Installation Date:</td><td id="inst-detail-installation-date">—</td></tr>
+                                            <tr><td class="inst-detail-info-label">Assigned By:</td><td id="inst-detail-assigned-by">—</td></tr>
+                                            <tr><td class="inst-detail-info-label">Installed By:</td><td id="inst-detail-installed-by">—</td></tr>
+                                            <tr><td class="inst-detail-info-label">Slot No:</td><td id="inst-detail-slot-number">—</td></tr>
+                                        </table>
+                                    </div>
                                 </div>
                             </div>
 
-                            <!-- Notes -->
-                            <h6 class="inst-detail-section-title mt-3">Notes</h6>
-                            <p class="inst-detail-notes">Regular branding installation - no replacement</p>
-                        </div>
-
-                        <!-- Photos Tab -->
-                        <div class="tab-pane fade" id="instDetailPhotos">
-                            <p class="text-muted">No photos uploaded yet.</p>
-                        </div>
-
-                        <!-- Timeline Tab -->
-                        <div class="tab-pane fade" id="instDetailTimeline">
-                            <p class="text-muted">Timeline will appear here.</p>
-                        </div>
-
-                        <!-- Audit Tab -->
-                        <div class="tab-pane fade" id="instDetailAudit">
-                            <p class="text-muted">Audit log will appear here.</p>
+                            <!-- Photos Tab -->
+                            <div class="tab-pane fade" id="instDetailPhotos">
+                                <div id="inst-detail-photos-container" class="d-flex flex-wrap gap-2">
+                                    <p class="text-muted">No photos uploaded yet.</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -524,6 +505,82 @@
             }
         });
     })
+    const kvInstallationDetailUrl = '{{ route('key-visuals.kv-installation.detail', ['id' => '__ID__']) }}';
+
+    $('#installationDetailModal').on('show.bs.modal', function (event) {
+        const id = $(event.relatedTarget).data('kv-installation');
+        const url = kvInstallationDetailUrl.replace('__ID__', id);
+
+        $('#inst-detail-loading').show();
+        $('#inst-detail-content').hide();
+        $('#inst-detail-subtitle').text('—');
+
+        $.ajax({
+            url: url,
+            type: 'GET',
+            success: function (response) {
+                if (!response.success) {
+                    toastr.error(response.message || 'Failed to load details.');
+                    $('#installationDetailModal').modal('hide');
+                    return;
+                }
+
+                const d = response.data;
+                const statusIcon = { installed: 'bi-check-circle', verified: 'bi-shield-check' };
+                const icon = statusIcon[d.status] || 'bi-calendar-event';
+                const statusLabel = d.status ? d.status.charAt(0).toUpperCase() + d.status.slice(1) : '—';
+
+                $('#inst-detail-subtitle').text((d.store_title || '—') + (d.key_visual_name ? ' — ' + d.key_visual_name : ''));
+                $('#inst-detail-status-badge').html('<i class="bi ' + icon + ' me-1"></i>' + statusLabel);
+                $('#inst-detail-store-name').text(d.store_title || '—');
+                $('#inst-detail-store-code').text(d.store_code || '—');
+                $('#inst-detail-store-location').text(d.store_address || '—');
+                $('#inst-detail-medium').text(d.asset_type_name || '—');
+                $('#inst-detail-branding-id').text(d.asset_code || '—');
+                $('#inst-detail-kv-code').text(d.key_visual_code ? 'KV: ' + d.key_visual_code : '—');
+                $('#inst-detail-kv-file-code').text(d.kv_file_code ? 'File: ' + d.kv_file_code : '—');
+
+                if (d.kv_thumb) {
+                    $('#inst-detail-kv-preview-wrap').html('<img src="' + d.kv_thumb + '" alt="KV" style="max-width:100px;max-height:70px;object-fit:cover;border-radius:4px;">');
+                } else {
+                    $('#inst-detail-kv-preview-wrap').html('<i class="bi bi-image text-muted" style="font-size:1.5rem;"></i>');
+                }
+
+                $('#inst-detail-created-on').text(d.created_at || '—');
+                $('#inst-detail-installation-date').text(d.instalation_date || '—');
+                $('#inst-detail-assigned-by').text(d.assigned_by_name || '—');
+                $('#inst-detail-installed-by').text(d.installed_by_name || '—');
+                $('#inst-detail-slot-number').text(d.slot_number || '—');
+
+                const photos = d.proof_files || [];
+                $('#inst-detail-photo-count').text(photos.length);
+                if (photos.length) {
+                    $('#inst-detail-photos-container').html(
+                        photos.map(function (src) {
+                            return '<a href="' + src + '" target="_blank"><img src="' + src + '" style="width:110px;height:80px;object-fit:cover;border-radius:6px;border:1px solid #dee2e6;" alt="proof"></a>';
+                        }).join('')
+                    );
+                } else {
+                    $('#inst-detail-photos-container').html('<p class="text-muted mb-0">No photos uploaded yet.</p>');
+                }
+
+                $('#inst-detail-loading').hide();
+                $('#inst-detail-content').show();
+            },
+            error: function () {
+                toastr.error('Unable to load installation details.');
+                $('#installationDetailModal').modal('hide');
+            }
+        });
+    });
+
+    $('#installationDetailModal').on('hidden.bs.modal', function () {
+        $('#inst-detail-loading').show();
+        $('#inst-detail-content').hide();
+        // reset first tab to active
+        $('#installationDetailModal .nav-link').first().tab('show');
+    });
+
     $(document).on('click', '.upload-proof-image', function () {
         $('#assetAssignKvId').val($(this).data('asset-assign-kv-id'));
         $('#installationProofModal').modal('show');

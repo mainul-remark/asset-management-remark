@@ -127,6 +127,7 @@ Route::middleware([
         Route::name('key-visuals.')->group(function () {
             Route::get('/kv-installation', [KvInstallationController::class, 'kvInstallation'])->name('kv-installation');
             Route::get('/kv-installation/datatable', [KvInstallationController::class, 'kvInstallationDatatable'])->name('kv-installation.datatable');
+            Route::get('/kv-installation/{id}/detail', [KvInstallationController::class, 'kvInstallationDetail'])->name('kv-installation.detail');
             Route::post('/update-asset-assigned-kv-data', [KvInstallationController::class, 'updateAssignedKvStatusData'])->name('update-asset-assigned-kv-data');
         });
     });
