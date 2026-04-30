@@ -163,6 +163,7 @@ HTML;
             $asset = Asset::updateOrCreateAsset($request);
             if ($asset->store_id) {
                 AssignAssetToStore::assignAssetsToStoreLog($asset);
+
             }
             if ($asset)
                 $asset->assetTypes()->sync($request->asset_type_id);

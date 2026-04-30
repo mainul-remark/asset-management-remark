@@ -193,8 +193,8 @@
                                         </button>
                                     </div>
                                 </div>
-                                
-                                <div class="d-none" id="planogram-field-wrap">
+
+                                <div class="col-12 d-none row" id="planogram-field-wrap">
                                     <div class="col-md-6 " id="">
                                         <label for="planogram_pdf" class="form-label">Planogram PDF <span class="text-danger d-none" id="planogram-required-star">*</span></label>
                                         <div class="pdf-upload-zone" id="pdfUploadZone">
@@ -218,7 +218,12 @@
                                     </div>
                                     <div class="col-md-6">
                                         <label for="">Planogram Assigned Brands</label>
-                                        <select name="planogram_" id=""></select>
+                                        <select name="planogram_brand_id[]" multiple class="form-control select-ele" id="planogramBrandId">
+                                            <option value="" disabled>Select Planogram Brands</option>
+                                            @foreach($brands as $brand)
+                                                <option value="{{ $brand->id }}">{{ $brand->name ?? '' }}</option>
+                                            @endforeach
+                                        </select>
                                     </div>
                                 </div>
                             </div>
