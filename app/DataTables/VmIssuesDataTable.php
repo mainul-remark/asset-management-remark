@@ -3,6 +3,7 @@
 namespace App\DataTables;
 
 use App\Http\Controllers\Backend\Asset\VisualMerchandisingController;
+use App\Models\UserStoreAssignment;
 use App\Models\VisualMerchandising;
 use Illuminate\Database\Eloquent\Builder;
 use Mainul\CustomHelperFunctions\Helpers\CustomHelper;
@@ -80,15 +81,24 @@ class VmIssuesDataTable extends DataTable
 
     public function query(): Builder
     {
-        return VisualMerchandising::query()
+        $user = CustomHelper::loggedUser();
+
+        $query = VisualMerchandising::query()
             ->with([
                 'store:id,title,code',
                 'asset:id,name,asset_code,store_id,is_common_asset,asset_type_id',
                 'asset.assetType:id,name',
                 'visualMerchandisingFiles' => fn ($q) => $q->latest('id'),
-            ])
-            ->where('creator_id', CustomHelper::loggedUser()->id)
-            ->latest();
+            ]);
+
+        if ($user->usages_sector === 'field') {
+            $assignedStoreIds = UserStoreAssignment::where('user_id', $user->id)->pluck('store_id');
+            $query->whereIn('store_id', $assignedStoreIds);
+        } else {
+            $query->where('creator_id', $user->id);
+        }
+
+        return $query->latest();
     }
 
     protected function filename(): string

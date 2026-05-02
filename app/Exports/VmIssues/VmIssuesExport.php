@@ -2,6 +2,7 @@
 
 namespace App\Exports\VmIssues;
 
+use App\Models\UserStoreAssignment;
 use App\Models\VisualMerchandising;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
@@ -28,20 +29,29 @@ class VmIssuesExport implements
     WithEvents
 {
     public function __construct(
-        private readonly int    $creatorId,
-        private readonly ?string $fixStatus = null,
-        private readonly ?int    $storeId   = null,
+        private readonly int     $creatorId,
+        private readonly ?string $fixStatus    = null,
+        private readonly ?int    $storeId      = null,
+        private readonly ?string $usagesSector = null,
     ) {}
 
     public function collection(): Collection
     {
-        return VisualMerchandising::query()
+        $query = VisualMerchandising::query()
             ->with([
                 'store:id,title,code',
                 'asset:id,name,asset_code,asset_type_id',
                 'asset.assetType:id,name',
-            ])
-            ->where('creator_id', $this->creatorId)
+            ]);
+
+        if ($this->usagesSector === 'field') {
+            $assignedStoreIds = UserStoreAssignment::where('user_id', $this->creatorId)->pluck('store_id');
+            $query->whereIn('store_id', $assignedStoreIds);
+        } else {
+            $query->where('creator_id', $this->creatorId);
+        }
+
+        return $query
             ->when($this->fixStatus, fn ($q) => $q->where('issue_fix_status', $this->fixStatus))
             ->when($this->storeId,   fn ($q) => $q->where('store_id', $this->storeId))
             ->latest()

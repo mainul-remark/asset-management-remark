@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Backend\Asset\VisualMerchandisingRequest;
 use App\Models\Asset;
 use App\Models\Store;
+use App\Models\UserStoreAssignment;
 use App\Models\VisualMerchandising;
 use App\Models\VmIssueFix;
 use Illuminate\Http\JsonResponse;
@@ -190,20 +191,28 @@ class VisualMerchandisingController extends Controller
 
     public function userWiseVmIssues(Request $request)
     {
+        $user = CustomHelper::loggedUser();
+        $assignedStoreIds = $user->usages_sector === 'field'
+            ? UserStoreAssignment::where('user_id', $user->id)->pluck('store_id')
+            : null;
+
+        $storesQuery = Store::query()->whereNull('deleted_at')->orderBy('title');
+        $assetsQuery = Asset::query()
+            ->with(['store:id,title,code', 'assetType:id,name', 'assignAssetToStores:id,asset_id,store_id'])
+            ->whereNull('deleted_at')
+            ->orderBy('name');
+
+        if ($assignedStoreIds !== null) {
+            $storesQuery->whereIn('id', $assignedStoreIds);
+            $assetsQuery->where(function ($q) use ($assignedStoreIds) {
+                $q->whereIn('store_id', $assignedStoreIds)
+                  ->orWhereHas('assignAssetToStores', fn ($sub) => $sub->whereIn('store_id', $assignedStoreIds));
+            });
+        }
+
         return view('backend.asset-management.vm-issues-theme', [
-            'stores' => Store::query()
-                ->whereNull('deleted_at')
-                ->orderBy('title')
-                ->get(['id', 'title', 'code', 'status']),
-            'assets' => Asset::query()
-                ->with([
-                    'store:id,title,code',
-                    'assetType:id,name',
-                    'assignAssetToStores:id,asset_id,store_id',
-                ])
-                ->whereNull('deleted_at')
-                ->orderBy('name')
-                ->get(['id', 'name', 'asset_code', 'store_id', 'is_common_asset', 'status', 'asset_type_id']),
+            'stores' => $storesQuery->get(['id', 'title', 'code', 'status']),
+            'assets' => $assetsQuery->get(['id', 'name', 'asset_code', 'store_id', 'is_common_asset', 'status', 'asset_type_id']),
             'issueFixStatuses' => VisualMerchandisingRequest::ISSUE_FIX_STATUSES,
             'permissions' => [
                 'canView'         => allowed([self::class, 'show']),
@@ -222,9 +231,10 @@ class VisualMerchandisingController extends Controller
 
         $key = HelperFile::exportExelOnQueue(
             new VmIssuesExport(
-                creatorId: CustomHelper::loggedUser()->id,
-                fixStatus: $request->filled('fix_status') ? $request->fix_status : null,
-                storeId:   $request->filled('store_id')   ? (int) $request->store_id : null,
+                creatorId:    CustomHelper::loggedUser()->id,
+                fixStatus:    $request->filled('fix_status') ? $request->fix_status : null,
+                storeId:      $request->filled('store_id')   ? (int) $request->store_id : null,
+                usagesSector: CustomHelper::loggedUser()->usages_sector,
             ),
             $filename
         );
