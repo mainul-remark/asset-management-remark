@@ -52,20 +52,20 @@ class VmIssuesDataTable extends DataTable
                 return '<span class="inst-no-photos">File</span>' . $extra;
             })
             ->addColumn('actions', function ($row) {
-                $nextStatusMap = [
-                    'pending'    => 'reviewed',
-                    'reviewed'   => 'assigned',
-                    'assigned'   => 'processing',
-                    'processing' => 'solved',
-                ];
-                $nextStatus = $nextStatusMap[$row->issue_fix_status] ?? null;
-                $changeBtn  = $nextStatus
-                    ? '<button class="btn-action change-vm-status" data-id="' . $row->id . '" data-fix-status="' . $nextStatus . '" title="Advance status"><i class="bi bi-arrow-repeat"></i></button>'
-                    : '';
+//                $nextStatusMap = [
+//                    'pending'    => 'reviewed',
+//                    'reviewed'   => 'assigned',
+//                    'assigned'   => 'processing',
+//                    'processing' => 'solved',
+//                ];
+//                $nextStatus = $nextStatusMap[$row->issue_fix_status] ?? null;
+//                $changeBtn  = $nextStatus
+//                    ? '<button class="btn-action change-vm-status" data-id="' . $row->id . '" data-fix-status="' . $nextStatus . '" title="Advance status"><i class="bi bi-arrow-repeat"></i></button>'
+//                    : '';
 
                 return '
                     <div class="d-flex gap-1">
-                        ' . $changeBtn . '
+
                         <button class="btn-action btn-view-vm"   data-id="' . $row->id . '" title="View"><i class="bi bi-eye"></i></button>
                         <button class="btn-action btn-edit-vm"   data-id="' . $row->id . '" title="Edit"><i class="bi bi-pencil"></i></button>
                         <button class="btn-action text-danger btn-delete-vm" data-id="' . $row->id . '" data-name="' . e($row->asset?->name ?? 'VM Issue') . '" title="Delete"><i class="bi bi-trash"></i></button>

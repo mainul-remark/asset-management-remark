@@ -811,6 +811,11 @@
             openFormModal('edit');
             $.get(apiUrl($(this).data('id')) + '/edit')
                 .done(function (data) {
+                    console.log(data);
+                    if (!data.can_edit)
+                    {
+                        showToast('You Can not edit this VM issue now', 'danger'); return;
+                    }
                     loadEditData(data);
                     $('#vmModalLabel').text('Edit VM Issue');
                     $('#btn-save').data('default-text', 'Update');

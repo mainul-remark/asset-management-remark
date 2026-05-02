@@ -60,8 +60,8 @@ class VmIssueFixDataTable extends DataTable
             })
             ->addColumn('status_select', function ($row) {
                 $options = [
-                    'assigned'   => 'Assigned',
                     'planned'    => 'Planned',
+                    'assigned'   => 'Assigned',
                     'processing' => 'Processing',
                     'solved'     => 'Solved',
                 ];

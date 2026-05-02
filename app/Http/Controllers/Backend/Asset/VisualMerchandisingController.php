@@ -85,6 +85,9 @@ class VisualMerchandisingController extends Controller
     public function edit(string $id): JsonResponse
     {
         $visualMerchandising = VisualMerchandising::findOrFail($id);
+        if ($visualMerchandising->issue_fix_status == 'pending') {
+            $visualMerchandising['can_edit'] = true;
+        }
         $visualMerchandising->load([
             'store:id,title,code',
             'asset:id,name,asset_code,store_id,is_common_asset,asset_type_id',
@@ -125,6 +128,7 @@ class VisualMerchandisingController extends Controller
             'id' => $visualMerchandising->id,
             'store_id' => $visualMerchandising->store_id,
             'asset_id' => $visualMerchandising->asset_id,
+            'can_edit' => $visualMerchandising->can_edit ?? false,
             'creator_id' => $visualMerchandising->creator_id,
             'issue_text' => $visualMerchandising->issue_text,
             'issue_fix_status' => $visualMerchandising->issue_fix_status,
