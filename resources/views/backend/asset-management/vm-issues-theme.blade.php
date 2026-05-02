@@ -42,14 +42,18 @@
             <p class="text-muted fs-13 mb-0">Track and manage your reported Assets issues.</p>
         </div>
         <div class="page-header-actions d-flex gap-2 flex-wrap">
+            @if($permissions['canExport'])
             <button type="button" id="btn-export" class="btn btn-outline-secondary btn-sm">
                 <i class="bi bi-file-earmark-excel me-1" id="btn-export-icon"></i>
                 <span id="btn-export-text">Export Report</span>
                 <span class="spinner-border spinner-border-sm d-none ms-1" id="btn-export-spinner"></span>
             </button>
+            @endif
+            @if($permissions['canCreate'])
             <button class="btn btn-warning btn-sm text-white" id="btn-add-vm">
                 <i class="bi bi-plus me-1"></i>New VM Issue
             </button>
+            @endif
         </div>
     </div>
 
@@ -146,7 +150,9 @@
                     <th>Fix Status</th>
                     <th>Files</th>
                     <th>Date</th>
+                    @if($permissions['canView'] || $permissions['canEdit'] || $permissions['canDelete'])
                     <th style="width:100px;">Actions</th>
+                    @endif
                 </tr>
                 </thead>
                 <tbody id="vm-issues-tbody"></tbody>
@@ -398,6 +404,9 @@
     <script src="{{ asset('/') }}backend/build/cdn.datatables.net/1.12.1/js/jquery.dataTables.min.js"></script>
     <script src="{{ asset('/') }}backend/build/cdn.datatables.net/1.12.1/js/dataTables.bootstrap5.min.js"></script>
     <script src="https://cdn.ckeditor.com/4.22.1/standard/ckeditor.js"></script>
+    <script>
+    const vmPermissions = @json($permissions);
+    </script>
     <script>
     $(function () {
         const issueEditor = CKEDITOR.replace('issue_text', { versionCheck: false });
@@ -770,7 +779,7 @@
             }, 2000);
         }
 
-        $('#btn-export').on('click', function () {
+        if (vmPermissions.canExport) $('#btn-export').on('click', function () {
             if (exportPollTimer) return; // already running
 
             const params = {};
@@ -804,78 +813,85 @@
         $('#filter-status, #filter-store').on('change', reloadTable);
 
         /* -------- Open Add modal -------- */
-        $('#btn-add-vm').on('click', function () { openFormModal('add'); vmModal.show(); });
+        if (vmPermissions.canCreate) {
+            $('#btn-add-vm').on('click', function () { openFormModal('add'); vmModal.show(); });
+        }
 
         /* -------- Edit button -------- */
-        $(document).on('click', '.btn-edit-vm', function () {
-            openFormModal('edit');
-            $.get(apiUrl($(this).data('id')) + '/edit')
-                .done(function (data) {
-                    console.log(data);
-                    if (!data.can_edit)
-                    {
-                        showToast('You Can not edit this VM issue now', 'danger'); return;
-                    }
-                    loadEditData(data);
-                    $('#vmModalLabel').text('Edit VM Issue');
-                    $('#btn-save').data('default-text', 'Update');
-                    $('#btn-save .btn-text').text('Update');
-                    vmModal.show();
-                })
-                .fail(function () { showToast('Failed to load VM issue data.', 'danger'); });
-        });
+        if (vmPermissions.canEdit) {
+            $(document).on('click', '.btn-edit-vm', function () {
+                openFormModal('edit');
+                $.get(apiUrl($(this).data('id')) + '/edit')
+                    .done(function (data) {
+                        if (!data.can_edit)
+                        {
+                            showToast('You Can not edit this VM issue now', 'danger'); return;
+                        }
+                        loadEditData(data);
+                        $('#vmModalLabel').text('Edit VM Issue');
+                        $('#btn-save').data('default-text', 'Update');
+                        $('#btn-save .btn-text').text('Update');
+                        vmModal.show();
+                    })
+                    .fail(function () { showToast('Failed to load VM issue data.', 'danger'); });
+            });
+        }
 
         /* -------- View button -------- */
-        $(document).on('click', '.btn-view-vm', function () {
-            $.get(apiUrl($(this).data('id')))
-                .done(function (data) {
-                    const storeLabel = data.store ? `${data.store.title}${data.store.code ? ` (${data.store.code})` : ''}` : 'N/A';
-                    const assetLabel = data.asset ? `${data.asset.name}${data.asset.asset_code ? ` (${data.asset.asset_code})` : ''}${data.asset.asset_type?.name ? ` - ${data.asset.asset_type.name}` : ''}` : 'N/A';
-                    $('#view-store').text(storeLabel);
-                    $('#view-asset').text(assetLabel);
-                    $('#view-issue-fix-status').html(fixStatusBadge(data.issue_fix_status));
-                    $('#view-status').html(statusBadge(data.status));
-                    $('#view-issue-text').html(data.issue_text || 'N/A');
-                    $('#view-created-at').text(formatDate(data.created_at));
-                    $('#view-updated-at').text(formatDate(data.updated_at));
-                    const files = Array.isArray(data.visual_merchandising_files) ? data.visual_merchandising_files : [];
-                    $('#view-files-preview').html(files.length
-                        ? files.map(f => mediaCardMarkup(f)).join('')
-                        : `<div class="vm-empty-state">No files uploaded for this issue.</div>`);
-                    viewModal.show();
-                })
-                .fail(function () { showToast('Failed to load issue details.', 'danger'); });
-        });
+        if (vmPermissions.canView) {
+            $(document).on('click', '.btn-view-vm', function () {
+                $.get(apiUrl($(this).data('id')))
+                    .done(function (data) {
+                        const storeLabel = data.store ? `${data.store.title}${data.store.code ? ` (${data.store.code})` : ''}` : 'N/A';
+                        const assetLabel = data.asset ? `${data.asset.name}${data.asset.asset_code ? ` (${data.asset.asset_code})` : ''}${data.asset.asset_type?.name ? ` - ${data.asset.asset_type.name}` : ''}` : 'N/A';
+                        $('#view-store').text(storeLabel);
+                        $('#view-asset').text(assetLabel);
+                        $('#view-issue-fix-status').html(fixStatusBadge(data.issue_fix_status));
+                        $('#view-status').html(statusBadge(data.status));
+                        $('#view-issue-text').html(data.issue_text || 'N/A');
+                        $('#view-created-at').text(formatDate(data.created_at));
+                        $('#view-updated-at').text(formatDate(data.updated_at));
+                        const files = Array.isArray(data.visual_merchandising_files) ? data.visual_merchandising_files : [];
+                        $('#view-files-preview').html(files.length
+                            ? files.map(f => mediaCardMarkup(f)).join('')
+                            : `<div class="vm-empty-state">No files uploaded for this issue.</div>`);
+                        viewModal.show();
+                    })
+                    .fail(function () { showToast('Failed to load issue details.', 'danger'); });
+            });
+        }
 
         /* -------- Delete button -------- */
-        $(document).on('click', '.btn-delete-vm', function () {
-            $('#delete-vm-id').val($(this).data('id'));
-            $('#delete-vm-name').text($(this).data('name'));
-            deleteModal.show();
-        });
-
-        $('#btn-confirm-delete').on('click', function () {
-            const vmId = $('#delete-vm-id').val();
-            const $btn = $(this);
-            $btn.prop('disabled', true);
-            $btn.find('.btn-text').text('Deleting…');
-            $btn.find('.spinner-border').removeClass('d-none');
-
-            $.ajax({
-                url: apiUrl(vmId), type: 'DELETE',
-                success: function (res) {
-                    reloadTable();
-                    deleteModal.hide();
-                    showToast(res.message || 'Deleted successfully.', 'success');
-                },
-                error: function () { showToast('Failed to delete the VM issue.', 'danger'); },
-                complete: function () {
-                    $btn.prop('disabled', false);
-                    $btn.find('.btn-text').text('Yes, Delete');
-                    $btn.find('.spinner-border').addClass('d-none');
-                }
+        if (vmPermissions.canDelete) {
+            $(document).on('click', '.btn-delete-vm', function () {
+                $('#delete-vm-id').val($(this).data('id'));
+                $('#delete-vm-name').text($(this).data('name'));
+                deleteModal.show();
             });
-        });
+
+            $('#btn-confirm-delete').on('click', function () {
+                const vmId = $('#delete-vm-id').val();
+                const $btn = $(this);
+                $btn.prop('disabled', true);
+                $btn.find('.btn-text').text('Deleting…');
+                $btn.find('.spinner-border').removeClass('d-none');
+
+                $.ajax({
+                    url: apiUrl(vmId), type: 'DELETE',
+                    success: function (res) {
+                        reloadTable();
+                        deleteModal.hide();
+                        showToast(res.message || 'Deleted successfully.', 'success');
+                    },
+                    error: function () { showToast('Failed to delete the VM issue.', 'danger'); },
+                    complete: function () {
+                        $btn.prop('disabled', false);
+                        $btn.find('.btn-text').text('Yes, Delete');
+                        $btn.find('.spinner-border').addClass('d-none');
+                    }
+                });
+            });
+        }
 
         /* -------- Form submit -------- */
         $('#vmForm').on('submit', function (e) {
@@ -913,12 +929,14 @@
 
         $('#btn-save').data('default-text', 'Save');
 
-        $(document).on('click', '.change-vm-status', function () {
-            sendAjaxRequest(`vm/change-vm-issue-status/${$(this).data('id')}/${$(this).data('fix-status')}`, 'POST', {}).then(function (response) {
-                showToast(response.message, response.success ? 'success' : 'danger');
-                if (response.success) reloadTable();
-            })
-        })
+        if (vmPermissions.canChangeStatus) {
+            $(document).on('click', '.change-vm-status', function () {
+                sendAjaxRequest(`vm/change-vm-issue-status/${$(this).data('id')}/${$(this).data('fix-status')}`, 'POST', {}).then(function (response) {
+                    showToast(response.message, response.success ? 'success' : 'danger');
+                    if (response.success) reloadTable();
+                });
+            });
+        }
     });
     </script>
 @endpush

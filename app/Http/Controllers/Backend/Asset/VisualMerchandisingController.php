@@ -205,6 +205,14 @@ class VisualMerchandisingController extends Controller
                 ->orderBy('name')
                 ->get(['id', 'name', 'asset_code', 'store_id', 'is_common_asset', 'status', 'asset_type_id']),
             'issueFixStatuses' => VisualMerchandisingRequest::ISSUE_FIX_STATUSES,
+            'permissions' => [
+                'canView'         => allowed([self::class, 'show']),
+                'canCreate'       => allowed([self::class, 'store']),
+                'canEdit'         => allowed([self::class, 'edit']),
+                'canDelete'       => allowed([self::class, 'destroy']),
+                'canExport'       => allowed([self::class, 'exportVmIssues']),
+                'canChangeStatus' => allowed([self::class, 'changeVmIssueStatus']),
+            ],
         ]);
     }
 
