@@ -199,7 +199,7 @@ HTML;
         $search = trim((string) $request->input('q', ''));
 
         $users = User::query()
-            ->select('id', 'name', 'email', 'employee_id')
+            ->select('id', 'name', 'email', 'employee_id', 'usages_sector')
             ->when($search !== '', function ($query) use ($search) {
                 $query->where(function ($nestedQuery) use ($search) {
                     $nestedQuery
@@ -219,6 +219,7 @@ HTML;
                     'name' => $user->name,
                     'email' => $user->email,
                     'employee_id' => $user->employee_id,
+                    'usages_sector' => $user->usages_sector,
                 ];
             })->values(),
         ]);

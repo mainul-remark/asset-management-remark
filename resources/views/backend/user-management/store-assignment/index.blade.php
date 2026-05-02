@@ -392,7 +392,8 @@
                                     text: formatUserText(user),
                                     name: user.name,
                                     email: user.email,
-                                    employee_id: user.employee_id
+                                    employee_id: user.employee_id,
+                                    usages_sector: user.usages_sector
                                 };
                             })
                         };
@@ -404,6 +405,17 @@
                 },
                 templateSelection: function (user) {
                     return formatUserText(user);
+                }
+            });
+
+            $('#assignment_user_id').on('change', function () {
+                const selected = $(this).select2('data')[0];
+                if (selected && selected.usages_sector === 'corporate') {
+                    $('#assignment_user_id').addClass('is-invalid');
+                    $('#error-user_id').text("Stores can't be assigned on corporate users.");
+                } else {
+                    $('#assignment_user_id').removeClass('is-invalid');
+                    $('#error-user_id').text('');
                 }
             });
 
@@ -515,6 +527,13 @@
             $('#assignmentForm').on('submit', function (event) {
                 event.preventDefault();
                 clearErrors();
+
+                const selectedUser = $('#assignment_user_id').select2('data')[0];
+                if (selectedUser && selectedUser.usages_sector === 'corporate') {
+                    $('#assignment_user_id').addClass('is-invalid');
+                    $('#error-user_id').text("Stores can't be assigned on corporate users.");
+                    return;
+                }
 
                 const id = $('#assignment_id').val();
                 const payload = {
