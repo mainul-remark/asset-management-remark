@@ -14,6 +14,10 @@ return new class extends Migration
         Schema::table('users', function (Blueprint $table) {
             $table->string('employee_id')->nullable()->unique()->after('profile_image');
             $table->unsignedBigInteger('reporting_user_id')->nullable()->after('employee_id');
+            $table
+                ->enum('usages_sector', ['corporate', 'field'])
+                ->default('field')
+                ->nullable();
 
             $table->foreign('reporting_user_id')
                 ->references('id')
