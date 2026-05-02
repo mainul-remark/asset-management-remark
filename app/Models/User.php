@@ -38,6 +38,7 @@ class User extends Authenticatable
         'email',
         'password',
         'profile_image',
+        'usages_sector',
     ];
 
     /**
@@ -101,6 +102,7 @@ class User extends Authenticatable
 //                'mobile_no'     => ['required','regex:/^(01)[0-9]{9}$/', 'unique:users,mobile_no'],
             'role_id'       => 'required|array',
             'role_id.*'     => 'integer',
+            'usages_sector' => 'required|in:field,corporate',
             'profile_image' => 'nullable|image|mimes:jpeg,jpg,webp,png|max:1048',
 
         ], [
@@ -116,6 +118,7 @@ class User extends Authenticatable
 //                'mobile_no.regex'       => 'Mobile number must be 11 digits & start with 01.',
 //                'mobile_no.unique'      => 'Mobile number already exists.',
             'role_id.required'      => 'Select at least one role.',
+            'usages_sector.required'=> 'Select at least one Sector among Corporate and Field.',
             'profile_image.image'   => 'Please upload valid image file.',
             'profile_image.mimes'   => 'Image must be jpeg, jpg, png or webp format.',
             'profile_image.max'     => 'Image size must be less than 1MB.',
@@ -139,6 +142,7 @@ class User extends Authenticatable
 //            'mobile_no'     => ['required','regex:/^(01)[0-9]{9}$/', 'unique:users,mobile_no,' . $user->id],
             'role_id'       => 'required|array',
             'role_id.*'     => 'integer',
+            'usages_sector' => 'required|in:field,corporate',
             'profile_image' => 'nullable|image|mimes:jpeg,jpg,webp,png|max:1048',
 
         ], [
@@ -185,6 +189,7 @@ class User extends Authenticatable
             'password'              => Hash::make($request->password),
 //            'mobile_no'             => $request->mobile_no,
 //            'account_type'          => $request->account_type,
+            'usages_sector'         => $request->usages_sector ?? 'field',
             'password_changed_at'   => now(),
             'profile_image'         => CustomHelper::fileUpload($request->file('profile_image'), 'profile-image','profile-image', 200,160),
         ];
@@ -203,6 +208,7 @@ class User extends Authenticatable
         $userData = [
             'name'          => $request->name ?? $user->name,
             'email'         => $request->email ?? null,
+            'usages_sector' => $request->usages_sector ?? 'field',
 //            'mobile_no'     => $request->mobile_no,
 //            'account_type'  => $request->account_type,
 //            'is_active'     => $request->is_active,

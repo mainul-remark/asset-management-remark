@@ -118,6 +118,20 @@
                                     @enderror
                                 </div>
                             </div>
+                            <div class="row mb-3 usages_sector">
+                                <label class="col-lg-2" for="usages_sector"> Select Field <span class="text-danger">*</span></label>
+                                <div class="col-lg-10">
+                                    <select  name="usages_sector" class="form-select @error('usages_sector') is-invalid @enderror role_id select_role role_select">
+                                        <option value="corporate" {{ old('usages_sector') == 'corporate' ? 'selected' : '' }}>Corporate</option>
+                                        <option value="field" {{ old('usages_sector') == 'field' ? 'selected' : '' }}>Field</option>
+                                    </select>
+                                    @error('usages_sector')
+                                    <span class="invalid-feedback" role="alert">
+                                       <strong>{{ $message }}</strong>
+                                     </span>
+                                    @enderror
+                                </div>
+                            </div>
 
                             <div class="row mb-3">
                                 <label class="col-lg-2 col-form-label" for="profile_image">Profile Image</label>

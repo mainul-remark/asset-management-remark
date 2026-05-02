@@ -60,11 +60,20 @@
                                 <div class="border mb-3 p-3 rounded">
                                     <div class="row mb-2">
                                         <label class="col-md-3 fw-bold">{{ $key ?? '' }} :</label>
-                                        <div class="col-md-9">
+                                        <div class="col-md-9 resource-group">
+
+                                            <div class="row mb-3">
+                                                <div class="col-md-12">
+                                                    <div class="form-check">
+                                                        <input type="checkbox" class="form-check-input border-primary select-sub-options" data-key="{{ $key ?? '' }}" id="select-sub-options-{{ $key }}">
+                                                        <label class="form-check-label" for="select-sub-options-{{ $key }}">Select All</label>
+                                                    </div>
+                                                </div>
+                                            </div>
 
                                             @foreach($actions as $act)
                                                 <div class="form-check mb-2">
-                                                    <input class="form-check-input resource-checkbox border-primary"
+                                                    <input class="form-check-input resource-checkbox border-primary child-{{ $key }}"
                                                            type="checkbox"
                                                            name="resource[]"
                                                            value="{{ $act['id'] ?? '' }}"
@@ -108,6 +117,32 @@
         document.getElementById('select-all').addEventListener('change', function() {
             const checked = this.checked;
             document.querySelectorAll('.resource-checkbox').forEach(cb => cb.checked = checked);
+            document.querySelectorAll('.select-sub-options').forEach(cb => cb.checked = checked);
+        });
+
+        $(document).on('change', '.select-sub-options', function () {
+            let key = $(this).data('key');
+            let isChecked = $(this).is(':checked');
+
+            $('.child-' + key).prop('checked', isChecked);
+        });
+
+        $(document).on('change', '.resource-checkbox', function () {
+            let classList = $(this).attr('class').split(/\s+/);
+            let childClass = classList.find(function (cls) {
+                return cls.startsWith('child-');
+            });
+
+            if (!childClass) return;
+
+            let total = $('.' + childClass).length;
+            let checked = $('.' + childClass + ':checked').length;
+
+            $('.select-sub-options').each(function () {
+                if ('child-' + $(this).data('key') === childClass) {
+                    $(this).prop('checked', total > 0 && total === checked);
+                }
+            });
         });
     </script>
 
