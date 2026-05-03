@@ -9,7 +9,7 @@
             <!-- Start::header-element -->
             <div class="header-element">
                 <div class="horizontal-logo">
-                    <a href="{{ route('dashboard') }}" class="header-logo">
+                    <a href="{{ route('admin.dashboard') }}" class="header-logo">
 {{--                        <img src="{{ asset('/') }}backend/build/assets/images/brand-logos/desktop-logo.png" alt="logo" class="desktop-logo">--}}
                         <img src="{{ asset('/backend/remark.png') }}" alt="logo" class="desktop-logo">
                         <img src="{{ asset('/backend/remark-logo.png') }}" alt="logo" class="toggle-logo">

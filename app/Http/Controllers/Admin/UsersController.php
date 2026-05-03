@@ -35,7 +35,7 @@ class UsersController extends Controller
                     'roles:role_id,name',
                     'userStoreAssignments.store:id,title',
                 ])
-                ->select('id','name','email','employee_id','profile_image','created_at')
+                ->select('id','name','email','employee_id','profile_image','created_at', 'usages_sector')
                 ->latest()
                 ->get();
 
@@ -52,21 +52,22 @@ class UsersController extends Controller
                         ->values();
 
                     return [
-                        'id'            => $user->id,
-                        'name'          => $user->name,
-                        'email'         => $user->email,
-                        'employee_id'   => $user->employee_id,
-                        'assigned_stores' => $assignedStoreTitles->all(),
-                        'assigned_store_names' => $assignedStoreTitles->implode(', '),
+                        'id'                    => $user->id,
+                        'name'                  => $user->name,
+                        'email'                 => $user->email,
+                        'employee_id'           => $user->employee_id,
+                        'assigned_stores'       => $assignedStoreTitles->all(),
+                        'assigned_store_names'  => $assignedStoreTitles->implode(', '),
 //                        'mobile_no'     => $user->mobile_no,
 //                        'account_type'  => $user->account_type,
-                        'profile_image' => (!empty($user->profile_image) && file_exists(public_path($user->profile_image)))
+                        'profile_image'         => (!empty($user->profile_image) && file_exists(public_path($user->profile_image)))
                             ? asset($user->profile_image)
                             : asset('backend/remark-logo.png'),
-                        'roles'         => $roleNames,
-                        'role_names'    => $roleNames->implode(', '),
-                        'created_at'  => optional($user->created_at)->format('Y-m-d'),
-                        'is_active'    => $user->is_active,
+                        'roles'                 => $roleNames,
+                        'role_names'            => $roleNames->implode(', '),
+                        'created_at'            => optional($user->created_at)->format('Y-m-d'),
+                        'is_active'             => $user->is_active,
+                        'usages_sector'         => $user->usages_sector,
                     ];
                 }),
             ];

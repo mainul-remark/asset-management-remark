@@ -71,16 +71,27 @@
                     <div class="card-body">
                         <form id="filter_form" class="form-inline justify-content-center">
                             <div class="row">
+{{--                                <div class="col-md-4">--}}
+{{--                                    <div class="input-group">--}}
+{{--                                        <span class="input-group-text text-muted"><i class="ri-calendar-line"></i></span>--}}
+{{--                                        <input type="text" name="from_date"  max="{{date('Y-m-d H:i:s')}}"  class="form-control py-2" id="from_date" placeholder="From date">--}}
+{{--                                    </div>--}}
+{{--                                </div>--}}
+{{--                                <div class="col-md-4">--}}
+{{--                                    <div class="input-group">--}}
+{{--                                        <span class="input-group-text text-muted"><i class="ri-calendar-line"></i></span>--}}
+{{--                                        <input type="text" name="to_date"  max="{{date('Y-m-d H:i:s')}}"  class="form-control py-2" id="to_date" placeholder="To date">--}}
+{{--                                    </div>--}}
+{{--                                </div>--}}
                                 <div class="col-md-4">
                                     <div class="input-group">
                                         <span class="input-group-text text-muted"><i class="ri-calendar-line"></i></span>
-                                        <input type="text" name="from_date"  max="{{date('Y-m-d H:i:s')}}"  class="form-control py-2" id="from_date" placeholder="From date">
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="input-group">
-                                        <span class="input-group-text text-muted"><i class="ri-calendar-line"></i></span>
-                                        <input type="text" name="to_date"  max="{{date('Y-m-d H:i:s')}}"  class="form-control py-2" id="to_date" placeholder="To date">
+                                        <select name="role_id" id="selectRole" class="form-control select-ele">
+                                            <option value="" disabled>Select a Role</option>
+                                            @foreach($roles as $role)
+                                                <option value="{{ $role->role_id }}" >{{ $role->name ?? '' }}</option>
+                                            @endforeach
+                                        </select>
                                     </div>
                                 </div>
 
@@ -400,6 +411,12 @@
 
             $(document).on('click', '.open-store-assign-modal', function (event) {
                 event.preventDefault();
+
+                assignmentState.usagesState = $(this).data('usages-sector') || 'field';
+                if (assignmentState.usagesState == 'corporate'){
+                    showAjaxToast('danger', 'No need to assign stores to corporate users.');
+                    return;
+                }
 
                 resetAssignmentModal();
 

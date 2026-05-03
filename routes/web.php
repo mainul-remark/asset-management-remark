@@ -40,7 +40,7 @@ Route::middleware([
     'resource.maker',
     'auth.acl',
 ])->group(function () {
-    Route::get('/dashboard', [AdminViewController::class, 'dashboard'])->name('dashboard');
+    Route::get('/dashboard', [AdminViewController::class, 'dashboard'])->name('admin.dashboard');
 
     Route::get('stores/json-list', [StoreController::class, 'jsonList'])->name('stores.json-list');
     Route::get('stores/layout-list', [StoreController::class, 'layoutStores'])->name('stores.layout-list');
@@ -232,5 +232,14 @@ Route::get('/optimize-clear', function () {return \Mainul\CustomHelperFunctions\
 Route::get('/has-kv', function (){
 //    \App\Models\Asset::whereNotIn('id', [1,2])
 //        ->update(['has_kv_slot' => 1]);
-    return \Illuminate\Support\Facades\Hash::make('@');
+//    return \Illuminate\Support\Facades\Hash::make('@');
+    return response()->json([
+        'success'   => true,
+        'message'   => 'Response message goes here.',
+        'data'      => [
+            ['data-index-2' => 'data-index-value-2' ],
+            ['data-index-2' => 'data-index-value-2' ],
+            ['data-index-3' => 'data-index-value-3' ],
+        ],
+    ]);
 });
