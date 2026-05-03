@@ -208,6 +208,7 @@ HTML;
                         ->orWhere('employee_id', 'like', '%' . $search . '%');
                 });
             })
+            ->where('usages_sector', 'field') //
             ->orderBy('name')
             ->limit(10)
             ->get();

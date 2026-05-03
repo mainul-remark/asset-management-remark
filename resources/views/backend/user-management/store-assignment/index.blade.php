@@ -316,6 +316,7 @@
             const assignmentBaseUrl = "{{ url('user-store-assignments') }}";
             const assignmentDatatableUrl = @json(route('user-store-assignments.datatable'));
             const userSearchUrl = $('#assignment_user_id').data('search-url');
+            let selectedUserSector = null;
             const assignmentTable = $('#assignment-table').DataTable({
                 processing: true,
                 serverSide: true,
@@ -408,15 +409,26 @@
                 }
             });
 
-            $('#assignment_user_id').on('change', function () {
-                const selected = $(this).select2('data')[0];
-                if (selected && selected.usages_sector === 'corporate') {
+            function applyUserSectorCheck() {
+                if (selectedUserSector === 'corporate') {
                     $('#assignment_user_id').addClass('is-invalid');
-                    $('#error-user_id').text("Stores can't be assigned on corporate users.");
+                    $('#error-user_id').text('No need to assign stores to corporate users.');
+                    $('#btn-save-assignment').prop('disabled', true);
                 } else {
                     $('#assignment_user_id').removeClass('is-invalid');
                     $('#error-user_id').text('');
+                    $('#btn-save-assignment').prop('disabled', false);
                 }
+            }
+
+            $('#assignment_user_id').on('select2:select', function (e) {
+                selectedUserSector = e.params.data.usages_sector || null;
+                applyUserSectorCheck();
+            });
+
+            $('#assignment_user_id').on('select2:clear', function () {
+                selectedUserSector = null;
+                applyUserSectorCheck();
             });
 
             function clearErrors() {
@@ -429,6 +441,7 @@
 
             function resetForm() {
                 clearErrors();
+                selectedUserSector = null;
                 $('#assignmentForm')[0].reset();
                 $('#assignment_id').val('');
                 $('#assignment_user_id_hidden').val('');
@@ -438,6 +451,7 @@
                 $('#assignment_status').val('1');
                 $('#assignmentModalTitle').text('Assign User to Stores');
                 $('#btn-save-assignment .btn-text').html('<i class="ri-save-line me-1"></i>Save Assignment');
+                $('#btn-save-assignment').prop('disabled', false);
             }
 
             function setSavingState(isLoading) {
@@ -528,10 +542,8 @@
                 event.preventDefault();
                 clearErrors();
 
-                const selectedUser = $('#assignment_user_id').select2('data')[0];
-                if (selectedUser && selectedUser.usages_sector === 'corporate') {
-                    $('#assignment_user_id').addClass('is-invalid');
-                    $('#error-user_id').text("Stores can't be assigned on corporate users.");
+                if (selectedUserSector === 'corporate') {
+                    applyUserSectorCheck();
                     return;
                 }
 
