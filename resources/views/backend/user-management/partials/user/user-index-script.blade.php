@@ -191,12 +191,9 @@
             ajax: {
                 url: "{{ route('users.index') }}",
                 cache: false,
-               /*  dataSrc: function (json) {
-                     console.log('✅ Controller raw response:', json);
-                     console.log('✅ Rows:', json.data);
-                     return json.data; // IMPORTANT
-                 },*/
-
+                data: function (d) {
+                    d.role_id = $('#selectRole').val();
+                },
             },
 
           columns : [
@@ -209,6 +206,7 @@
                 },
               { data: 'name', title: 'Name' },
               { data: 'email', title: 'Email' },
+              { data: 'employee_id', title: 'Employee Id' },
               // { data: 'mobile_no', title: 'Mobile'},
               {
                   data: 'role_names',
@@ -310,6 +308,15 @@
         $('.dt-buttons .btn').removeClass('btn-secondary').addClass(' btn-outline-secondary mb-3 rounded-0 btn-sm');
         $('.dt-buttons').addClass('gap-2');
 
+        $('#filter_form').on('submit', function (e) {
+            e.preventDefault();
+            table.ajax.reload();
+        });
+
+        $('#resetBtn').on('click', function () {
+            $('#selectRole').val('');
+            table.ajax.reload();
+        });
 
     });
 </script>

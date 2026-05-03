@@ -84,10 +84,10 @@
 {{--                                    </div>--}}
 {{--                                </div>--}}
                                 <div class="col-md-4">
-                                    <div class="input-group">
-                                        <span class="input-group-text text-muted"><i class="ri-calendar-line"></i></span>
-                                        <select name="role_id" id="selectRole" class="form-control select-ele">
-                                            <option value="" disabled>Select a Role</option>
+                                    <div class="input-group ">
+                                        <span class="input-group-text text-muted"><i class="ri-group-line"></i></span>
+                                        <select name="role_id" id="selectRole" class="form-control ">
+                                            <option value="">All Roles</option>
                                             @foreach($roles as $role)
                                                 <option value="{{ $role->role_id }}" >{{ $role->name ?? '' }}</option>
                                             @endforeach

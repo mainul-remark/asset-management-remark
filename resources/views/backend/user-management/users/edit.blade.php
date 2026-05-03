@@ -98,6 +98,17 @@
                                 </div>
                             </div>
                           @endhasRole
+                            <div class="row mb-3">
+                                <label class="col-lg-2 col-form-label" for="employee_id">Employee Id <span class="text-danger">*</span></label>
+                                <div class="col-md-10">
+                                    <input  required  id="employee_id" type="text" name="employee_id" value="{{old('employee_id', $user->employee_id ?? '')}}" class="form-control @error('employee_id') is-invalid @enderror"  placeholder="Enter Employee ID" />
+                                    @error('employee_id')
+                                        <span class="invalid-feedback" role="alert">
+                                          <strong>{{$message}}</strong>
+                                        </span>
+                                    @enderror
+                                </div>
+                            </div>
 
 {{--                            <div class="row mb-3">--}}
 {{--                                <label class="col-lg-2 col-form-label" for="mobile_no"> Mobile Number <span class="text-danger">*</span></label>--}}

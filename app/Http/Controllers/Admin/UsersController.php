@@ -36,6 +36,9 @@ class UsersController extends Controller
                     'userStoreAssignments.store:id,title',
                 ])
                 ->select('id','name','email','employee_id','profile_image','created_at', 'usages_sector')
+                ->when($request->input('role_id'), function ($query, $roleId) {
+                    $query->whereHas('roles', fn ($q) => $q->where('roles.role_id', $roleId));
+                })
                 ->latest()
                 ->get();
 

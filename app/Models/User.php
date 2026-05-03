@@ -102,6 +102,7 @@ class User extends Authenticatable
 //                'mobile_no'     => ['required','regex:/^(01)[0-9]{9}$/', 'unique:users,mobile_no'],
             'role_id'       => 'required|array',
             'role_id.*'     => 'integer',
+            'employee_id'   => 'required|string',
             'usages_sector' => 'required|in:field,corporate',
             'profile_image' => 'nullable|image|mimes:jpeg,jpg,webp,png|max:1048',
 
@@ -110,6 +111,7 @@ class User extends Authenticatable
             'email.required'        => 'Email is required.',
             'email.email'           => 'Provide valid email address.',
             'email.unique'          => 'Email already exists.',
+            'employee_id.required'  => 'Employee ID is required.',
             'password.required'     => 'Password field is required.',
             'password.min'          => 'Password must be at least 8 characters long.',
             'password.confirmed'    => 'Password confirmation does not match.',
@@ -142,6 +144,7 @@ class User extends Authenticatable
 //            'mobile_no'     => ['required','regex:/^(01)[0-9]{9}$/', 'unique:users,mobile_no,' . $user->id],
             'role_id'       => 'required|array',
             'role_id.*'     => 'integer',
+            'employee_id'   => 'required|string',
             'usages_sector' => 'required|in:field,corporate',
             'profile_image' => 'nullable|image|mimes:jpeg,jpg,webp,png|max:1048',
 
@@ -159,6 +162,7 @@ class User extends Authenticatable
 //            'mobile_no.regex'       => 'Mobile number must be 11 digits & start with 01.',
 //            'mobile_no.unique'      => 'Mobile number already exists.',
             'role_id.required'      => 'Select at least one role.',
+            'employee_id.required'  => 'Employee ID is required.',
             'profile_image.image'   => 'Please upload valid image file.',
             'profile_image.mimes'   => 'Image must be jpeg, jpg, png or webp format.',
             'profile_image.max'     => 'Image size must be less than 1MB.',
@@ -190,6 +194,7 @@ class User extends Authenticatable
 //            'mobile_no'             => $request->mobile_no,
 //            'account_type'          => $request->account_type,
             'usages_sector'         => $request->usages_sector ?? 'field',
+            'employee_id'           => $request->employee_id   ?? '',
             'password_changed_at'   => now(),
             'profile_image'         => CustomHelper::fileUpload($request->file('profile_image'), 'profile-image','profile-image', 200,160),
         ];
@@ -209,6 +214,7 @@ class User extends Authenticatable
             'name'          => $request->name ?? $user->name,
             'email'         => $request->email ?? null,
             'usages_sector' => $request->usages_sector ?? 'field',
+            'employee_id'   => $request->employee_id ?? '',
 //            'mobile_no'     => $request->mobile_no,
 //            'account_type'  => $request->account_type,
 //            'is_active'     => $request->is_active,
