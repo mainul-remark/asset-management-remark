@@ -3,15 +3,19 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\UserImportRequest;
+use App\Imports\User\UsersImport;
 use App\Models\Role;
 use App\Models\Store;
 use App\Models\User;
 use App\Models\UserRole;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Exception;
 use Illuminate\Support\Carbon;
+use Maatwebsite\Excel\Facades\Excel;
 use Yajra\DataTables\DataTables;
 
 class UsersController extends Controller
@@ -93,6 +97,30 @@ class UsersController extends Controller
         $roles = Role::whereNotIn('role_id',[1])->get(['role_id','name'])??'';
         return view('backend.user-management.users.create',['roles'=>$roles]);
     }
+
+    public function import(UserImportRequest $request): JsonResponse
+    {
+        $import = new UsersImport();
+
+        Excel::import($import, $request->file('file'));
+
+        if ($import->hasFailures()) {
+            return response()->json([
+                'success'        => false,
+                'message'        => 'Import failed. Please fix the listed rows and re-upload.',
+                'imported_count' => $import->getImportedCount(),
+                'error_count'    => count($import->getFailures()),
+                'errors'         => $import->getFailures(),
+            ], 422);
+        }
+
+        return response()->json([
+            'success'        => true,
+            'message'        => "Import successful. {$import->getImportedCount()} user(s) imported.",
+            'imported_count' => $import->getImportedCount(),
+        ]);
+    }
+
     public function store(Request $request)
     {
         try {

@@ -53,6 +53,7 @@ Route::middleware([
     Route::get('user-store-assignments/users/{user}/current', [UserStoreAssignmentController::class, 'currentByUser'])->name('user-store-assignments.current-by-user');
 
     Route::prefix('admin')->middleware(['resource.maker','auth.acl'])->group(function () {
+        Route::post('/users/import', [UsersController::class, 'import'])->name('users.import');
         Route::resource('/roles',RoleController::class);
         Route::resource('/users',UsersController::class);
     });

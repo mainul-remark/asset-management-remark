@@ -331,35 +331,50 @@
         const url       = btn.data('url');
         const csrfToken = $('meta[name="csrf-token"]').attr('content');
 
-        if (!confirm('Are you sure you want to delete this user?')) {
-            return;
-        }
-
-        $.ajax({
-            url      : url,
-            type     : 'POST',
-            dataType : 'json',
-            data     : { _method: 'DELETE', _token: csrfToken },
-            success  : function (response) {
-                if (response.status === true) {
-                    showAjaxToast('primary', response.message || 'User deleted successfully !!');
-                    $('#userDataTable').DataTable().ajax.reload(null, false);
-                }
-            },
-            error: function (xhr) {
-                if (xhr.status === 403) {
-                    showAjaxToast('error', 'You do not have permission to delete this user.');
-                }
-                else if (xhr.status === 422) {
-                    showAjaxToast('warning', xhr.responseJSON?.message || 'Validation error occurred.');
-                }
-                else if (xhr.status === 404) {
-                    showAjaxToast('error', 'User not found.');
-                }
-                else {
-                    showAjaxToast('error', 'Something went wrong. Please try again.');
-                }
+        Swal.fire({
+            title: "Are you sure?",
+            text: "You won't be able to revert this!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Yes, delete it!"
+        }).then((result) => {
+            if (result.isConfirmed)
+            {
+                $.ajax({
+                    url      : url,
+                    type     : 'POST',
+                    dataType : 'json',
+                    data     : { _method: 'DELETE', _token: csrfToken },
+                    success  : function (response) {
+                        if (response.status === true) {
+                            showAjaxToast('primary', response.message || 'User deleted successfully !!');
+                            $('#userDataTable').DataTable().ajax.reload(null, false);
+                        }
+                    },
+                    error: function (xhr) {
+                        if (xhr.status === 403) {
+                            showAjaxToast('error', 'You do not have permission to delete this user.');
+                        }
+                        else if (xhr.status === 422) {
+                            showAjaxToast('warning', xhr.responseJSON?.message || 'Validation error occurred.');
+                        }
+                        else if (xhr.status === 404) {
+                            showAjaxToast('error', 'User not found.');
+                        }
+                        else {
+                            showAjaxToast('error', 'Something went wrong. Please try again.');
+                        }
+                    }
+                });
             }
         });
+
+        // if (!confirm('Are you sure you want to delete this user?')) {
+        //     return;
+        // }
+
+
     });
 </script>
