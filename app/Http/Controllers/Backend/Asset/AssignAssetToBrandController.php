@@ -381,8 +381,12 @@ class AssignAssetToBrandController extends Controller
                 'id' => $primaryAssignment->assignedBy->id,
                 'name' => $primaryAssignment->assignedBy->name,
             ] : null,
-            'can_edit' => $orderedAssignments->count() === 1,
-            'can_delete' => $orderedAssignments->count() === 1,
+            'brand_assignment_map' => $orderedAssignments
+                ->filter(fn (AssignAssetToBrand $a) => $a->brand_id !== null)
+                ->mapWithKeys(fn (AssignAssetToBrand $a) => [(string) $a->brand_id => $a->id])
+                ->all(),
+            'can_edit' => true,
+            'can_delete' => true,
         ];
     }
 

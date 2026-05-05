@@ -180,6 +180,7 @@
 @section('modal')
 
     <!-- ========== INSTALLATION PROOF UPLOAD MODAL ========== -->
+    @if($permissions['canUploadProof'])
     <div class="modal fade" id="installationProofModal">
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content">
@@ -205,6 +206,7 @@
             </div>
         </div>
     </div>
+    @endif
     <!-- ========== NEW INSTALLATION MODAL ========== -->
     <div class="modal fade" id="newInstallationModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
@@ -271,6 +273,7 @@
     </div>
 
     <!-- ========== INSTALLATION DETAIL MODAL ========== -->
+    @if($permissions['canView'])
     <div class="modal fade" id="installationDetailModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
             <div class="modal-content">
@@ -360,6 +363,7 @@
             </div>
         </div>
     </div>
+    @endif
 @endsection
 
 @push('styles')
@@ -385,14 +389,19 @@
 @include('backend.includes.plugins.select2')
 @include('backend.includes.plugins.sweetalert2')
 @include('backend.includes.plugins.toastr')
+@if($permissions['canUploadProof'])
 <script src="{{ asset('backend/build/assets/libs/filepond/filepond.min.js') }}"></script>
 <script src="{{ asset('backend/build/assets/libs/filepond-plugin-image-preview/filepond-plugin-image-preview.min.js') }}"></script>
 <script src="{{ asset('backend/build/assets/libs/filepond-plugin-image-exif-orientation/filepond-plugin-image-exif-orientation.min.js') }}"></script>
 <script src="{{ asset('backend/build/assets/libs/filepond-plugin-file-validate-type/filepond-plugin-file-validate-type.min.js') }}"></script>
 <script src="{{ asset('backend/build/assets/libs/filepond-plugin-file-validate-size/filepond-plugin-file-validate-size.min.js') }}"></script>
+@endif
 {{--<script src="{{ asset('backend/build/select2-4.1.0/select2.min.js') }}"></script>--}}
 
 <script>
+    const kvInstallationPermissions = @json($permissions);
+
+    @if($permissions['canUploadProof'])
     FilePond.registerPlugin(
         FilePondPluginImagePreview,
         FilePondPluginImageExifOrientation,
@@ -421,6 +430,7 @@
         $('#assetAssignKvId').val('');
         $('#installationProofSubmitBtn').prop('disabled', false).val('Upload Installation Files');
     });
+    @endif
 
     const installationTable = $('#installation-table').DataTable({
         processing: true,
@@ -476,6 +486,7 @@
         reloadInstallationTable(true);
     });
 
+    @if($permissions['canChangeStatus'])
     $(document).on('click', '.inst-status-dd-item', function (e) {
         e.preventDefault();
         var currentElement = $(this);
@@ -505,6 +516,8 @@
             }
         });
     })
+    @endif
+    @if($permissions['canView'])
     const kvInstallationDetailUrl = '{{ route('key-visuals.kv-installation.detail', ['id' => '__ID__']) }}';
 
     $('#installationDetailModal').on('show.bs.modal', function (event) {
@@ -580,7 +593,9 @@
         // reset first tab to active
         $('#installationDetailModal .nav-link').first().tab('show');
     });
+    @endif
 
+    @if($permissions['canUploadProof'])
     $(document).on('click', '.upload-proof-image', function () {
         $('#assetAssignKvId').val($(this).data('asset-assign-kv-id'));
         $('#installationProofModal').modal('show');
@@ -626,5 +641,6 @@
             }
         });
     })
+    @endif
 </script>
 @endpush

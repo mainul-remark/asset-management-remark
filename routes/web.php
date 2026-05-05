@@ -147,91 +147,11 @@ Route::middleware([
     Route::get('get-assets-by-type/{assetType}', [AssetController::class, 'getAssetsByType'])->name('get.assets-by-type');
     Route::get('assign-assets/filter', [AssetController::class, 'assignAssetsFilter'])->name('assets.assign-assets.filter');
 
-
-
-
 });
 
 Route::get('/phpinfo', function () {return phpinfo();});
 Route::get('/optimize-clear', function () {return \Mainul\CustomHelperFunctions\Helpers\CustomHelper::optimizeClear();});
 
-//Route::get('/store-sync', function (){
-//    $locationDbStores = \Illuminate\Support\Facades\DB::connection('location_db')
-//        ->table('stores')
-//        ->select('*')
-//        ->get();
-//
-//    try {
-//        \Illuminate\Support\Facades\DB::transaction(function () use ($locationDbStores) {
-//            DB::statement('SET FOREIGN_KEY_CHECKS=0;');
-//            $locationDivisions = \Illuminate\Support\Facades\DB::connection('location_db')
-//                ->table('divisions')->get();
-//            $locationDistricts = \Illuminate\Support\Facades\DB::connection('location_db')
-//                ->table('districts')->get();
-//            $locationThanas = \Illuminate\Support\Facades\DB::connection('location_db')
-//                ->table('thanas')->get();
-//            if ($locationDivisions)
-//            {
-//                \Illuminate\Support\Facades\DB::table('divisions')->truncate();
-//                foreach ($locationDivisions as $division) {
-//                    \Illuminate\Support\Facades\DB::table('divisions')->insert((array) $division);
-//                }
-//            }
-//
-//            if ($locationDistricts)
-//            {
-//                \Illuminate\Support\Facades\DB::table('districts')->truncate();
-//                foreach ($locationDistricts as $division) {
-//                    \Illuminate\Support\Facades\DB::table('districts')->insert((array) $division);
-//                }
-//            }
-//
-//            if ($locationThanas)
-//            {
-//                \Illuminate\Support\Facades\DB::table('thanas')->truncate();
-//                foreach ($locationThanas as $division) {
-//                    \Illuminate\Support\Facades\DB::table('thanas')->insert((array) $division);
-//                }
-//            }
-//
-//            foreach ($locationDbStores as $locationDbStore) {
-//                $store = \App\Models\Store::updateOrCreate(['title' => $locationDbStore->name], [
-//                    'title' => $locationDbStore->name,
-//                    'total_area_sqft' => 0,
-//                    'address' => $locationDbStore->location,
-////            'area' => $locationDbStore->area,
-////            'postal_code' => $locationDbStore->postal_code,
-//                    'latitude' => $locationDbStore->latitude,
-//                    'longitude' => $locationDbStore->longitude,
-//                    'monthly_rent' => 0,
-//                    'per_sqr_feet_rent' => 0,
-////            'store_layout_img' => $locationDbStore->store_layout_img,
-////            'store_layout_pdf' => $locationDbStore->store_layout_pdf,
-////            'contact_persion' => $locationDbStore->contact_persion,
-////            'shop_official_mobile' => $locationDbStore->shop_official_mobile,
-////            'shop_official_email' => $locationDbStore->shop_official_email,
-//                    'status' => $locationDbStore->is_active,
-////            'store_manager_id' => $locationDbStore->store_manager_id,
-////            'opened_date' => $locationDbStore->opened_date,
-//                    'division_id' => $locationDbStore->division_id,
-//                    'store_code' => $locationDbStore->store_code,
-//                    'district_id' => $locationDbStore->district_id,
-//                    'thana_id' => $locationDbStore->thana_id,
-//                    'slug' => str()->slug($locationDbStore->title.'-'.$locationDbStore->code),
-//                ]);
-//
-//                $desiredCode = 'STR' . str_pad((string) $store->id, 3, '0', STR_PAD_LEFT);
-//                if ($store->code !== $desiredCode) {
-//                    $store->code = $desiredCode;
-//                    $store->save();
-//                }
-//            }
-//        });
-//        return 'success';
-//    } catch (\Throwable $th) {
-//        return $th->getMessage();
-//    }
-//});
 Route::get('/has-kv', function (){
 //    \App\Models\Asset::whereNotIn('id', [1,2])
 //        ->update(['has_kv_slot' => 1]);

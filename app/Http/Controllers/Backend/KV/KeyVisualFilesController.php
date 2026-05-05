@@ -39,13 +39,19 @@ class KeyVisualFilesController extends Controller
         }
 
         return view('backend.kv.kv-files', [
-            'kvFiles' => $kvFilesQuery->get(),
-            'keyVisuals' => $keyVisuals,
-            'keyVisualSizes' => KeyVisualSize::query()
+            'kvFiles'            => $kvFilesQuery->get(),
+            'keyVisuals'         => $keyVisuals,
+            'keyVisualSizes'     => KeyVisualSize::query()
                 ->select('id', 'name', 'width', 'height', 'unit_name')
                 ->orderBy('name')
                 ->get(),
             'selectedKeyVisualId' => $selectedKeyVisual?->id,
+            'permissions'        => [
+                'canCreate' => allowed([self::class, 'store']),
+                'canView'   => allowed([self::class, 'show']),
+                'canEdit'   => allowed([self::class, 'edit']),
+                'canDelete' => allowed([self::class, 'destroy']),
+            ],
         ]);
     }
 

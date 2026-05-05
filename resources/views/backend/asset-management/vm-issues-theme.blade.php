@@ -166,6 +166,7 @@
 @section('modal')
 
     {{-- Create / Edit Modal --}}
+    @if($permissions['canCreate'] || $permissions['canEdit'])
     <div class="modal fade" id="vmModal">
         <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content">
@@ -250,8 +251,10 @@
             </div>
         </div>
     </div>
+    @endif
 
     {{-- View Modal --}}
+    @if($permissions['canView'])
     <div class="modal fade" id="viewModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content">
@@ -275,8 +278,10 @@
             </div>
         </div>
     </div>
+    @endif
 
     {{-- Delete Modal --}}
+    @if($permissions['canDelete'])
     <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-sm modal-dialog-centered">
             <div class="modal-content text-center">
@@ -296,6 +301,7 @@
             </div>
         </div>
     </div>
+    @endif
 
 @endsection
 
@@ -411,9 +417,9 @@
     $(function () {
         const issueEditor = CKEDITOR.replace('issue_text', { versionCheck: false });
 
-        const vmModal     = new bootstrap.Modal(document.getElementById('vmModal'));
-        const viewModal   = new bootstrap.Modal(document.getElementById('viewModal'));
-        const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+        const vmModal     = document.getElementById('vmModal')     ? new bootstrap.Modal(document.getElementById('vmModal'))     : null;
+        const viewModal   = document.getElementById('viewModal')   ? new bootstrap.Modal(document.getElementById('viewModal'))   : null;
+        const deleteModal = document.getElementById('deleteModal') ? new bootstrap.Modal(document.getElementById('deleteModal')) : null;
         const vmUploadZone  = document.getElementById('vmUploadZone');
         const vmFilesInput  = document.getElementById('vm_files');
 
@@ -653,12 +659,14 @@
             if (errors.length) markFieldInvalid('vm_files', errors[0]);
         }
 
-        $('#vm_files').on('change', function (e) { handleIncomingFiles(e.target.files); });
-        vmUploadZone.addEventListener('click', () => vmFilesInput.click());
-        vmUploadZone.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); vmFilesInput.click(); }});
-        vmUploadZone.addEventListener('dragover', e => { e.preventDefault(); vmUploadZone.classList.add('drag-over'); });
-        vmUploadZone.addEventListener('dragleave', e => { if (!e.relatedTarget || !vmUploadZone.contains(e.relatedTarget)) vmUploadZone.classList.remove('drag-over'); });
-        vmUploadZone.addEventListener('drop', e => { e.preventDefault(); vmUploadZone.classList.remove('drag-over'); handleIncomingFiles(e.dataTransfer?.files); });
+        if (vmFilesInput) $('#vm_files').on('change', function (e) { handleIncomingFiles(e.target.files); });
+        if (vmUploadZone) {
+            vmUploadZone.addEventListener('click', () => vmFilesInput?.click());
+            vmUploadZone.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); vmFilesInput?.click(); }});
+            vmUploadZone.addEventListener('dragover', e => { e.preventDefault(); vmUploadZone.classList.add('drag-over'); });
+            vmUploadZone.addEventListener('dragleave', e => { if (!e.relatedTarget || !vmUploadZone.contains(e.relatedTarget)) vmUploadZone.classList.remove('drag-over'); });
+            vmUploadZone.addEventListener('drop', e => { e.preventDefault(); vmUploadZone.classList.remove('drag-over'); handleIncomingFiles(e.dataTransfer?.files); });
+        }
 
         $(document).on('click', '[data-existing-id]', function () { removedExistingFileIds.add(Number($(this).data('existing-id'))); renderExistingFilePreviews(); });
         $(document).on('click', '[data-new-index]', function () { selectedFiles.splice(Number($(this).data('new-index')), 1); syncFileInput(); renderSelectedFilePreviews(); });
@@ -814,7 +822,7 @@
 
         /* -------- Open Add modal -------- */
         if (vmPermissions.canCreate) {
-            $('#btn-add-vm').on('click', function () { openFormModal('add'); vmModal.show(); });
+            $('#btn-add-vm').on('click', function () { openFormModal('add'); vmModal?.show(); });
         }
 
         /* -------- Edit button -------- */
@@ -831,7 +839,7 @@
                         $('#vmModalLabel').text('Edit VM Issue');
                         $('#btn-save').data('default-text', 'Update');
                         $('#btn-save .btn-text').text('Update');
-                        vmModal.show();
+                        vmModal?.show();
                     })
                     .fail(function () { showToast('Failed to load VM issue data.', 'danger'); });
             });
@@ -855,7 +863,7 @@
                         $('#view-files-preview').html(files.length
                             ? files.map(f => mediaCardMarkup(f)).join('')
                             : `<div class="vm-empty-state">No files uploaded for this issue.</div>`);
-                        viewModal.show();
+                        viewModal?.show();
                     })
                     .fail(function () { showToast('Failed to load issue details.', 'danger'); });
             });
@@ -866,7 +874,7 @@
             $(document).on('click', '.btn-delete-vm', function () {
                 $('#delete-vm-id').val($(this).data('id'));
                 $('#delete-vm-name').text($(this).data('name'));
-                deleteModal.show();
+                deleteModal?.show();
             });
 
             $('#btn-confirm-delete').on('click', function () {
@@ -880,7 +888,7 @@
                     url: apiUrl(vmId), type: 'DELETE',
                     success: function (res) {
                         reloadTable();
-                        deleteModal.hide();
+                        deleteModal?.hide();
                         showToast(res.message || 'Deleted successfully.', 'success');
                     },
                     error: function () { showToast('Failed to delete the VM issue.', 'danger'); },
@@ -911,7 +919,7 @@
                 url: apiUrl(vmId || ''), type: 'POST', data: formData, processData: false, contentType: false,
                 success: function (res) {
                     reloadTable();
-                    vmModal.hide();
+                    vmModal?.hide();
                     showToast(res.message || 'Saved successfully.', 'success');
                 },
                 error: function (xhr) {
@@ -925,7 +933,7 @@
             });
         });
 
-        $('#vmModal').on('hidden.bs.modal', resetForm);
+        if (document.getElementById('vmModal')) $('#vmModal').on('hidden.bs.modal', resetForm);
 
         $('#btn-save').data('default-text', 'Save');
 

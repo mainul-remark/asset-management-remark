@@ -62,10 +62,10 @@ class VmIssuesDataTable extends DataTable
                 if ($canView) {
                     $buttons .= '<button class="btn-action btn-view-vm" data-id="' . $row->id . '" title="View"><i class="bi bi-eye"></i></button>';
                 }
-                if ($canEdit) {
+                if ($canEdit && $row->issue_fix_status == 'pending') {
                     $buttons .= '<button class="btn-action btn-edit-vm" data-id="' . $row->id . '" title="Edit"><i class="bi bi-pencil"></i></button>';
                 }
-                if ($canDelete) {
+                if ($canDelete && $row->issue_fix_status == 'pending') {
                     $buttons .= '<button class="btn-action text-danger btn-delete-vm" data-id="' . $row->id . '" data-name="' . e($row->asset?->name ?? 'VM Issue') . '" title="Delete"><i class="bi bi-trash"></i></button>';
                 }
 

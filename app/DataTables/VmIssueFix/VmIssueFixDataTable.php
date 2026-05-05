@@ -9,6 +9,14 @@ use Yajra\DataTables\Services\DataTable;
 
 class VmIssueFixDataTable extends DataTable
 {
+    private array $permissions = [];
+
+    public function withPermissions(array $permissions): static
+    {
+        $this->permissions = $permissions;
+        return $this;
+    }
+
     public function dataTable($query): DataTableAbstract
     {
         return datatables()
@@ -59,6 +67,15 @@ class VmIssueFixDataTable extends DataTable
                 return $html;
             })
             ->addColumn('status_select', function ($row) {
+                if (!($this->permissions['canChangeStatus'] ?? false)) {
+                    $labels = [
+                        'planned'    => 'Planned',
+                        'assigned'   => 'Assigned',
+                        'processing' => 'Processing',
+                        'solved'     => 'Solved',
+                    ];
+                    return '<span class="badge bg-secondary-transparent">' . e($labels[$row->issue_fix_status] ?? $row->issue_fix_status) . '</span>';
+                }
                 $options = [
                     'planned'    => 'Planned',
                     'assigned'   => 'Assigned',
@@ -74,12 +91,18 @@ class VmIssueFixDataTable extends DataTable
                 return $html;
             })
             ->addColumn('actions', function ($row) {
-                return '
-                    <div class="d-flex gap-1">
-                        <a href="" class="btn btn-sm btn-secondary view-vm"     data-vm-id="' . $row->id . '" title="View"><i class="ri-eye-line"></i></a>
-                        <a href="" class="btn btn-sm btn-secondary assign-user" data-vm-id="' . $row->id . '" title="Assign"><i class="ri-user-line"></i></a>
-                        <a href="" class="btn btn-sm btn-secondary upload-proof" data-vm-id="' . $row->id . '" title="Upload Proof"><i class="ri-file-2-line"></i></a>
-                    </div>';
+                $perms = $this->permissions;
+                $buttons = '';
+                if ($perms['canView'] ?? false) {
+                    $buttons .= '<a href="" class="btn btn-sm btn-secondary view-vm" data-vm-id="' . $row->id . '" title="View"><i class="ri-eye-line"></i></a>';
+                }
+                if ($perms['canAssignUser'] ?? false) {
+                    $buttons .= '<a href="" class="btn btn-sm btn-secondary assign-user" data-vm-id="' . $row->id . '" title="Assign"><i class="ri-user-line"></i></a>';
+                }
+                if ($perms['canUploadProof'] ?? false) {
+                    $buttons .= '<a href="" class="btn btn-sm btn-secondary upload-proof" data-vm-id="' . $row->id . '" title="Upload Proof"><i class="ri-file-2-line"></i></a>';
+                }
+                return $buttons ? '<div class="d-flex gap-1">' . $buttons . '</div>' : '—';
             })
             ->rawColumns(['store_asset', 'issue_preview', 'issue_photos', 'fix_photos', 'status_select', 'actions'])
             ->filterColumn('store_asset', function ($q, $kw) {

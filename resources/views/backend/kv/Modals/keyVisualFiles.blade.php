@@ -1,3 +1,4 @@
+@if($permissions['canCreate'] || $permissions['canEdit'])
 <div class="modal fade" id="fileModal" tabindex="-1" aria-labelledby="fileModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
@@ -104,7 +105,9 @@
         </div>
     </div>
 </div>
+@endif
 
+@if($permissions['canView'])
 <div class="modal fade" id="viewModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
@@ -130,7 +133,9 @@
         </div>
     </div>
 </div>
+@endif
 
+@if($permissions['canDelete'])
 <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-sm modal-dialog-centered">
         <div class="modal-content text-center">
@@ -150,3 +155,4 @@
         </div>
     </div>
 </div>
+@endif

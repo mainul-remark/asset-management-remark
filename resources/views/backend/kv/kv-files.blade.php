@@ -17,9 +17,11 @@
                         <div class="card-title mb-1">Key Visual Files</div>
                         <p class="text-muted fs-12 mb-0">Manage key visual files.</p>
                     </div>
+                    @if($permissions['canCreate'])
                     <button type="button" class="btn btn-sm btn-primary btn-wave" id="btn-add-file" @disabled(!$hasDependencies) title="{{ $hasDependencies ? 'Add key visual file' : 'Create key visual and size first' }}">
                         <i class="ri-add-line me-1"></i> Add File
                     </button>
+                    @endif
                 </div>
                 <div class="card-body">
                     @unless($hasDependencies)
@@ -125,15 +127,21 @@
                                         <td>{{ optional($kvFile->created_at)->format('d M Y') }}</td>
                                         <td>
                                             <div class="btn-list">
+                                                @if($permissions['canView'])
                                                 <button class="btn btn-icon btn-sm btn-info-light btn-wave btn-view" data-id="{{ $kvFile->id }}" title="View">
                                                     <i class="ri-eye-line"></i>
                                                 </button>
+                                                @endif
+                                                @if($permissions['canEdit'])
                                                 <button class="btn btn-icon btn-sm btn-primary-light btn-wave btn-edit" data-id="{{ $kvFile->id }}" title="Edit">
                                                     <i class="ri-edit-box-line"></i>
                                                 </button>
+                                                @endif
+                                                @if($permissions['canDelete'])
                                                 <button class="btn btn-icon btn-sm btn-danger-light btn-wave btn-delete" data-id="{{ $kvFile->id }}" data-name="{{ $kvFile->name }}" title="Delete">
                                                     <i class="ri-delete-bin-line"></i>
                                                 </button>
+                                                @endif
                                             </div>
                                         </td>
                                     </tr>
@@ -186,21 +194,28 @@
 @push('scripts')
 @include('backend.includes.plugins.datatable')
 @include('backend.includes.plugins.select2')
+@if($permissions['canCreate'] || $permissions['canEdit'])
 <script src="{{ asset('backend/build/assets/libs/filepond/filepond.min.js') }}"></script>
 <script src="{{ asset('backend/build/assets/libs/filepond-plugin-image-preview/filepond-plugin-image-preview.min.js') }}"></script>
 <script src="{{ asset('backend/build/assets/libs/filepond-plugin-image-exif-orientation/filepond-plugin-image-exif-orientation.min.js') }}"></script>
 <script src="{{ asset('backend/build/assets/libs/filepond-plugin-file-validate-type/filepond-plugin-file-validate-type.min.js') }}"></script>
 <script src="{{ asset('backend/build/assets/libs/filepond-plugin-file-validate-size/filepond-plugin-file-validate-size.min.js') }}"></script>
+@endif
 <script>
+const kvFilesPermissions = @json($permissions);
 $(function () {
-    const fileModal = new bootstrap.Modal(document.getElementById('fileModal'));
-    const viewModal = new bootstrap.Modal(document.getElementById('viewModal'));
-    const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    const fileModal   = (kvFilesPermissions.canCreate || kvFilesPermissions.canEdit)
+        ? new bootstrap.Modal(document.getElementById('fileModal'))   : null;
+    const viewModal   = kvFilesPermissions.canView
+        ? new bootstrap.Modal(document.getElementById('viewModal'))   : null;
+    const deleteModal = kvFilesPermissions.canDelete
+        ? new bootstrap.Modal(document.getElementById('deleteModal')) : null;
     const preselectedKeyVisualId = @json($selectedKeyVisualId);
 
     const BASE = base_url;
     const apiUrl = (id = '') => base_url + 'key-visual-files' + (id ? '/' + id : '');
 
+    @if($permissions['canCreate'] || $permissions['canEdit'])
     FilePond.registerPlugin(
         FilePondPluginImagePreview,
         FilePondPluginImageExifOrientation,
@@ -299,6 +314,7 @@ $(function () {
             return true;
         },
     });
+    @endif
 
     const metaFields = {
         kv_size: {

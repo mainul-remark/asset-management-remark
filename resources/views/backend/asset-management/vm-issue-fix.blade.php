@@ -96,6 +96,7 @@
 @endsection
 
 @section('modal')
+    @if($permissions['canAssignUser'])
     <div class="modal fade" id="assignVmFixPerson">
         <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content">
@@ -128,6 +129,8 @@
             </div>
         </div>
     </div>
+    @endif
+    @if($permissions['canUploadProof'])
     <div class="modal fade" id="vmFixPhotos">
         <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content">
@@ -154,6 +157,7 @@
             </div>
         </div>
     </div>
+    @endif
     <div class="modal fade" id="viewVmIssueFix">
         <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
             <div class="modal-content">
@@ -250,6 +254,7 @@
     @include('backend.includes.plugins.select2')
     @include('backend.includes.plugins.toastr')
     <script>
+        const vmFixPermissions = @json($permissions);
         const statusConfig = {
             assigned:   { label: 'Assigned',   cls: 'bg-warning-transparent text-warning' },
             planned:    { label: 'Planned',     cls: 'bg-info-transparent text-info' },
@@ -395,6 +400,7 @@
         });
     </script>
 
+    @if($permissions['canUploadProof'])
     <script src="{{ asset('backend/build/assets/libs/filepond/filepond.min.js') }}"></script>
     <script src="{{ asset('backend/build/assets/libs/filepond-plugin-image-preview/filepond-plugin-image-preview.min.js') }}"></script>
     <script src="{{ asset('backend/build/assets/libs/filepond-plugin-image-exif-orientation/filepond-plugin-image-exif-orientation.min.js') }}"></script>
@@ -423,7 +429,6 @@
             imagePreviewHeight: 150,
         });
 
-        // Reset FilePond files when modal closes
         document.getElementById('vmFixPhotos').addEventListener('hidden.bs.modal', function () {
             vmFixPond.removeFiles();
         });
@@ -466,7 +471,11 @@
                 }
             });
         });
+    </script>
+    @endif
 
+    @if($permissions['canAssignUser'])
+    <script>
         $('#assignVmFixPersonForm').on('submit', function (e) {
             e.preventDefault();
 
@@ -496,4 +505,5 @@
             });
         });
     </script>
+    @endif
 @endpush

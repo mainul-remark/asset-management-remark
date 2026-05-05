@@ -94,9 +94,11 @@
                             <div class="card-title mb-0">KV Assignments</div>
                             <span class="badge bg-primary-transparent" id="result-count"></span>
                         </div>
+                        @if($permissions['canCreate'])
                         <button type="button" class="btn btn-sm btn-primary btn-wave" id="btn-add-assignment">
                             <i class="ri-add-line me-1"></i> Add Assignment
                         </button>
+                        @endif
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
@@ -129,6 +131,7 @@
 @endsection
 
 @section('modal')
+    @if($permissions['canCreate'] || $permissions['canEdit'])
     <div class="modal fade" id="assignmentModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content">
@@ -254,7 +257,9 @@
             </div>
         </div>
     </div>
+    @endif
 
+    @if($permissions['canDelete'])
     <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-sm modal-dialog-centered">
             <div class="modal-content text-center">
@@ -278,6 +283,7 @@
             </div>
         </div>
     </div>
+    @endif
 @endsection
 
 @push('styles')
@@ -325,6 +331,7 @@
 @push('scripts')
     @include('backend.includes.plugins.select2')
     <script>
+    const assignKvPermissions = @json($permissions);
     $(document).ready(function () {
         $.ajaxSetup({
             headers: {
@@ -332,8 +339,10 @@
             }
         });
 
-        const assignmentModal = new bootstrap.Modal(document.getElementById('assignmentModal'));
-        const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+        const assignmentModal = (assignKvPermissions.canCreate || assignKvPermissions.canEdit)
+            ? new bootstrap.Modal(document.getElementById('assignmentModal')) : null;
+        const deleteModal = assignKvPermissions.canDelete
+            ? new bootstrap.Modal(document.getElementById('deleteModal')) : null;
         const assignmentUrl = base_url + 'kv/assign-kv-to-asset';
         const filterUrl = assignmentUrl + '/filter';
         const storeAssetsUrl = (storeId) => `${assignmentUrl}/stores/${storeId}/assets`;
@@ -839,8 +848,8 @@
                         </td>
                         <td>
                             <div class="btn-list">
-                                <button class="btn btn-icon btn-sm btn-primary-light btn-wave btn-edit" data-id="${item.id}" title="Edit"><i class="ri-edit-box-line"></i></button>
-                                <button class="btn btn-icon btn-sm btn-danger-light btn-wave btn-delete" data-id="${item.id}" data-asset="${escapeHtml(asset.name || '')}" data-key-visual="${escapeHtml(keyVisual.name || '')}" title="Delete"><i class="ri-delete-bin-line"></i></button>
+                                ${assignKvPermissions.canEdit ? `<button class="btn btn-icon btn-sm btn-primary-light btn-wave btn-edit" data-id="${item.id}" title="Edit"><i class="ri-edit-box-line"></i></button>` : ''}
+                                ${assignKvPermissions.canDelete ? `<button class="btn btn-icon btn-sm btn-danger-light btn-wave btn-delete" data-id="${item.id}" data-asset="${escapeHtml(asset.name || '')}" data-key-visual="${escapeHtml(keyVisual.name || '')}" title="Delete"><i class="ri-delete-bin-line"></i></button>` : ''}
                             </div>
                         </td>
                     </tr>
@@ -979,13 +988,16 @@
             loadData();
         });
 
+        @if($permissions['canCreate'])
         $('#btn-add-assignment').on('click', function () {
             resetModalForm();
             $('#assignmentModalLabel').text('Add KV To Asset');
             $('#btn-save-assignment .btn-text').html('<i class="ri-save-line me-1"></i>Save Assignment');
-            assignmentModal.show();
+            assignmentModal?.show();
         });
+        @endif
 
+        @if($permissions['canEdit'])
         $(document).on('click', '.btn-edit', function () {
             const id = $(this).data('id');
             resetModalForm();
@@ -1012,12 +1024,14 @@
                 refreshModalKeyVisuals(data.key_visual_id, data.key_visual_files_id);
 
                 loadModalAssets(data.asset_id);
-                assignmentModal.show();
+                assignmentModal?.show();
             }).fail(function () {
                 showToast('Failed to load KV assignment data.', 'danger');
             });
         });
+        @endif
 
+        @if($permissions['canCreate'] || $permissions['canEdit'])
         $('#assignmentForm').on('submit', function (event) {
             event.preventDefault();
             clearErrors();
@@ -1041,7 +1055,7 @@
                         return;
                     }
 
-                    assignmentModal.hide();
+                    assignmentModal?.hide();
                     loadData();
                     showToast(response.message, 'success');
                 },
@@ -1057,11 +1071,13 @@
                 }
             });
         });
+        @endif
 
+        @if($permissions['canDelete'])
         $(document).on('click', '.btn-delete', function () {
             $('#delete-assignment-id').val($(this).data('id'));
             $('#delete-message').html(`Remove <strong>${$(this).data('key-visual') || 'this key visual'}</strong> from <strong>${$(this).data('asset') || 'this asset'}</strong>?`);
-            deleteModal.show();
+            deleteModal?.show();
         });
 
         $('#btn-confirm-delete').on('click', function () {
@@ -1081,7 +1097,7 @@
                         return;
                     }
 
-                    deleteModal.hide();
+                    deleteModal?.hide();
                     loadData();
                     showToast(response.message, 'success');
                 },
@@ -1093,6 +1109,7 @@
                 }
             });
         });
+        @endif
 
         populateDistrictOptions($('#filter-district'), '', '', 'All Districts');
         populateStoreOptions($('#filter-store'), '', '', '', 'All Stores');

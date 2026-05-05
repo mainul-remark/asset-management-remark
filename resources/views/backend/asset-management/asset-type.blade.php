@@ -9,9 +9,11 @@
                 <div class="card custom-card">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <div class="card-title">Asset Category Management</div>
-                        <button type="button" class="btn btn-sm btn-primary btn-wave" id="btn-add-asset-type">
-                            <i class="ri-add-line me-1"></i> Add Asset Category
-                        </button>
+                        @allowed('asset-types.store')
+                            <button type="button" class="btn btn-sm btn-primary btn-wave" id="btn-add-asset-type">
+                                <i class="ri-add-line me-1"></i> Add Asset Category
+                            </button>
+                        @endallowed
                     </div>
                     @php
                         $hasImage      = $assetTypes->contains(fn($r) => $r->default_image);
@@ -94,18 +96,27 @@
                                         </td>
                                         <td>
                                             <div class="btn-list">
-                                                <button class="btn btn-icon btn-sm btn-info-light btn-wave btn-view"
-                                                    data-id="{{ $assetType->id }}" title="View">
-                                                    <i class="ri-eye-line"></i>
-                                                </button>
-                                                <button class="btn btn-icon btn-sm btn-primary-light btn-wave btn-edit"
-                                                    data-id="{{ $assetType->id }}" title="Edit">
-                                                    <i class="ri-edit-box-line"></i>
-                                                </button>
-                                                <button class="btn btn-icon btn-sm btn-danger-light btn-wave btn-delete"
-                                                    data-id="{{ $assetType->id }}" data-name="{{ $assetType->name }}" title="Delete">
-                                                    <i class="ri-delete-bin-line"></i>
-                                                </button>
+                                                @allowed('asset-types.show')
+                                                    <button class="btn btn-icon btn-sm btn-info-light btn-wave btn-view"
+                                                            data-id="{{ $assetType->id }}" title="View">
+                                                        <i class="ri-eye-line"></i>
+                                                    </button>
+                                                @endallowed
+
+                                                @allowed('asset-types.edit')
+                                                    <button class="btn btn-icon btn-sm btn-primary-light btn-wave btn-edit"
+                                                            data-id="{{ $assetType->id }}" title="Edit">
+                                                        <i class="ri-edit-box-line"></i>
+                                                    </button>
+                                                @endallowed
+
+                                                @allowed('asset-types.destroy')
+                                                    <button class="btn btn-icon btn-sm btn-danger-light btn-wave btn-delete"
+                                                            data-id="{{ $assetType->id }}" data-name="{{ $assetType->name }}" title="Delete">
+                                                        <i class="ri-delete-bin-line"></i>
+                                                    </button>
+                                                @endallowed
+
                                             </div>
                                         </td>
                                     </tr>
@@ -123,6 +134,7 @@
 @section('modal')
 
     {{-- ── Create / Edit Modal ──────────────────────────────────────────────── --}}
+    @if(allowed('asset-types.store') || allowed('asset-types.edit'))
     <div class="modal fade" id="assetTypeModal" tabindex="-1" aria-labelledby="assetTypeModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-scrollable">
             <div class="modal-content">
@@ -359,8 +371,10 @@
             </div>
         </div>
     </div>
+    @endif
 
     {{-- ── View Modal ───────────────────────────────────────────────────────── --}}
+    @allowed('asset-types.show')
     <div class="modal fade" id="viewModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -440,8 +454,10 @@
             </div>
         </div>
     </div>
+    @endallowed
 
     {{-- ── Delete Confirmation Modal ────────────────────────────────────────── --}}
+    @allowed('asset-types.destroy')
     <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-sm">
             <div class="modal-content text-center">
@@ -469,6 +485,7 @@
             </div>
         </div>
     </div>
+    @endallowed
 
 @endsection
 
@@ -567,10 +584,19 @@
             stateSave: false
         });
 
-        // ── Bootstrap modals & global AJAX setup ──────────────────────────────
-        const assetTypeModal = new bootstrap.Modal(document.getElementById('assetTypeModal'));
-        const viewModalEl    = new bootstrap.Modal(document.getElementById('viewModal'));
-        const deleteModalEl  = new bootstrap.Modal(document.getElementById('deleteModal'));
+        // ── Permission flags (from server) ────────────────────────────────────
+        const canStore   = @json(allowed('asset-types.store'));
+        const canEdit    = @json(allowed('asset-types.edit'));
+        const canShow    = @json(allowed('asset-types.show'));
+        const canDestroy = @json(allowed('asset-types.destroy'));
+
+        // ── Bootstrap modals (null-safe — elements absent when permission denied) ──
+        const assetTypeModalEl = document.getElementById('assetTypeModal');
+        const viewModalElNode  = document.getElementById('viewModal');
+        const deleteModalElNode= document.getElementById('deleteModal');
+        const assetTypeModal = assetTypeModalEl ? new bootstrap.Modal(assetTypeModalEl) : null;
+        const viewModalEl    = viewModalElNode   ? new bootstrap.Modal(viewModalElNode)  : null;
+        const deleteModalEl  = deleteModalElNode ? new bootstrap.Modal(deleteModalElNode): null;
 
         const csrfToken = $('meta[name="csrf-token"]').attr('content');
         $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': csrfToken } });
@@ -787,12 +813,14 @@
 
         // ── Add ───────────────────────────────────────────────────────────────
         $('#btn-add-asset-type').on('click', () => {
+            if (!canStore || !assetTypeModal) return;
             openFormModal('add');
             assetTypeModal.show();
         });
 
         // ── Edit ──────────────────────────────────────────────────────────────
         $(document).on('click', '.btn-edit', function () {
+            if (!canEdit || !assetTypeModal) return;
             openFormModal('edit');
             $.get(apiUrl($(this).data('id')) + '/edit', data => {
                 $('#asset_type_id').val(data.id);
@@ -803,6 +831,7 @@
 
         // ── View ──────────────────────────────────────────────────────────────
         $(document).on('click', '.btn-view', function () {
+            if (!canShow || !viewModalEl) return;
             $.get(apiUrl($(this).data('id')), data => {
                 const depth  = data.depth > 0 ? ` × ${data.depth}` : '';
                 const unit   = data.dimention_unit_name ? ` ${data.dimention_unit_name}` : '';
@@ -826,12 +855,13 @@
                     .attr('src', data.default_image ? base_url + data.default_image : '');
                 $('#view-image-placeholder').toggle(!data.default_image);
 
-                viewModalEl.show();
+                viewModalEl?.show();
             });
         });
 
         // ── Delete ────────────────────────────────────────────────────────────
         $(document).on('click', '.btn-delete', function () {
+            if (!canDestroy || !deleteModalEl) return;
             $('#delete-asset-type-id').val($(this).data('id'));
             $('#delete-asset-type-name').text($(this).data('name'));
             deleteModalEl.show();
@@ -846,7 +876,7 @@
                 type:    'DELETE',
                 headers: { 'X-CSRF-TOKEN': csrfToken },
                 success: res => {
-                    deleteModalEl.hide();
+                    deleteModalEl?.hide();
                     showToast(res.message, 'success');
                     setTimeout(() => location.reload(), 800);
                 },
@@ -912,7 +942,7 @@
                 contentType: false,
                 headers: { 'X-CSRF-TOKEN': csrfToken },
                 success: res => {
-                    assetTypeModal.hide();
+                    assetTypeModal?.hide();
                     showToast(res.message, 'success');
                     setTimeout(() => location.reload(), 800);
                 },

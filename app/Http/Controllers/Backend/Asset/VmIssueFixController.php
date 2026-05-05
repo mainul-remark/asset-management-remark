@@ -19,13 +19,24 @@ class VmIssueFixController extends Controller
     public function index()
     {
         return view('backend.asset-management.vm-issue-fix', [
-            'users' => User::latest()->get(),
+            'users'       => User::latest()->get(),
+            'permissions' => [
+                'canView'         => allowed([self::class, 'show']),
+                'canAssignUser'   => allowed([self::class, 'assignUser']),
+                'canUploadProof'  => allowed([self::class, 'uploadProof']),
+                'canChangeStatus' => allowed([self::class, 'changeFixStatus']),
+            ],
         ]);
     }
 
     public function datatable(VmIssueFixDataTable $dataTable)
     {
-        return $dataTable->ajax();
+        return $dataTable->withPermissions([
+            'canView'         => allowed([self::class, 'show']),
+            'canAssignUser'   => allowed([self::class, 'assignUser']),
+            'canUploadProof'  => allowed([self::class, 'uploadProof']),
+            'canChangeStatus' => allowed([self::class, 'changeFixStatus']),
+        ])->ajax();
     }
 
     /**

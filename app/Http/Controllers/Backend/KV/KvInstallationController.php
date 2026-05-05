@@ -15,12 +15,23 @@ class KvInstallationController extends Controller
     public function kvInstallation(Request $request)
     {
         return view('backend.kv.kv-installation', [
-            'stores' => Store::where('status', 1)->orderBy('title')->get(['id', 'title', 'slug', 'code']),
+            'stores'      => Store::where('status', 1)->orderBy('title')->get(['id', 'title', 'slug', 'code']),
+            'permissions' => [
+                'canView'         => allowed([self::class, 'kvInstallationDetail']),
+                'canChangeStatus' => allowed([self::class, 'updateAssignedKvStatusData']),
+                'canUploadProof'  => allowed([self::class, 'updateAssignedKvStatusData']),
+            ],
         ]);
     }
 
     public function kvInstallationDatatable(Request $request): JsonResponse
     {
+        $permissions = [
+            'canView'         => allowed([self::class, 'kvInstallationDetail']),
+            'canChangeStatus' => allowed([self::class, 'updateAssignedKvStatusData']),
+            'canUploadProof'  => allowed([self::class, 'updateAssignedKvStatusData']),
+        ];
+
         $query = AssignKvToAsset::query()
             ->leftJoin('assets', 'assign_kv_to_assets.asset_id', '=', 'assets.id')
             ->leftJoin('asset_types', 'assets.asset_type_id', '=', 'asset_types.id')
@@ -99,7 +110,7 @@ class KvInstallationController extends Controller
                     .'</div>'
                     .'</div>';
             })
-            ->addColumn('status', function ($row) {
+            ->addColumn('status', function ($row) use ($permissions) {
                 $status = (string) ($row->instalation_status ?? 'pending');
                 $label = ucfirst($status);
                 $icon = match ($status) {
@@ -107,6 +118,13 @@ class KvInstallationController extends Controller
                     'verified' => 'bi-shield-check',
                     default => 'bi-calendar-event',
                 };
+
+                if (!$permissions['canChangeStatus']) {
+                    return '<span class="inst-status-btn '.($status == 'pending' ? 'inst-status-planned' : 'inst-status-installed').'" style="pointer-events:none;">'
+                        .'<i class="bi '.$icon.' me-1"></i>'.$label
+                        .'</span>';
+                }
+
                 $verifiedDisabled = blank($row->instalation_proof) ? 'disabled' : '';
 
                 return '<div class="dropdown">'
@@ -138,9 +156,15 @@ class KvInstallationController extends Controller
                     return '<div class="inst-photo-thumb m-1"><img src="'.asset($file).'" alt="'.e($row->key_visual_name ?? 'Proof').' proof photo"></div>';
                 })->implode('');
             })
-            ->addColumn('actions', function ($row) {
-                return '<button class="btn-action view-kv-installation" data-kv-installation="'.$row->id.'" data-bs-toggle="modal" data-bs-target="#installationDetailModal"><i class="bi bi-eye"></i></button>'
-                    .'<button class="btn-action upload-proof-image" data-asset-assign-kv-id="'.$row->id.'"><i class="bi bi-image"></i></button>';
+            ->addColumn('actions', function ($row) use ($permissions) {
+                $buttons = '';
+                if ($permissions['canView']) {
+                    $buttons .= '<button class="btn-action view-kv-installation" data-kv-installation="'.$row->id.'" data-bs-toggle="modal" data-bs-target="#installationDetailModal"><i class="bi bi-eye"></i></button>';
+                }
+                if ($permissions['canUploadProof']) {
+                    $buttons .= '<button class="btn-action upload-proof-image" data-asset-assign-kv-id="'.$row->id.'"><i class="bi bi-image"></i></button>';
+                }
+                return $buttons ?: '—';
             })
             ->rawColumns(['store_name', 'branding_medium', 'kv_id', 'status', 'photos', 'actions'])
             ->toJson();
