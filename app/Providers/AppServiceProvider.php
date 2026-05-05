@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Models\StatusPermission\Status;
 use App\Observers\StatusPermission\StatusObserver;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
@@ -79,5 +80,7 @@ class AppServiceProvider extends ServiceProvider
 //            $menuBgImg = in_array($siteSetting?->menu_bg_img, ['bgimg1', 'bgimg2', 'bgimg3', 'bgimg4', 'bgimg5'], true) ? $siteSetting->menu_bg_img : null;
             $view->with($themeBootstrap);
         });
+
+        Paginator::useBootstrapFive();
     }
 }

@@ -41,6 +41,8 @@ Route::middleware([
     'auth.acl',
 ])->group(function () {
     Route::get('/dashboard', [AdminViewController::class, 'dashboard'])->name('admin.dashboard');
+    Route::get('/dashboard-gpt', [AdminViewController::class, 'dashboardGpt'])->name('admin.dashboard-gpt');
+    Route::get('/admin/activity-log', [AdminViewController::class, 'activityLog'])->name('admin.activity-logs');
 
     Route::get('stores/json-list', [StoreController::class, 'jsonList'])->name('stores.json-list');
     Route::get('stores/layout-list', [StoreController::class, 'layoutStores'])->name('stores.layout-list');
