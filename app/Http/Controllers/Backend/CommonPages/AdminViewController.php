@@ -137,7 +137,7 @@ class AdminViewController extends Controller
             ->limit(5)
             ->get();
 
-        return view('backend.common-pages.dashboard.dashboard', [
+        return view('backend.common-pages.dashboard.dashboard-gpt', [
             'dashboardData' => [
                 'kpis'              => $kpis,
                 'assetMix'          => $assetMix,
@@ -162,6 +162,7 @@ class AdminViewController extends Controller
             'event' => ['nullable', 'string', 'max:50'],
             'log_name' => ['nullable', 'string', 'max:255'],
             'subject_type' => ['nullable', 'string', 'max:255'],
+            'causer_id' => ['nullable', 'integer', 'exists:users,id'],
             'date_from' => ['nullable', 'date'],
             'date_to' => ['nullable', 'date'],
         ]);
@@ -180,8 +181,9 @@ class AdminViewController extends Controller
         $summary = [
             'total' => (clone $summaryQuery)->count(),
             'today' => (clone $summaryQuery)->whereDate('created_at', today())->count(),
-            'created' => (clone $summaryQuery)->where('event', 'created')->count(),
-            'updated' => (clone $summaryQuery)->where('event', 'updated')->count(),
+            'auth' => (clone $summaryQuery)->where('log_name', 'auth')->count(),
+            'data' => (clone $summaryQuery)->where('log_name', 'data')->count(),
+            'workflow' => (clone $summaryQuery)->where('log_name', 'workflow')->count(),
         ];
 
         $eventOptions = Activity::query()
@@ -209,6 +211,11 @@ class AdminViewController extends Controller
                 'label' => class_basename($subjectType),
             ]);
 
+        $causerOptions = User::query()
+            ->select('id', 'name', 'email')
+            ->orderBy('name')
+            ->get();
+
         return view('backend.common-pages.activity-error-log', [
             'activityLogs' => $activityLogs,
             'summary' => $summary,
@@ -216,6 +223,7 @@ class AdminViewController extends Controller
             'eventOptions' => $eventOptions,
             'logNameOptions' => $logNameOptions,
             'subjectTypeOptions' => $subjectTypeOptions,
+            'causerOptions' => $causerOptions,
         ]);
     }
 
@@ -244,6 +252,11 @@ class AdminViewController extends Controller
 
         if (! empty($filters['subject_type'])) {
             $query->where('subject_type', $filters['subject_type']);
+        }
+
+        if (! empty($filters['causer_id'])) {
+            $query->where('causer_type', User::class)
+                ->where('causer_id', (int) $filters['causer_id']);
         }
 
         if (! empty($filters['date_from'])) {

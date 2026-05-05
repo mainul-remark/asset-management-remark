@@ -49,9 +49,34 @@ class Store extends Model
 
     public function getActivitylogOptions(): LogOptions
     {
-        // TODO: Implement getActivitylogOptions() method.
         return LogOptions::defaults()
-            ->logOnly($this->searchableFields);
+            ->useLogName('data')
+            ->logOnly([
+                'title',
+                'code',
+                'total_area_sqft',
+                'address',
+                'area',
+                'postal_code',
+                'latitude',
+                'longitude',
+                'monthly_rent',
+                'per_sqr_feet_rent',
+                'store_layout_pdf',
+                'contact_person',
+                'shop_official_mobile',
+                'shop_official_email',
+                'status',
+                'opened_date',
+                'division_id',
+                'store_code',
+                'district_id',
+                'thana_id',
+                'slug',
+                'store_type',
+            ])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
     }
 
     public static function updateOrCreateStore($request, $store = null)

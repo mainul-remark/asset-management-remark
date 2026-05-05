@@ -109,6 +109,18 @@ class VmIssueFixController extends Controller
                 'assigned_by'   => auth()->id(),
                 'assigned_to'   => $request->assigned_to,
             ]);
+
+            activity('workflow')
+                ->performedOn($vm)
+                ->causedBy(auth()->user())
+                ->event('vm_issue_assigned')
+                ->withProperties([
+                    'assigned_by' => auth()->id(),
+                    'assigned_to' => (int) $request->assigned_to,
+                    'issue_fix_status' => $vm->issue_fix_status,
+                ])
+                ->log('Visual merchandising issue assigned to a user.');
+
             return response()->json(['success' => true, 'message' => 'Assigned User for this issue successfully',]);
         } catch (\Exception $exception) {
             return response()->json(['success' => false, 'message' => 'something went wrong, Please try after sometime']);
@@ -139,6 +151,17 @@ class VmIssueFixController extends Controller
                 'fix_proof'   => json_encode($fileString),
                 'issue_fix_status'  => 'processing'
             ]);
+
+            activity('workflow')
+                ->performedOn($vm)
+                ->causedBy(auth()->user())
+                ->event('vm_issue_proof_uploaded')
+                ->withProperties([
+                    'proof_file_count' => count($fileString),
+                    'issue_fix_status' => 'processing',
+                ])
+                ->log('Visual merchandising proof files uploaded.');
+
             return response()->json([
                 'success'   => true,
                 'message'   => 'Proof Files successfully uploaded',
@@ -159,9 +182,20 @@ class VmIssueFixController extends Controller
             if (!$vm)
 //            return back()->withErrors('Vm Issue Not Found');
                 return response()->json(['message' => 'Vm Issue Not Found', 'success' => false]);
+            $oldStatus = $vm->issue_fix_status;
             $vm->update([
                 'issue_fix_status'  => $request->issue_fix_status,
             ]);
+
+            activity('workflow')
+                ->performedOn($vm)
+                ->causedBy(auth()->user())
+                ->event('vm_issue_status_changed')
+                ->withProperties([
+                    'old_status' => $oldStatus,
+                    'new_status' => $request->issue_fix_status,
+                ])
+                ->log('Visual merchandising issue status changed.');
 
             return response()->json([
                 'success'   => true,

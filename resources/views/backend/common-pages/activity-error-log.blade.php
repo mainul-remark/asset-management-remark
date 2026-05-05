@@ -12,7 +12,7 @@
 
         $formatValue = function ($value) {
             if (is_null($value) || $value === '') {
-                return '—';
+                return '-';
             }
 
             if (is_bool($value)) {
@@ -22,7 +22,7 @@
             if (is_array($value) || is_object($value)) {
                 $json = json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 
-                return $json !== false ? $json : '—';
+                return $json !== false ? $json : '-';
             }
 
             return (string) $value;
@@ -66,18 +66,27 @@
             <div class="col-xl-3 col-md-6">
                 <div class="card custom-card activity-summary-card h-100">
                     <div class="card-body">
-                        <span class="summary-label">Created</span>
-                        <h3 class="summary-value">{{ number_format($summary['created'] ?? 0) }}</h3>
-                        <p class="summary-meta mb-0">New record creation events.</p>
+                        <span class="summary-label">Auth Logs</span>
+                        <h3 class="summary-value">{{ number_format($summary['auth'] ?? 0) }}</h3>
+                        <p class="summary-meta mb-0">Login, logout, lockout, and failed login events.</p>
                     </div>
                 </div>
             </div>
             <div class="col-xl-3 col-md-6">
                 <div class="card custom-card activity-summary-card h-100">
                     <div class="card-body">
-                        <span class="summary-label">Updated</span>
-                        <h3 class="summary-value">{{ number_format($summary['updated'] ?? 0) }}</h3>
-                        <p class="summary-meta mb-0">Change events with diffs.</p>
+                        <span class="summary-label">Data Logs</span>
+                        <h3 class="summary-value">{{ number_format($summary['data'] ?? 0) }}</h3>
+                        <p class="summary-meta mb-0">Create, update, and delete model events.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="card custom-card activity-summary-card h-100">
+                    <div class="card-body">
+                        <span class="summary-label">Workflow Logs</span>
+                        <h3 class="summary-value">{{ number_format($summary['workflow'] ?? 0) }}</h3>
+                        <p class="summary-meta mb-0">Assignments, proof uploads, and status transitions.</p>
                     </div>
                 </div>
             </div>
@@ -135,6 +144,17 @@
                                         @foreach($subjectTypeOptions as $subjectTypeOption)
                                             <option value="{{ $subjectTypeOption['value'] }}" @selected(($filters['subject_type'] ?? '') === $subjectTypeOption['value'])>
                                                 {{ $subjectTypeOption['label'] }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="col-lg-2 col-md-6">
+                                    <label for="causer_id" class="form-label">Actor</label>
+                                    <select name="causer_id" id="causer_id" class="form-select">
+                                        <option value="">All Actors</option>
+                                        @foreach($causerOptions as $causerOption)
+                                            <option value="{{ $causerOption->id }}" @selected((string) ($filters['causer_id'] ?? '') === (string) $causerOption->id)>
+                                                {{ $causerOption->name }} ({{ $causerOption->email }})
                                             </option>
                                         @endforeach
                                     </select>
@@ -220,7 +240,7 @@
                                                 <div class="text-muted fs-12">
                                                     Log: {{ $activity->log_name ?: 'default' }}
                                                     @if($fieldNames->isNotEmpty())
-                                                        • {{ $fieldNames->count() }} field(s) captured
+                                                        | {{ $fieldNames->count() }} field(s) captured
                                                     @endif
                                                 </div>
                                             </td>
@@ -253,7 +273,7 @@
                                                                         <dd>{{ $activity->event ?: $activity->description }}</dd>
 
                                                                         <dt>Batch UUID</dt>
-                                                                        <dd>{{ $activity->batch_uuid ?: '—' }}</dd>
+                                                                        <dd>{{ $activity->batch_uuid ?: '-' }}</dd>
 
                                                                         <dt>Subject</dt>
                                                                         <dd>{{ class_basename((string) $activity->subject_type) }} @if($activity->subject_id)#{{ $activity->subject_id }}@endif</dd>

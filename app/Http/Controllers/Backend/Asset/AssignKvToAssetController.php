@@ -75,6 +75,19 @@ class AssignKvToAssetController extends Controller
                 return $this->persistAssignment($request);
             });
 
+            activity('workflow')
+                ->performedOn($assignment)
+                ->causedBy(auth()->user())
+                ->event('kv_assigned_to_asset')
+                ->withProperties([
+                    'asset_id' => $assignment->asset_id,
+                    'key_visual_id' => $assignment->key_visual_id,
+                    'key_visual_files_id' => $assignment->key_visual_files_id,
+                    'slot_number' => $assignment->slot_number,
+                    'instalation_status' => $assignment->instalation_status,
+                ])
+                ->log('Key visual assigned to asset.');
+
             return response()->json([
                 'success' => true,
                 'message' => 'KV assigned to asset successfully.',
@@ -107,6 +120,19 @@ class AssignKvToAssetController extends Controller
             $assignment = DB::transaction(function () use ($request, $assignKvToAsset) {
                 return $this->persistAssignment($request, $assignKvToAsset);
             });
+
+            activity('workflow')
+                ->performedOn($assignment)
+                ->causedBy(auth()->user())
+                ->event('kv_asset_assignment_updated')
+                ->withProperties([
+                    'asset_id' => $assignment->asset_id,
+                    'key_visual_id' => $assignment->key_visual_id,
+                    'key_visual_files_id' => $assignment->key_visual_files_id,
+                    'slot_number' => $assignment->slot_number,
+                    'instalation_status' => $assignment->instalation_status,
+                ])
+                ->log('Key visual assignment updated.');
 
             return response()->json([
                 'success' => true,
@@ -186,7 +212,22 @@ class AssignKvToAssetController extends Controller
     public function destroy(AssignKvToAsset $assignKvToAsset): JsonResponse
     {
         try {
+            $assignmentSnapshot = [
+                'asset_id' => $assignKvToAsset->asset_id,
+                'key_visual_id' => $assignKvToAsset->key_visual_id,
+                'key_visual_files_id' => $assignKvToAsset->key_visual_files_id,
+                'slot_number' => $assignKvToAsset->slot_number,
+                'instalation_status' => $assignKvToAsset->instalation_status,
+            ];
+
             $assignKvToAsset->delete();
+
+            activity('workflow')
+                ->performedOn($assignKvToAsset)
+                ->causedBy(auth()->user())
+                ->event('kv_asset_assignment_deleted')
+                ->withProperties($assignmentSnapshot)
+                ->log('Key visual assignment deleted.');
 
             return response()->json([
                 'success' => true,

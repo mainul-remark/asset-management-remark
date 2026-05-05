@@ -40,6 +40,7 @@ class VisualMerchandising extends Model
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
+            ->useLogName('data')
             ->logOnly([
                 'store_id',
                 'asset_id',
@@ -51,8 +52,9 @@ class VisualMerchandising extends Model
                 'assigned_to',
                 'fix_proof',
                 'fix_note',
-            ]);
-        // Chain fluent methods for configuration options
+            ])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
     }
 
     protected static function booted(): void
