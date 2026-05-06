@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
 //            'password' => '123',
 //        ]);
         $this->call([
+            BrandSeeder::class,
             DivisionSeeder::class,
             DistrictSeeder::class,
             ThanaSeeder::class,
