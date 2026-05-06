@@ -538,6 +538,7 @@ $(function () {
         }
     }
 
+    @if($permissions['canCreate'] || $permissions['canEdit'])
     kvFilePond.on('addfile', function (error, fileItem) {
         if (error || !fileItem?.file) return;
         $('#error-kv_file_upload').text('');
@@ -557,6 +558,13 @@ $(function () {
         }
     });
 
+    $('#key_visual_id').on('change', function () {
+        kvFilePond.removeFiles();
+        $('#error-kv_file_upload').text('');
+        configureFilePondByKvType();
+    });
+    @endif
+
     function formatDate(dateString) {
         return dateString
             ? new Date(dateString).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
@@ -569,19 +577,16 @@ $(function () {
         return Number.isNaN(number) ? value : number.toFixed(4);
     }
 
-    $('#key_visual_id').on('change', function () {
-        kvFilePond.removeFiles();
-        $('#error-kv_file_upload').text('');
-        configureFilePondByKvType();
-    });
-
+    @if($permissions['canCreate'])
     $('#btn-add-file').on('click', function () {
         resetForm();
         $('#fileModalLabel').text('Add Key Visual File');
         $('#btn-save .btn-text').text('Save');
-        fileModal.show();
+        fileModal?.show();
     });
+    @endif
 
+    @if($permissions['canEdit'])
     $(document).on('click', '.btn-edit', function () {
         resetForm();
         const id = $(this).data('id');
@@ -615,13 +620,15 @@ $(function () {
                 $('#fileModalLabel').text('Edit Key Visual File');
                 $('#btn-save .btn-text').text('Update');
 
-                fileModal.show();
+                fileModal?.show();
             })
             .fail(function () {
                 showToast('Failed to load key visual file data.', 'danger');
             });
     });
+    @endif
 
+    @if($permissions['canView'])
     $(document).on('click', '.btn-view', function () {
         const id = $(this).data('id');
 
@@ -652,17 +659,19 @@ $(function () {
                     : '<span class="badge bg-danger-transparent">Inactive</span>');
                 $('#view-created').text(formatDate(data.created_at));
                 $('#view-updated').text(formatDate(data.updated_at));
-                viewModal.show();
+                viewModal?.show();
             })
             .fail(function () {
                 showToast('Failed to load details.', 'danger');
             });
     });
+    @endif
 
+    @if($permissions['canDelete'])
     $(document).on('click', '.btn-delete', function () {
         $('#delete-file-id').val($(this).data('id'));
         $('#delete-file-name').text($(this).data('name'));
-        deleteModal.show();
+        deleteModal?.show();
     });
 
     $('#btn-confirm-delete').on('click', function () {
@@ -677,7 +686,7 @@ $(function () {
             url: apiUrl(id),
             type: 'DELETE',
             success: function (res) {
-                deleteModal.hide();
+                deleteModal?.hide();
                 showToast(res.message || 'Deleted successfully.', 'success');
                 setTimeout(() => location.reload(), 700);
             },
@@ -691,7 +700,9 @@ $(function () {
             }
         });
     });
+    @endif
 
+    @if($permissions['canCreate'] || $permissions['canEdit'])
     $('#fileForm').on('submit', function (e) {
         e.preventDefault();
         clearErrors();
@@ -719,7 +730,7 @@ $(function () {
             processData: false,
             contentType: false,
             success: function (res) {
-                fileModal.hide();
+                fileModal?.hide();
                 showToast(res.message || 'Saved successfully.', 'success');
                 setTimeout(() => location.reload(), 700);
             },
@@ -748,6 +759,7 @@ $(function () {
             }
         });
     });
+    @endif
 });
 </script>
 @endpush
