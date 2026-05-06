@@ -23,6 +23,14 @@ return new class extends Migration
                 ->references('id')
                 ->on('users')
                 ->onDelete('set null');
+
+            $table->unsignedBigInteger('represented_brand_id')->nullable();
+            $table
+                ->foreign('represented_brand_id')
+                ->references('id')
+                ->on('brands')
+                ->onUpdate('CASCADE')
+                ->onDelete('CASCADE');
         });
     }
 

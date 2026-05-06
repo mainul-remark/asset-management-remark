@@ -2,8 +2,10 @@
 
 namespace Database\Seeders;
 
-use App\Models\Thana;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
+use RuntimeException;
 
 class ThanaSeeder extends Seeder
 {
@@ -12,8 +14,13 @@ class ThanaSeeder extends Seeder
      */
     public function run(): void
     {
-        Thana::factory()
-            ->count(5)
-            ->create();
+        $sqlPath = database_path('seeders/sql/thanas.sql');
+
+        if (!File::exists($sqlPath)) {
+            throw new RuntimeException("Thana seed data file not found: {$sqlPath}");
+        }
+
+        DB::table('thanas')->truncate();
+        DB::unprepared(File::get($sqlPath));
     }
 }

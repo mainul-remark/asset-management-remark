@@ -89,4 +89,9 @@ class Brand extends Model
     {
         return $this->hasMany(PlanogramHistory::class);
     }
+
+    public function representative()
+    {
+        return $this->hasOne(User::class, 'represented_brand_id');
+    }
 }

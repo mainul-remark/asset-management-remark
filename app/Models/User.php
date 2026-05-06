@@ -364,4 +364,9 @@ class User extends Authenticatable
         return $this->hasMany(UserStoreAssignment::class, 'assigned_by');
     }
 
+    public function representedBrand()
+    {
+        return $this->belongsTo(Brand::class, 'represented_brand_id');
+    }
+
 }

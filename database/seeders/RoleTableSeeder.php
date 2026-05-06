@@ -14,6 +14,13 @@ class RoleTableSeeder extends Seeder
     public function run(): void
     {
         Role::create(['role_id'=>1,'name'=>'super-admin','created_at'=>'2023-05-05 1:01:15','updated_at'=>'2025-05-05 1:01:13']);
-        Role::create(['role_id'=>2,'name'=>'admin','created_at'=>'2023-05-05 1:01:15','updated_at'=>'2025-05-05 1:01:13']);
+        Role::create(['role_id'=>2,'name'=>'system-admin','created_at'=>'2023-05-05 1:01:15','updated_at'=>'2025-05-05 1:01:13']);
+        Role::create(['role_id'=>3,'name'=>'ceo','created_at'=>'2023-05-05 1:01:15','updated_at'=>'2025-05-05 1:01:13']);
+        Role::create(['role_id'=>3,'name'=>'business-dep','created_at'=>'2023-05-05 1:01:15','updated_at'=>'2025-05-05 1:01:13']);
+        Role::create(['role_id'=>3,'name'=>'it-team','created_at'=>'2023-05-05 1:01:15','updated_at'=>'2025-05-05 1:01:13']);
+        Role::create(['role_id'=>3,'name'=>'vm-team','created_at'=>'2023-05-05 1:01:15','updated_at'=>'2025-05-05 1:01:13']);
+        Role::create(['role_id'=>3,'name'=>'DSM','created_at'=>'2023-05-05 1:01:15','updated_at'=>'2025-05-05 1:01:13']);
+        Role::create(['role_id'=>3,'name'=>'ASM','created_at'=>'2023-05-05 1:01:15','updated_at'=>'2025-05-05 1:01:13']);
+        Role::create(['role_id'=>3,'name'=>'BA','created_at'=>'2023-05-05 1:01:15','updated_at'=>'2025-05-05 1:01:13']);
     }
 }

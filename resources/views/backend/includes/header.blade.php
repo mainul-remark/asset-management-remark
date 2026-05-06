@@ -387,10 +387,12 @@
 {{--                    <li><a class="dropdown-item d-flex" href="editprofile.html"><i class="bx bx-cog fs-18 me-2 op-7"></i>Edit Profile </a></li>--}}
 {{--                    <li><a class="dropdown-item d-flex border-block-end" href="mail.html"><i class="bx bxs-inbox fs-18 me-2 op-7"></i>Inbox</a></li>--}}
 {{--                    <li><a class="dropdown-item d-flex" href="chat.html"><i class="bx bx-envelope fs-18 me-2 op-7"></i>Messages</a></li>--}}
-                    <li><a class="dropdown-item d-flex border-block-end" href=""><i class="bx bx-slider-alt fs-18 me-2 op-7"></i>Account Settings</a></li>
-{{--                    <li><a class="dropdown-item d-flex border-block-end" target="_blank" href="{{ asset('backend/template/valex/index.html') }}"><i class="bx bx-slider-alt fs-18 me-2 op-7"></i>Valex Template</a></li>--}}
-                    <li><a class="dropdown-item d-flex border-block-end" target="_blank" href="{{ url('/log-viewer') }}"><i class="bx bx-slider-alt fs-18 me-2 op-7"></i>Error Logs</a></li>
-                    <li><a class="dropdown-item d-flex border-block-end" target="_blank" href="{{ route('admin.activity-logs') }}"><i class="bx bx-slider-alt fs-18 me-2 op-7"></i>Activity Log</a></li>
+                    @hasRole('super-admin')
+                        <li><a class="dropdown-item d-flex border-block-end" href=""><i class="bx bx-slider-alt fs-18 me-2 op-7"></i>Account Settings</a></li>
+                        {{--                    <li><a class="dropdown-item d-flex border-block-end" target="_blank" href="{{ asset('backend/template/valex/index.html') }}"><i class="bx bx-slider-alt fs-18 me-2 op-7"></i>Valex Template</a></li>--}}
+                        <li><a class="dropdown-item d-flex border-block-end" target="_blank" href="{{ url('/log-viewer') }}"><i class="bx bx-slider-alt fs-18 me-2 op-7"></i>Error Logs</a></li>
+                        <li><a class="dropdown-item d-flex border-block-end" target="_blank" href="{{ route('admin.activity-logs') }}"><i class="bx bx-slider-alt fs-18 me-2 op-7"></i>Activity Log</a></li>
+                    @endhasRole
                     <li><a class="dropdown-item d-flex" href="javascript:void(0)" onclick="event.preventDefault(); document.getElementById('signOutForm').submit()"><i class="bx bx-log-out fs-18 me-2 op-7"></i>Sign Out</a></li>
                     <form action="{{ route('logout') }}" method="post" id="signOutForm">@csrf</form>
                 </ul>
