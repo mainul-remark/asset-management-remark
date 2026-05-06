@@ -7,16 +7,36 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Mainul\CustomHelperFunctions\Helpers\CustomHelper;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Brand extends Model
 {
     use HasFactory;
     use Searchable;
     use SoftDeletes;
+    use LogsActivity;
 
     protected $fillable = ['name', 'code', 'description', 'status', 'logo', 'created_by', 'is_common'];
 
     protected $searchableFields = ['*'];
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->useLogName('data')
+            ->logOnly([
+                'name',
+                'code',
+                'description',
+                'status',
+                'logo',
+                'created_by',
+                'is_common',
+            ])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
+    }
 
     protected static function boot()
     {
@@ -63,5 +83,10 @@ class Brand extends Model
     public function assignAssetToBrands()
     {
         return $this->hasMany(AssignAssetToBrand::class);
+    }
+
+    public function planogramHistories()
+    {
+        return $this->hasMany(PlanogramHistory::class);
     }
 }

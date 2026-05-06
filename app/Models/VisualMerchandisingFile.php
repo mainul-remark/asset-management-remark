@@ -27,7 +27,10 @@ class VisualMerchandisingFile extends Model
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->logOnly(['visual_merchandising_id', 'file_path', 'file_type']);
+            ->useLogName('data')
+            ->logOnly(['visual_merchandising_id', 'file_path', 'file_type'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
     }
 
     protected static function booted(): void

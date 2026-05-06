@@ -13,9 +13,11 @@
                         <div class="card-title mb-1">Key Visual Sizes</div>
                         <p class="text-muted fs-12 mb-0">Manage key visual size definitions.</p>
                     </div>
+                    @allowed('key-visual-sizes.create')
                     <button type="button" class="btn btn-sm btn-primary btn-wave" id="btn-add-size">
                         <i class="ri-add-line me-1"></i> Add Size
                     </button>
+                    @endallowed
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
@@ -50,15 +52,21 @@
                                         <td>{{ optional($kvSize->created_at)->format('d M Y') }}</td>
                                         <td>
                                             <div class="btn-list">
+                                                @allowed('key-visual-sizes.show')
                                                 <button class="btn btn-icon btn-sm btn-info-light btn-wave btn-view" data-id="{{ $kvSize->id }}" title="View">
                                                     <i class="ri-eye-line"></i>
                                                 </button>
+                                                @endallowed
+                                                @allowed('key-visual-sizes.edit')
                                                 <button class="btn btn-icon btn-sm btn-primary-light btn-wave btn-edit" data-id="{{ $kvSize->id }}" title="Edit">
                                                     <i class="ri-edit-box-line"></i>
                                                 </button>
+                                                @endallowed
+                                                @allowed('key-visual-sizes.destroy')
                                                 <button class="btn btn-icon btn-sm btn-danger-light btn-wave btn-delete" data-id="{{ $kvSize->id }}" data-name="{{ $kvSize->name }}" title="Delete">
                                                     <i class="ri-delete-bin-line"></i>
                                                 </button>
+                                                @endallowed
                                             </div>
                                         </td>
                                     </tr>
@@ -74,7 +82,7 @@
 @endsection
 
 @section('modal')
-@include('backend.kv.Modals.keyVisualSize')
+@include('backend.kv.Modals.keyVisualSize', ['permissions' => $permissions])
 @endsection
 
 @push('styles')
@@ -86,10 +94,11 @@
 @push('scripts')
 @include('backend.includes.plugins.datatable')
 <script>
+const sizePermissions = @json($permissions);
 $(function () {
-    const sizeModal   = new bootstrap.Modal(document.getElementById('sizeModal'));
-    const viewModal   = new bootstrap.Modal(document.getElementById('viewModal'));
-    const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    const sizeModal   = sizePermissions.canCreate || sizePermissions.canEdit ? new bootstrap.Modal(document.getElementById('sizeModal'))   : null;
+    const viewModal   = sizePermissions.canView   ? new bootstrap.Modal(document.getElementById('viewModal'))   : null;
+    const deleteModal = sizePermissions.canDelete ? new bootstrap.Modal(document.getElementById('deleteModal')) : null;
 
     const apiUrl = (id = '') => base_url + 'key-visual-sizes' + (id ? '/' + id : '');
 
@@ -176,7 +185,7 @@ $(function () {
         resetForm();
         $('#sizeModalLabel').text('Add Key Visual Size');
         $('#btn-save .btn-text').text('Save');
-        sizeModal.show();
+        sizeModal?.show();
     });
 
     /* ---------- Edit ---------- */
@@ -198,7 +207,7 @@ $(function () {
                 updateDimPreview();
                 $('#sizeModalLabel').text('Edit Key Visual Size');
                 $('#btn-save .btn-text').text('Update');
-                sizeModal.show();
+                sizeModal?.show();
             })
             .fail(function () { showToast('Failed to load size data.', 'danger'); });
     });
@@ -221,7 +230,7 @@ $(function () {
                 $('#view-ratio').text(aspectRatio(data.width, data.height));
                 $('#view-created').text(formatDate(data.created_at));
                 $('#view-updated').text(formatDate(data.updated_at));
-                viewModal.show();
+                viewModal?.show();
             })
             .fail(function () { showToast('Failed to load details.', 'danger'); });
     });
@@ -231,7 +240,7 @@ $(function () {
     $(document).on('click', '.btn-delete', function () {
         $('#delete-size-id').val($(this).data('id'));
         $('#delete-size-name').text($(this).data('name'));
-        deleteModal.show();
+        deleteModal?.show();
     });
 
     $('#btn-confirm-delete').on('click', function () {
@@ -244,7 +253,7 @@ $(function () {
             url: apiUrl(id),
             type: 'DELETE',
             success: function (res) {
-                deleteModal.hide();
+                deleteModal?.hide();
                 showToast(res.message || 'Deleted successfully.');
                 setTimeout(() => location.reload(), 700);
             },
@@ -278,7 +287,7 @@ $(function () {
             processData: false,
             contentType: false,
             success: function (res) {
-                sizeModal.hide();
+                sizeModal?.hide();
                 showToast(res.message || 'Saved successfully.');
                 setTimeout(() => location.reload(), 700);
             },

@@ -36,9 +36,21 @@ class KeyVisual extends Model
 
     public function getActivitylogOptions(): LogOptions
     {
-        // TODO: Implement getActivitylogOptions() method.
         return LogOptions::defaults()
-            ->logOnly($this->searchableFields);
+            ->useLogName('data')
+            ->logOnly([
+                'asset_type_id',
+                'name',
+                'unique_code',
+                'minimum_res_height',
+                'minimum_res_width',
+                'kv_type',
+                'kv_sample_file',
+                'kv_thumb',
+                'status',
+            ])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
     }
 
     protected static function booted(): void

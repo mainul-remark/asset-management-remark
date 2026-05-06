@@ -45,6 +45,21 @@ class AssignAssetToBrandController extends Controller
             $assignments = DB::transaction(fn () => AssignAssetToBrand::createAssignments($request));
             $createdCount = $assignments->count();
 
+            $assignments->each(function (AssignAssetToBrand $assignment): void {
+                activity('workflow')
+                    ->performedOn($assignment)
+                    ->causedBy(auth()->user())
+                    ->event('asset_assigned_to_brand')
+                    ->withProperties([
+                        'asset_id' => $assignment->asset_id,
+                        'brand_id' => $assignment->brand_id,
+                        'status' => $assignment->status,
+                        'asset_charge' => $assignment->asset_charge,
+                        'close_date' => optional($assignment->close_date)->format('Y-m-d'),
+                    ])
+                    ->log('Asset assigned to brand.');
+            });
+
             return response()->json([
                 'success' => true,
                 'message' => $createdCount === 0
@@ -222,6 +237,19 @@ class AssignAssetToBrandController extends Controller
         try {
             $assignment = DB::transaction(fn () => AssignAssetToBrand::updateOrCreateAssignment($request, $assignAssetToBrand));
 
+            activity('workflow')
+                ->performedOn($assignment)
+                ->causedBy(auth()->user())
+                ->event('asset_brand_assignment_updated')
+                ->withProperties([
+                    'asset_id' => $assignment->asset_id,
+                    'brand_id' => $assignment->brand_id,
+                    'status' => $assignment->status,
+                    'asset_charge' => $assignment->asset_charge,
+                    'close_date' => optional($assignment->close_date)->format('Y-m-d'),
+                ])
+                ->log('Asset-to-brand assignment updated.');
+
             return response()->json([
                 'success' => true,
                 'message' => 'Asset-to-brand assignment updated successfully.',
@@ -240,10 +268,25 @@ class AssignAssetToBrandController extends Controller
     public function destroy(AssignAssetToBrand $assignAssetToBrand): JsonResponse
     {
         try {
+            $assignmentSnapshot = [
+                'asset_id' => $assignAssetToBrand->asset_id,
+                'brand_id' => $assignAssetToBrand->brand_id,
+                'status' => $assignAssetToBrand->status,
+                'asset_charge' => $assignAssetToBrand->asset_charge,
+                'close_date' => optional($assignAssetToBrand->close_date)->format('Y-m-d'),
+            ];
+
             DB::transaction(function () use ($assignAssetToBrand) {
                 $assignAssetToBrand->markAsNotCurrentlyAssigned();
                 $assignAssetToBrand->delete();
             });
+
+            activity('workflow')
+                ->performedOn($assignAssetToBrand)
+                ->causedBy(auth()->user())
+                ->event('asset_brand_assignment_deleted')
+                ->withProperties($assignmentSnapshot)
+                ->log('Asset-to-brand assignment deleted.');
 
             return response()->json([
                 'success' => true,
@@ -338,8 +381,12 @@ class AssignAssetToBrandController extends Controller
                 'id' => $primaryAssignment->assignedBy->id,
                 'name' => $primaryAssignment->assignedBy->name,
             ] : null,
-            'can_edit' => $orderedAssignments->count() === 1,
-            'can_delete' => $orderedAssignments->count() === 1,
+            'brand_assignment_map' => $orderedAssignments
+                ->filter(fn (AssignAssetToBrand $a) => $a->brand_id !== null)
+                ->mapWithKeys(fn (AssignAssetToBrand $a) => [(string) $a->brand_id => $a->id])
+                ->all(),
+            'can_edit' => true,
+            'can_delete' => true,
         ];
     }
 

@@ -3,11 +3,14 @@
 namespace App\Http\Controllers\Backend\KV;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Backend\KV\BrandController;
+use App\Http\Controllers\Backend\KV\CategoryController;
 use App\Http\Requests\Backend\KV\KeyVisualRequest;
 use App\Models\AssetType;
 use App\Models\Brand;
 use App\Models\Category;
 use App\Models\KeyVisual;
+use App\Models\KeyVisualSize;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -18,10 +21,23 @@ class KeyVisualController extends Controller
     public function index()
     {
         return view('backend.kv.kv-theme', [
-            'keyVisuals' => KeyVisual::with('assetType:id,name', 'brands:id,name,code', 'categories:id,name,code')->latest()->get(),
-            'assetTypes' => AssetType::orderBy('name')->get(['id', 'name']),
-            'brands'     => Brand::orderBy('name')->get(['id', 'name', 'code']),
-            'categories' => Category::orderBy('name')->get(['id', 'name', 'code']),
+            'keyVisuals'     => KeyVisual::with('assetType:id,name', 'brands:id,name,code', 'categories:id,name,code')->latest()->get(),
+            'assetTypes'     => AssetType::orderBy('name')->get(['id', 'name']),
+            'brands'         => Brand::orderBy('name')->get(['id', 'name', 'code']),
+            'categories'     => Category::orderBy('name')->get(['id', 'name', 'code']),
+            'keyVisualSizes' => KeyVisualSize::orderBy('name')->get(['id', 'name', 'width', 'height', 'unit_name']),
+            'permissions'    => [
+                'canCreate'         => allowed([self::class, 'store']),
+                'canView'           => allowed([self::class, 'show']),
+                'canEdit'           => allowed([self::class, 'edit']),
+                'canDelete'         => allowed([self::class, 'destroy']),
+                'canCreateBrand'    => allowed([BrandController::class, 'store']),
+                'canEditBrand'      => allowed([BrandController::class, 'edit']),
+                'canDeleteBrand'    => allowed([BrandController::class, 'destroy']),
+                'canCreateCategory' => allowed([CategoryController::class, 'store']),
+                'canEditCategory'   => allowed([CategoryController::class, 'edit']),
+                'canDeleteCategory' => allowed([CategoryController::class, 'destroy']),
+            ],
         ]);
     }
     public function old()
@@ -142,5 +158,7 @@ class KeyVisualController extends Controller
             ->values()
             ->toArray();
     }
+
+
 
 }

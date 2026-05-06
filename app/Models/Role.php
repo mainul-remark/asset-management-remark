@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Uzzal\Acl\Models\Permission;
@@ -19,6 +20,11 @@ class Role extends Model
 
     public function users() {
         return $this->belongsToMany(User::class, 'user_roles', 'user_id', 'role_id');
+    }
+
+    public function userStoreAssignments(): HasMany
+    {
+        return $this->hasMany(UserStoreAssignment::class, 'role_id', 'role_id');
     }
 
     public static function checkValidation($request)

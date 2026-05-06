@@ -28,6 +28,14 @@ class StoreController extends Controller
         ]);
     }
 
+    public function jsonList()
+    {
+        $stores = Store::with('division:id,name')
+            ->latest()
+            ->get(['id', 'title', 'code', 'store_code', 'total_area_sqft', 'monthly_rent', 'per_sqr_feet_rent', 'status', 'store_type', 'division_id']);
+        return response()->json($stores);
+    }
+
     public function getDistricts($divisionId)
     {
         $districts = District::select('id', 'name')

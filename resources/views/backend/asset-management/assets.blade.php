@@ -50,12 +50,19 @@
                     <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
                         <div class="card-title">Asset Management</div>
                         <div class="d-flex flex-wrap align-items-center gap-2 ms-auto">
+                            @if($permissions['canImport'])
+                            <button type="button" data-bs-toggle="modal" data-bs-target="#assetImportModal" class="btn btn-sm btn-teal btn-wave">
+                                <i class="ri-pages-line me-1"></i> Import Asset
+                            </button>
+                            @endif
                             <a href="{{ route('asset-types.index') }}" class="btn btn-sm btn-secondary btn-wave">
                                 <i class="ri-pages-line me-1"></i> Asset Category
                             </a>
+                            @allowed('assets.create')
                             <button type="button" class="btn btn-sm btn-primary btn-wave" id="btn-add-asset">
                                 <i class="ri-add-line me-1"></i> Add Asset
                             </button>
+                            @endallowed
                         </div>
                     </div>
                     <div class="card-body">
@@ -88,6 +95,7 @@
 @section('modal')
 
     {{-- ── Create / Edit Modal ──────────────────────────────────────────────── --}}
+    @if($permissions['canCreate'] || $permissions['canEdit'])
     <div class="modal fade" id="assetModal" >
         <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered modal-lg">
             <div class="modal-content">
@@ -190,25 +198,37 @@
                                         </button>
                                     </div>
                                 </div>
-                                <div class="col-md-6 d-none" id="planogram-field-wrap">
-                                    <label for="planogram_pdf" class="form-label">Planogram PDF <span class="text-danger d-none" id="planogram-required-star">*</span></label>
-                                    <div class="pdf-upload-zone" id="pdfUploadZone">
-                                        <div id="pdf-placeholder" class="upload-placeholder-inner">
-                                            <i class="ri-file-pdf-2-line fs-2 text-muted"></i>
-                                            <p class="mb-1 text-muted fs-12 mt-1">Click to select PDF</p>
-                                            <p class="mb-0 fs-11" style="color:#adb5bd">PDF only &mdash; Max 10 MB</p>
+
+                                <div class="col-12 d-none row" id="planogram-field-wrap">
+                                    <div class="col-md-6 " id="">
+                                        <label for="planogram_pdf" class="form-label">Planogram PDF <span class="text-danger d-none" id="planogram-required-star">*</span></label>
+                                        <div class="pdf-upload-zone" id="pdfUploadZone">
+                                            <div id="pdf-placeholder" class="upload-placeholder-inner">
+                                                <i class="ri-file-pdf-2-line fs-2 text-muted"></i>
+                                                <p class="mb-1 text-muted fs-12 mt-1">Click to select PDF</p>
+                                                <p class="mb-0 fs-11" style="color:#adb5bd">PDF only &mdash; Max 10 MB</p>
+                                            </div>
+                                            <div id="pdf-selected" class="d-none text-center">
+                                                <i class="ri-file-pdf-2-line fs-2 text-danger"></i>
+                                                <p class="mb-0 fs-12 mt-1 text-truncate px-2" id="pdf-filename"></p>
+                                            </div>
+                                            <input type="file" class="d-none" id="planogram_pdf" name="planogram_pdf" accept=".pdf">
                                         </div>
-                                        <div id="pdf-selected" class="d-none text-center">
-                                            <i class="ri-file-pdf-2-line fs-2 text-danger"></i>
-                                            <p class="mb-0 fs-12 mt-1 text-truncate px-2" id="pdf-filename"></p>
+                                        <div class="invalid-feedback d-block" id="error-planogram_pdf"></div>
+                                        <div id="existing-pdf-wrap" class="d-none mt-1">
+                                            <a href="#" target="_blank" id="existing-planogram-link" class="btn btn-sm btn-info-light">
+                                                <i class="ri-external-link-line me-1"></i>View current PDF
+                                            </a>
                                         </div>
-                                        <input type="file" class="d-none" id="planogram_pdf" name="planogram_pdf" accept=".pdf">
                                     </div>
-                                    <div class="invalid-feedback d-block" id="error-planogram_pdf"></div>
-                                    <div id="existing-pdf-wrap" class="d-none mt-1">
-                                        <a href="#" target="_blank" id="existing-planogram-link" class="btn btn-sm btn-info-light">
-                                            <i class="ri-external-link-line me-1"></i>View current PDF
-                                        </a>
+                                    <div class="col-md-6">
+                                        <label for="">Planogram Assigned Brands</label>
+                                        <select name="planogram_brand_id[]" multiple class="form-control select-ele" id="planogramBrandId">
+                                            <option value="" disabled>Select Planogram Brands</option>
+                                            @foreach($brands as $brand)
+                                                <option value="{{ $brand->id }}">{{ $brand->name ?? '' }}</option>
+                                            @endforeach
+                                        </select>
                                     </div>
                                 </div>
                             </div>
@@ -492,7 +512,10 @@
         </div>
     </div>
 
+    @endif
+
     {{-- ── View Modal ───────────────────────────────────────────────────────── --}}
+    @if($permissions['canView'])
     <div class="modal fade" id="viewModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content">
@@ -537,7 +560,10 @@
         </div>
     </div>
 
+    @endif
+
     {{-- ── Delete Confirmation Modal ────────────────────────────────────────── --}}
+    @if($permissions['canDelete'])
     <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-sm">
             <div class="modal-content text-center">
@@ -565,6 +591,8 @@
             </div>
         </div>
     </div>
+
+    @endif
 
     {{-- ────────────────── manage asset kv Modal ──────────────────────── --}}
     <div class="modal fade" id="assetKvManage" tabindex="-1" aria-hidden="true">
@@ -639,6 +667,13 @@
                                             </select>
                                             <div class="invalid-feedback" id="error-asset_kv_key_visual_files_id"></div>
                                         </div>
+                                        <div class="col-md-6 d-none" id="asset-kv-slot-group">
+                                            <label for="asset_kv_key_visual_slot_number" class="form-label">KV Slot <span class="text-danger">*</span></label>
+                                            <select class="form-select select-ele" id="asset_kv_key_visual_slot_number" name="key_visual_slot_number" disabled>
+                                                <option value="">Select Key Slot</option>
+                                            </select>
+                                            <div class="invalid-feedback" id="error-asset_kv_key_visual_slot_number"></div>
+                                        </div>
                                         <div class="col-md-6 d-none" id="asset-kv-size-group">
                                             <label for="asset_kv_key_visual_size_id" class="form-label">KV Size</label>
                                             <select class="form-select select-ele" id="asset_kv_key_visual_size_id" disabled>
@@ -704,6 +739,7 @@
         </div>
     </div>
 
+    {{-- ────────────────── asset kv delete Modal ──────────────────────── --}}
     <div class="modal fade" id="assetKvDeleteModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-sm modal-dialog-centered">
             <div class="modal-content text-center">
@@ -907,6 +943,34 @@
         </div>
     </div>
 
+    {{-- ── Asset Import Modal ─────────────────────────────────────────── --}}
+    <div class="modal fade" id="assetImportModal">
+        <div class="modal-dialog modal-sm modal-dialog-centered">
+            <div class="modal-content ">
+                <div class="modal-header">
+                    <div>
+                        <h1 class="modal-title fs-5 mb-1">Import Assets</h1>
+                        <p class="text-muted fs-12 mb-0">Import Bulk Assets at a time. Check <a href="{{ asset('import-samples/import-asset.xlsx') }}" class="text-danger">Sample Exel File.</a></p>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4 pb-2">
+                    <form action="{{ route('assets.import-assets') }}" method="post" enctype="multipart/form-data" id="importAssetForm">
+                        @csrf
+                        <div>
+                            <label for="uploadAssetFile">Import Exel File</label>
+                            <input type="file" name="file" id="uploadAssetFile" class="form-control" >
+                        </div>
+                        <div class="mt-3 ms-auto text-end">
+                            <button type="submit" class="btn btn-success" id="importAssetSubmitBtn">Upload</button>
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
 @endsection
 
 @push('styles')
@@ -1044,6 +1108,7 @@
 @push('scripts')
     @include('backend.includes.plugins.datatable')
     @include('backend.includes.plugins.select2')
+    @include('backend.includes.plugins.toastr')
     <script>
         const apiUrl = id => base_url + 'assets' + (id ? '/' + id : '');
         function showToast(message, type) {
@@ -1071,13 +1136,15 @@
     $(document).ready(function () {
 
         // ── Bootstrap modals & AJAX setup ─────────────────────────────────────
-        const assetModal    = new bootstrap.Modal(document.getElementById('assetModal'));
-        const viewModalEl   = new bootstrap.Modal(document.getElementById('viewModal'));
-        const deleteModalEl = new bootstrap.Modal(document.getElementById('deleteModal'));
+        const assetPermissions = @json($permissions);
+        const _nm = { show: () => {}, hide: () => {}, _isNull: true };
+        const assetModal         = (assetPermissions.canCreate || assetPermissions.canEdit) && document.getElementById('assetModal')           ? new bootstrap.Modal(document.getElementById('assetModal'))           : _nm;
+        const viewModalEl        = assetPermissions.canView                                 && document.getElementById('viewModal')            ? new bootstrap.Modal(document.getElementById('viewModal'))            : _nm;
+        const deleteModalEl      = assetPermissions.canDelete                               && document.getElementById('deleteModal')          ? new bootstrap.Modal(document.getElementById('deleteModal'))          : _nm;
         $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
 
 
-        const assetCategoryModal = new bootstrap.Modal(document.getElementById('addAssetCategoryModal'));
+        const assetCategoryModal = (assetPermissions.canCreate || assetPermissions.canEdit) && document.getElementById('addAssetCategoryModal') ? new bootstrap.Modal(document.getElementById('addAssetCategoryModal')) : _nm;
         const assetCategoryApiUrl = id => base_url + 'asset-types' + (id ? '/' + id : '');
 
         // ── Server-side DataTable ──────────────────────────────────────────────
@@ -1698,6 +1765,7 @@
             assignments: [],
             editingAssignmentId: '',
             formVisible: false,
+
         };
 
         function getAssetTypeMeta(typeId) {
@@ -1760,6 +1828,7 @@
             const fieldMap = {
                 key_visual_id: '#asset_kv_key_visual_id',
                 key_visual_files_id: '#asset_kv_key_visual_files_id',
+                slot_number: '#asset_kv_key_visual_slot_number',
             };
 
             Object.entries(errors || {}).forEach(([field, messages]) => {
@@ -1791,6 +1860,55 @@
 
             $('#asset-kv-file-group').toggleClass('d-none', !hasKeyVisual);
             $('#asset-kv-size-group').toggleClass('d-none', !hasKvFile);
+
+            // $('#asset_kv_key_visual_slot_number').prop('disabled', false).html('<option value="">Select Slot</option>' + Array.from({length: assetKvState.asset.asset_type.total_kv_slot}, (_, i) => `<option value="${i+1}">${i+1}</option>`).join(''));
+
+            $('#asset-kv-slot-group').toggleClass('d-none', !hasKvFile); // show kv slot number option
+
+            populateAssetKvSlotOptions();
+        }
+
+        // ADD this (place after populateAssetKvSizeOption)
+        function populateAssetKvSlotOptions(selectedSlot = '') {
+            const $slot = $('#asset_kv_key_visual_slot_number');
+            const hasKvFile = !!$('#asset_kv_key_visual_files_id').val();
+            const slotLimit = getAssetKvSlotLimit();
+
+            if (!hasKvFile || slotLimit < 1) {
+                $slot
+                    .html('<option value="">Select Key Slot</option>')
+                    .prop('disabled', true)
+                    .val('')
+                    .trigger('change.select2');
+                return;
+            }
+
+            const editingId = String(assetKvState.editingAssignmentId || '');
+            const usedSlots = new Set(
+                (assetKvState.assignments || [])
+                    .filter(item => String(item.id) !== editingId)
+                    .map(item => Number(item.slot_number))
+                    .filter(value => Number.isInteger(value) && value > 0)
+            );
+
+            const currentSelected = Number(selectedSlot || $slot.val() || 0);
+            let options = '<option value="">Select Key Slot</option>';
+
+            for (let slot = 1; slot <= slotLimit; slot++) {
+                const isOccupied = usedSlots.has(slot);
+                const keepSelected = currentSelected === slot;
+                options += `<option value="${slot}" ${isOccupied && !keepSelected ? 'disabled' : ''}>${slot}${isOccupied && !keepSelected ? ' (Occupied)' : ''}</option>`;
+            }
+
+            $slot.html(options).prop('disabled', false);
+
+            if (currentSelected > 0 && currentSelected <= slotLimit) {
+                $slot.val(String(currentSelected));
+            } else {
+                $slot.val('');
+            }
+
+            $slot.trigger('change.select2');
         }
 
         function resetAssetKvSummary() {
@@ -1986,9 +2104,12 @@
                 .trigger('change.select2');
         }
 
+
+
         function syncAssetKvSelectionStatus() {
             const lockMessage = getAssetKvActiveLockMessage();
             const selectedFile = keyVisualFiles.find(file => String(file.id) === String($('#asset_kv_key_visual_files_id').val()));
+            const selectedSlot = $('#asset_kv_key_visual_slot_number').val();
             let message = lockMessage;
 
             if (!message) {
@@ -1996,6 +2117,8 @@
                     message = 'Select a key visual for this asset.';
                 } else if (!selectedFile) {
                     message = 'Choose a key visual file to continue.';
+                } else if (!selectedSlot) {
+                    message = 'Choose a KV slot to continue.';
                 } else {
                     message = `${selectedFile.name || 'Selected file'} | ${formatAssetKvFileMeta(selectedFile)}`;
                 }
@@ -2017,6 +2140,7 @@
             populateAssetKvKeyVisualOptions();
             populateAssetKvFileOptions();
             populateAssetKvSizeOption();
+            populateAssetKvSlotOptions();
             syncAssetKvSelectionStatus();
             renderAssetKvSummary();
         }
@@ -2033,6 +2157,7 @@
             populateAssetKvKeyVisualOptions(assignment.key_visual_id);
             populateAssetKvFileOptions(assignment.key_visual_files_id);
             populateAssetKvSizeOption(assignment.key_visual_files_id);
+            populateAssetKvSlotOptions(assignment.slot_number);
             syncAssetKvSelectionStatus();
             renderAssetKvSummary();
         }
@@ -2119,6 +2244,13 @@
         $('#asset_kv_key_visual_files_id').on('change', function () {
             clearAssetKvErrors();
             populateAssetKvSizeOption($(this).val());
+            populateAssetKvSlotOptions();
+            syncAssetKvSelectionStatus();
+        });
+
+        // ADD new slot change handler
+        $('#asset_kv_key_visual_slot_number').on('change', function () {
+            clearAssetKvErrors();
             syncAssetKvSelectionStatus();
         });
 
@@ -2144,6 +2276,7 @@
                 asset_id: assetKvState.assetId,
                 key_visual_id: $('#asset_kv_key_visual_id').val(),
                 key_visual_files_id: $('#asset_kv_key_visual_files_id').val(),
+                slot_number: $('#asset_kv_key_visual_slot_number').val(),
             };
 
             setAssetKvSaveLoading(true);
@@ -2550,5 +2683,98 @@
                 complete: () => setAssetBrandDeleteLoading(false)
             });
         });
+
+        // import assets
+        $(document).on('submit', '#importAssetForm', function (event) {
+            event.preventDefault();
+
+            var data = new FormData(this);
+            $('#importAssetSubmitBtn').attr('disabled', true);
+            sendAjaxRequest('asset/import-assets', 'POST', data).then(function (response) {
+                if (typeof response === 'string') {
+                    response = JSON.parse(response);
+                }
+
+                if (response.success) {
+                    toastr.success(response.message);
+                    $('#assetImportModal').modal('hide');
+                    dataTable.ajax.reload();
+                } else {
+                    showImportErrors(response);
+                }
+
+            }).catch(function(err) {
+                // 422 errors land here — extract the JSON response body
+                toastr.clear();
+                let response = null;
+
+                // jQuery AJAX error object: err.responseJSON or err.responseText
+                if (err && err.responseJSON) {
+                    response = err.responseJSON;
+                } else if (err && err.responseText) {
+                    try { response = JSON.parse(err.responseText); } catch(e) {}
+                }
+
+                setTimeout(function() {
+                    toastr.clear(); // 👈 clear AFTER blank toastr has appeared
+
+                    if (response && response.errors && response.errors.length > 0) {
+                        showImportErrors(response);
+                    } else {
+                        toastr.error(response?.message || "Server communication failed.");
+                    }
+                }, 100);
+            });
+            $('#importAssetSubmitBtn').attr('disabled', false);
+        });
+
+        function showImportErrors(response) {
+            // Clear any existing toasts immediately
+            toastr.remove();
+
+            let errorTable = `
+        <table style="width:100%; font-size:12px; border-collapse:collapse; margin-top:10px; border: 1px solid rgba(255,255,255,0.3);">
+            <thead>
+                <tr style="background-color: rgba(0,0,0,0.1);">
+                    <th style="text-align:left; border: 1px solid rgba(255,255,255,0.3); padding:6px;">Row</th>
+                    <th style="text-align:left; border: 1px solid rgba(255,255,255,0.3); padding:6px;">Error</th>
+                </tr>
+            </thead>
+            <tbody>`;
+
+            response.errors.forEach(function(item) {
+                let errorDetails = Array.isArray(item.errors) ? item.errors.join('<br>') : item.errors;
+                errorTable += `
+            <tr>
+                <td style="padding:6px; border: 1px solid rgba(255,255,255,0.3); vertical-align: top; text-align:center;">${item.row}</td>
+                <td style="padding:6px; border: 1px solid rgba(255,255,255,0.3);">${errorDetails}</td>
+            </tr>`;
+            });
+
+            errorTable += '</tbody></table>';
+
+            toastr.error(errorTable, response.message, {
+                closeButton: true,
+                timeOut: 0,
+                extendedTimeOut: 0,
+                tapToDismiss: false,
+                escapeHtml: false,
+                // This ensures the toast is wide enough for a table
+                toastClass: 'toastr-error-wide'
+            });
+        }
     </script>
+    <style>
+        /* Make room for the table */
+        .toastr-error-wide {
+            width: 400px !important;
+            max-width: 90vw !important;
+        }
+
+        /* Ensure the toastr doesn't hide the HTML content */
+        #toast-container > .toast-error {
+            background-image: none !important; /* Removes the error icon to save space */
+            padding-left: 15px !important;
+        }
+    </style>
 @endpush

@@ -453,7 +453,7 @@
             </div>
             <div class="d-flex justify-content-between canvas-footer gap-1 ">
 {{--                <a href="javascript:void(0)" class="btn btn-primary flex-fill">Home Page</a>--}}
-                <a href="{{ route('dashboard') }}" class="btn btn-info flex-fill">Dashboard</a>
+                <a href="{{ route('admin.dashboard') }}" class="btn btn-info flex-fill">Dashboard</a>
                 <a href="javascript:void(0);" id="reset-all" class="btn btn-danger flex-fill">Reset</a>
             </div>
         </div>

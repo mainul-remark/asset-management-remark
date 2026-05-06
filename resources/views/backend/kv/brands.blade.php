@@ -9,9 +9,11 @@
                 <div class="card custom-card">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <div class="card-title">Brands List</div>
-                        <button type="button" class="btn btn-sm btn-primary btn-wave" id="btn-add-brand">
-                            <i class="ri-add-line me-1"></i> Add Brand
-                        </button>
+                        @allowed('brands.create')
+                            <button type="button" class="btn btn-sm btn-primary btn-wave" id="btn-add-brand">
+                                <i class="ri-add-line me-1"></i> Add Brand
+                            </button>
+                        @endallowed
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
@@ -65,9 +67,15 @@
                                         </td>
                                         <td>
                                             <div class="btn-list">
-                                                <button class="btn btn-icon btn-sm btn-info-light btn-wave btn-view" data-id="{{ $brand->id }}" title="View"><i class="ri-eye-line"></i></button>
-                                                <button class="btn btn-icon btn-sm btn-primary-light btn-wave btn-edit" data-id="{{ $brand->id }}" title="Edit"><i class="ri-edit-box-line"></i></button>
-                                                <button class="btn btn-icon btn-sm btn-danger-light btn-wave btn-delete " data-id="{{ $brand->id }}" data-name="{{ $brand->name }}" title="Delete"><i class="ri-delete-bin-line"></i></button>
+                                                @allowed('brands.show')
+                                                    <button class="btn btn-icon btn-sm btn-info-light btn-wave btn-view" data-id="{{ $brand->id }}" title="View"><i class="ri-eye-line"></i></button>
+                                                @endallowed
+                                                @allowed('brands.edit')
+                                                    <button class="btn btn-icon btn-sm btn-primary-light btn-wave btn-edit" data-id="{{ $brand->id }}" title="Edit"><i class="ri-edit-box-line"></i></button>
+                                                @endallowed
+                                                @allowed('brands.destroy')
+                                                    <button class="btn btn-icon btn-sm btn-danger-light btn-wave btn-delete " data-id="{{ $brand->id }}" data-name="{{ $brand->name }}" title="Delete"><i class="ri-delete-bin-line"></i></button>
+                                                @endallowed
                                             </div>
                                         </td>
                                     </tr>
@@ -84,6 +92,7 @@
 
 @section('modal')
     {{-- Create / Edit Modal --}}
+    @if($permissions['canCreate'] || $permissions['canEdit'])
     <div class="modal fade" id="brandModal" tabindex="-1" aria-labelledby="brandModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -160,7 +169,9 @@
             </div>
         </div>
     </div>
+    @endif
     {{-- View Modal --}}
+    @if($permissions['canView'])
     <div class="modal fade" id="viewModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -184,8 +195,10 @@
             </div>
         </div>
     </div>
+    @endif
 
     {{-- Delete Confirmation Modal --}}
+    @if($permissions['canDelete'])
     <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-sm">
             <div class="modal-content text-center">
@@ -202,6 +215,7 @@
             </div>
         </div>
     </div>
+    @endif
 @endsection
 
 @push('styles')
@@ -232,10 +246,11 @@
     <script src="{{ asset('backend/build/assets/libs/filepond-plugin-file-validate-size/filepond-plugin-file-validate-size.min.js') }}"></script>
     <script src="{{ asset('backend/build/assets/libs/filepond-plugin-image-exif-orientation/filepond-plugin-image-exif-orientation.min.js') }}"></script>
     <script>
+    const brandPermissions = @json($permissions);
     $(document).ready(function () {
-        const brandModal = new bootstrap.Modal(document.getElementById('brandModal'));
-        const viewModal = new bootstrap.Modal(document.getElementById('viewModal'));
-        const deleteModalEl = new bootstrap.Modal(document.getElementById('deleteModal'));
+        const brandModal   = brandPermissions.canCreate || brandPermissions.canEdit ? new bootstrap.Modal(document.getElementById('brandModal'))  : null;
+        const viewModal    = brandPermissions.canView   ? new bootstrap.Modal(document.getElementById('viewModal'))    : null;
+        const deleteModalEl = brandPermissions.canDelete ? new bootstrap.Modal(document.getElementById('deleteModal')) : null;
         const table = $('#data-table').DataTable();
 
         function strLimit(str, limit) {
@@ -253,11 +268,11 @@
             const commonBadge = brand.is_common == 1
                 ? '<span class="badge bg-outline-success">Common</span>'
                 : '<span class="badge bg-outline-secondary">Not Common</span>';
-            const actionBtns = `<div class="btn-list">
-                <button class="btn btn-icon btn-sm btn-info-light btn-wave btn-view" data-id="${brand.id}" title="View"><i class="ri-eye-line"></i></button>
-                <button class="btn btn-icon btn-sm btn-primary-light btn-wave btn-edit" data-id="${brand.id}" title="Edit"><i class="ri-edit-box-line"></i></button>
-                <button class="btn btn-icon btn-sm btn-danger-light btn-wave btn-delete" data-id="${brand.id}" data-name="${brand.name}" title="Delete"><i class="ri-delete-bin-line"></i></button>
-            </div>`;
+            let actionBtns = '<div class="btn-list">';
+            if (brandPermissions.canView)   actionBtns += `<button class="btn btn-icon btn-sm btn-info-light btn-wave btn-view" data-id="${brand.id}" title="View"><i class="ri-eye-line"></i></button>`;
+            if (brandPermissions.canEdit)   actionBtns += `<button class="btn btn-icon btn-sm btn-primary-light btn-wave btn-edit" data-id="${brand.id}" title="Edit"><i class="ri-edit-box-line"></i></button>`;
+            if (brandPermissions.canDelete) actionBtns += `<button class="btn btn-icon btn-sm btn-danger-light btn-wave btn-delete" data-id="${brand.id}" data-name="${brand.name}" title="Delete"><i class="ri-delete-bin-line"></i></button>`;
+            actionBtns += '</div>';
             return `<tr id="brand-row-${brand.id}">
                 <td>${rowNum}</td>
                 <td>${brand.name}</td>
@@ -318,7 +333,7 @@
             resetForm();
             $('#brandModalLabel').text('Add Brand');
             $('#btn-save .btn-text').text('Save');
-            brandModal.show();
+            brandModal?.show();
         });
 
         // Open Edit Modal
@@ -339,7 +354,7 @@
                 if (data.logo) {
                     $('#logo-preview').removeClass('d-none').find('img').attr('src', base_url + data.logo);
                 }
-                brandModal.show();
+                brandModal?.show();
             }).fail(function (xhr) {
                 showToast(getErrorMessage(xhr, 'Failed to load brand data.'), 'danger');
             });
@@ -364,7 +379,7 @@
                 } else {
                     $('#view-logo-container').hide();
                 }
-                viewModal.show();
+                viewModal?.show();
             }).fail(function (xhr) {
                 showToast(getErrorMessage(xhr, 'Failed to load brand details.'), 'danger');
             });
@@ -374,7 +389,7 @@
         $(document).on('click', '.btn-delete', function () {
             $('#delete-brand-id').val($(this).data('id'));
             $('#delete-brand-name').text($(this).data('name'));
-            deleteModalEl.show();
+            deleteModalEl?.show();
         });
 
         // Confirm Delete
@@ -391,7 +406,7 @@
                         return;
                     }
 
-                    deleteModalEl.hide();
+                    deleteModalEl?.hide();
                     showToast(res.message, 'success');
                     table.row('#brand-row-' + id).remove().draw(false);
                 },
@@ -434,7 +449,7 @@
                         return;
                     }
 
-                    brandModal.hide();
+                    brandModal?.hide();
                     showToast(res.message, 'success');
                     resetForm();
 

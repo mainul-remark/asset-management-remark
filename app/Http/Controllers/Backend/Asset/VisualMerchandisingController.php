@@ -9,7 +9,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Backend\Asset\VisualMerchandisingRequest;
 use App\Models\Asset;
 use App\Models\Store;
+use App\Models\UserStoreAssignment;
 use App\Models\VisualMerchandising;
+use App\Models\VmIssueFix;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -54,9 +56,12 @@ class VisualMerchandisingController extends Controller
 
     public function store(VisualMerchandisingRequest $request)
     {
-        $visualMerchandising = DB::transaction(
-            fn () => VisualMerchandising::updateOrCreateVisualMerchandising($request)
-        );
+        $visualMerchandising = DB::transaction( function () use ($request) {
+            return VisualMerchandising::updateOrCreateVisualMerchandising($request);
+//            if ($visualMerchandising) {
+//                VmIssueFix::createOrUpdateVmIssueFix($request, $visualMerchandising);
+//            }
+        });
 
         return response()->json([
             'message' => 'Visual merchandising issue created successfully.',
@@ -81,6 +86,9 @@ class VisualMerchandisingController extends Controller
     public function edit(string $id): JsonResponse
     {
         $visualMerchandising = VisualMerchandising::findOrFail($id);
+        if ($visualMerchandising->issue_fix_status == 'pending') {
+            $visualMerchandising['can_edit'] = true;
+        }
         $visualMerchandising->load([
             'store:id,title,code',
             'asset:id,name,asset_code,store_id,is_common_asset,asset_type_id',
@@ -121,6 +129,7 @@ class VisualMerchandisingController extends Controller
             'id' => $visualMerchandising->id,
             'store_id' => $visualMerchandising->store_id,
             'asset_id' => $visualMerchandising->asset_id,
+            'can_edit' => $visualMerchandising->can_edit ?? false,
             'creator_id' => $visualMerchandising->creator_id,
             'issue_text' => $visualMerchandising->issue_text,
             'issue_fix_status' => $visualMerchandising->issue_fix_status,
@@ -182,21 +191,37 @@ class VisualMerchandisingController extends Controller
 
     public function userWiseVmIssues(Request $request)
     {
+        $user = CustomHelper::loggedUser();
+        $assignedStoreIds = $user->usages_sector === 'field'
+            ? UserStoreAssignment::where('user_id', $user->id)->pluck('store_id')
+            : null;
+
+        $storesQuery = Store::query()->whereNull('deleted_at')->orderBy('title');
+        $assetsQuery = Asset::query()
+            ->with(['store:id,title,code', 'assetType:id,name', 'assignAssetToStores:id,asset_id,store_id'])
+            ->whereNull('deleted_at')
+            ->orderBy('name');
+
+        if ($assignedStoreIds !== null) {
+            $storesQuery->whereIn('id', $assignedStoreIds);
+            $assetsQuery->where(function ($q) use ($assignedStoreIds) {
+                $q->whereIn('store_id', $assignedStoreIds)
+                  ->orWhereHas('assignAssetToStores', fn ($sub) => $sub->whereIn('store_id', $assignedStoreIds));
+            });
+        }
+
         return view('backend.asset-management.vm-issues-theme', [
-            'stores' => Store::query()
-                ->whereNull('deleted_at')
-                ->orderBy('title')
-                ->get(['id', 'title', 'code', 'status']),
-            'assets' => Asset::query()
-                ->with([
-                    'store:id,title,code',
-                    'assetType:id,name',
-                    'assignAssetToStores:id,asset_id,store_id',
-                ])
-                ->whereNull('deleted_at')
-                ->orderBy('name')
-                ->get(['id', 'name', 'asset_code', 'store_id', 'is_common_asset', 'status', 'asset_type_id']),
+            'stores' => $storesQuery->get(['id', 'title', 'code', 'status']),
+            'assets' => $assetsQuery->get(['id', 'name', 'asset_code', 'store_id', 'is_common_asset', 'status', 'asset_type_id']),
             'issueFixStatuses' => VisualMerchandisingRequest::ISSUE_FIX_STATUSES,
+            'permissions' => [
+                'canView'         => allowed([self::class, 'show']),
+                'canCreate'       => allowed([self::class, 'store']),
+                'canEdit'         => allowed([self::class, 'edit']),
+                'canDelete'       => allowed([self::class, 'destroy']),
+                'canExport'       => allowed([self::class, 'exportVmIssues']),
+                'canChangeStatus' => allowed([self::class, 'changeVmIssueStatus']),
+            ],
         ]);
     }
 
@@ -206,12 +231,25 @@ class VisualMerchandisingController extends Controller
 
         $key = HelperFile::exportExelOnQueue(
             new VmIssuesExport(
-                creatorId: CustomHelper::loggedUser()->id,
-                fixStatus: $request->filled('fix_status') ? $request->fix_status : null,
-                storeId:   $request->filled('store_id')   ? (int) $request->store_id : null,
+                creatorId:    CustomHelper::loggedUser()->id,
+                fixStatus:    $request->filled('fix_status') ? $request->fix_status : null,
+                storeId:      $request->filled('store_id')   ? (int) $request->store_id : null,
+                usagesSector: CustomHelper::loggedUser()->usages_sector,
             ),
             $filename
         );
+
+        activity('system')
+            ->causedBy(auth()->user())
+            ->event('vm_issues_export_requested')
+            ->withProperties([
+                'export_key' => $key,
+                'file_name' => $filename,
+                'fix_status' => $request->filled('fix_status') ? $request->fix_status : null,
+                'store_id' => $request->filled('store_id') ? (int) $request->store_id : null,
+                'usages_sector' => CustomHelper::loggedUser()->usages_sector,
+            ])
+            ->log('VM issues export requested.');
 
         return response()->json(['key' => $key]);
     }

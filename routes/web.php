@@ -20,6 +20,11 @@ use App\Http\Controllers\Backend\KV\KeyVisualFilesController;
 use App\Http\Controllers\Backend\Asset\AssignKvToAssetController;
 
 use App\Http\Controllers\Backend\Asset\AssignAssetToBrandController;
+use App\Http\Controllers\Backend\Asset\VmIssueFixController;
+use App\Http\Controllers\Admin\UserStoreAssignmentController;
+use App\Http\Controllers\Backend\KV\KvInstallationController;
+
+use App\Http\Controllers\Backend\Asset\ImportExport\AssetImportController;
 
 Route::get('/', function () {
     if (auth()->check())
@@ -35,17 +40,29 @@ Route::middleware([
     'resource.maker',
     'auth.acl',
 ])->group(function () {
-    Route::get('/dashboard', [AdminViewController::class, 'dashboard'])->name('dashboard');
+    Route::get('/dashboard', [AdminViewController::class, 'dashboard'])->name('admin.dashboard');
+    Route::get('/dashboard-gpt', [AdminViewController::class, 'dashboardGpt'])->name('admin.dashboard-gpt');
+    Route::get('/admin/activity-log', [AdminViewController::class, 'activityLog'])->name('admin.activity-logs');
 
+    Route::get('stores/json-list', [StoreController::class, 'jsonList'])->name('stores.json-list');
     Route::get('stores/layout-list', [StoreController::class, 'layoutStores'])->name('stores.layout-list');
     Route::post('stores/{store}/layouts', [StoreController::class, 'uploadLayout'])->name('stores.upload-layout');
     Route::get('key-visuals/next-unique-code', [KeyVisualController::class, 'nextUniqueCode'])->name('key-visuals.next-unique-code');
     Route::get('assets/next-name', [AssetController::class, 'nextName'])->name('assets.next-name');
+    Route::get('asset-types/next-code', [AssetTypeController::class, 'nextCode'])->name('asset-types.next-code');
+    Route::get('user-store-assignments/users/search', [UserStoreAssignmentController::class, 'searchUsers'])->name('user-store-assignments.users.search');
+    Route::get('user-store-assignments/datatable', [UserStoreAssignmentController::class, 'datatable'])->name('user-store-assignments.datatable');
+    Route::get('user-store-assignments/users/{user}/current', [UserStoreAssignmentController::class, 'currentByUser'])->name('user-store-assignments.current-by-user');
 
     Route::prefix('admin')->middleware(['resource.maker','auth.acl'])->group(function () {
+        Route::post('/users/import', [UsersController::class, 'import'])->name('users.import');
         Route::resource('/roles',RoleController::class);
         Route::resource('/users',UsersController::class);
     });
+
+
+
+    Route::get('key-visuals/{keyVisual}/files', [KeyVisualFilesController::class, 'getByKeyVisual'])->name('key-visuals.files');
 
     Route::resources([
         'brands'                    => BrandController::class,
@@ -59,6 +76,7 @@ Route::middleware([
         'key-visual-files'          => KeyVisualFilesController::class,
         'visual-merchandising'      => VisualMerchandisingController::class,
         'visual-merchandising-files'=> VisualMerchandisingFileController::class,
+        'user-store-assignments'    => UserStoreAssignmentController::class,
     ]);
 
     Route::prefix('vm')->name('vm.')->group(function () {
@@ -68,6 +86,14 @@ Route::middleware([
         Route::get('/vm-issues/export/status/{key}', [VisualMerchandisingController::class, 'exportVmIssuesStatus'])->name('vm-issues.export.status');
         Route::get('/vm-issues/export/download/{key}', [VisualMerchandisingController::class, 'exportVmIssuesDownload'])->name('vm-issues.export.download');
         Route::post('/change-vm-issue-status/{visualMerchandising}/{issueStatus}', [VisualMerchandisingController::class, 'changeVmIssueStatus'])->name('change-vm-issue-status');
+
+
+        Route::get('/fix-issues', [VmIssueFixController::class, 'index'])->name('fix-issues');
+        Route::get('/fix-issues/datatable', [VmIssueFixController::class, 'datatable'])->name('fix-issues.datatable');
+        Route::get('/fix-issues/{visualMerchandising}', [VmIssueFixController::class, 'show'])->name('fix-issues.show');
+        Route::post('/fix-issues/{visualMerchandising}/assign-user', [VmIssueFixController::class, 'assignUser'])->name('assign-user');
+        Route::post('/fix-issues/{visualMerchandising}/upload-proof', [VmIssueFixController::class, 'uploadProof'])->name('upload-proof');
+        Route::post('/fix-issues/{visualMerchandising}/change-fix-status', [VmIssueFixController::class, 'changeFixStatus'])->name('change-fix-status');
     });
 
     Route::prefix('store')->group(function () {
@@ -85,6 +111,11 @@ Route::middleware([
         Route::get('/assign-asset-to-brand/{assignAssetToBrand}/edit', [AssignAssetToBrandController::class, 'edit'])->name('assets.assign-asset-to-brand.edit');
         Route::put('/assign-asset-to-brand/{assignAssetToBrand}', [AssignAssetToBrandController::class, 'update'])->name('assets.assign-asset-to-brand.update');
         Route::delete('/assign-asset-to-brand/{assignAssetToBrand}', [AssignAssetToBrandController::class, 'destroy'])->name('assets.assign-asset-to-brand.destroy');
+
+        Route::post('/import-assets', [AssetImportController::class, 'import'])->name('assets.import-assets');
+        Route::post('/check-asset-type-code', [AssetTypeController::class, 'checkTypeCode'])->name('assets.check-asset-type-code');
+
+        Route::get('/planogram-histories', [AssetController::class, 'planogramHistories'])->name('assets.planogram-histories');
     });
 
     Route::prefix('kv')->group(function () {
@@ -95,6 +126,13 @@ Route::middleware([
         Route::get('/assign-kv-to-asset/{assignKvToAsset}/edit', [AssignKvToAssetController::class, 'edit'])->name('key-visuals.assign-kvs.edit');
         Route::put('/assign-kv-to-asset/{assignKvToAsset}', [AssignKvToAssetController::class, 'update'])->name('key-visuals.assign-kvs.update');
         Route::delete('/assign-kv-to-asset/{assignKvToAsset}', [AssignKvToAssetController::class, 'destroy'])->name('key-visuals.assign-kvs.destroy');
+
+        Route::name('key-visuals.')->group(function () {
+            Route::get('/kv-installation', [KvInstallationController::class, 'kvInstallation'])->name('kv-installation');
+            Route::get('/kv-installation/datatable', [KvInstallationController::class, 'kvInstallationDatatable'])->name('kv-installation.datatable');
+            Route::get('/kv-installation/{id}/detail', [KvInstallationController::class, 'kvInstallationDetail'])->name('kv-installation.detail');
+            Route::post('/update-asset-assigned-kv-data', [KvInstallationController::class, 'updateAssignedKvStatusData'])->name('update-asset-assigned-kv-data');
+        });
     });
 
     Route::get('key-visualsx', [KeyVisualController::class, 'old']);
@@ -109,93 +147,22 @@ Route::middleware([
     Route::get('get-assets-by-type/{assetType}', [AssetController::class, 'getAssetsByType'])->name('get.assets-by-type');
     Route::get('assign-assets/filter', [AssetController::class, 'assignAssetsFilter'])->name('assets.assign-assets.filter');
 
-
-
-
 });
 
 Route::get('/phpinfo', function () {return phpinfo();});
 Route::get('/optimize-clear', function () {return \Mainul\CustomHelperFunctions\Helpers\CustomHelper::optimizeClear();});
 
-//Route::get('/store-sync', function (){
-//    $locationDbStores = \Illuminate\Support\Facades\DB::connection('location_db')
-//        ->table('stores')
-//        ->select('*')
-//        ->get();
-//
-//    try {
-//        \Illuminate\Support\Facades\DB::transaction(function () use ($locationDbStores) {
-//            DB::statement('SET FOREIGN_KEY_CHECKS=0;');
-//            $locationDivisions = \Illuminate\Support\Facades\DB::connection('location_db')
-//                ->table('divisions')->get();
-//            $locationDistricts = \Illuminate\Support\Facades\DB::connection('location_db')
-//                ->table('districts')->get();
-//            $locationThanas = \Illuminate\Support\Facades\DB::connection('location_db')
-//                ->table('thanas')->get();
-//            if ($locationDivisions)
-//            {
-//                \Illuminate\Support\Facades\DB::table('divisions')->truncate();
-//                foreach ($locationDivisions as $division) {
-//                    \Illuminate\Support\Facades\DB::table('divisions')->insert((array) $division);
-//                }
-//            }
-//
-//            if ($locationDistricts)
-//            {
-//                \Illuminate\Support\Facades\DB::table('districts')->truncate();
-//                foreach ($locationDistricts as $division) {
-//                    \Illuminate\Support\Facades\DB::table('districts')->insert((array) $division);
-//                }
-//            }
-//
-//            if ($locationThanas)
-//            {
-//                \Illuminate\Support\Facades\DB::table('thanas')->truncate();
-//                foreach ($locationThanas as $division) {
-//                    \Illuminate\Support\Facades\DB::table('thanas')->insert((array) $division);
-//                }
-//            }
-//
-//            foreach ($locationDbStores as $locationDbStore) {
-//                $store = \App\Models\Store::updateOrCreate(['title' => $locationDbStore->name], [
-//                    'title' => $locationDbStore->name,
-//                    'total_area_sqft' => 0,
-//                    'address' => $locationDbStore->location,
-////            'area' => $locationDbStore->area,
-////            'postal_code' => $locationDbStore->postal_code,
-//                    'latitude' => $locationDbStore->latitude,
-//                    'longitude' => $locationDbStore->longitude,
-//                    'monthly_rent' => 0,
-//                    'per_sqr_feet_rent' => 0,
-////            'store_layout_img' => $locationDbStore->store_layout_img,
-////            'store_layout_pdf' => $locationDbStore->store_layout_pdf,
-////            'contact_persion' => $locationDbStore->contact_persion,
-////            'shop_official_mobile' => $locationDbStore->shop_official_mobile,
-////            'shop_official_email' => $locationDbStore->shop_official_email,
-//                    'status' => $locationDbStore->is_active,
-////            'store_manager_id' => $locationDbStore->store_manager_id,
-////            'opened_date' => $locationDbStore->opened_date,
-//                    'division_id' => $locationDbStore->division_id,
-//                    'store_code' => $locationDbStore->store_code,
-//                    'district_id' => $locationDbStore->district_id,
-//                    'thana_id' => $locationDbStore->thana_id,
-//                    'slug' => str()->slug($locationDbStore->title.'-'.$locationDbStore->code),
-//                ]);
-//
-//                $desiredCode = 'STR' . str_pad((string) $store->id, 3, '0', STR_PAD_LEFT);
-//                if ($store->code !== $desiredCode) {
-//                    $store->code = $desiredCode;
-//                    $store->save();
-//                }
-//            }
-//        });
-//        return 'success';
-//    } catch (\Throwable $th) {
-//        return $th->getMessage();
-//    }
-//});
 Route::get('/has-kv', function (){
 //    \App\Models\Asset::whereNotIn('id', [1,2])
 //        ->update(['has_kv_slot' => 1]);
-    return bcrypt('rezaul\'s');
+//    return \Illuminate\Support\Facades\Hash::make('@');
+    return response()->json([
+        'success'   => true,
+        'message'   => 'Response message goes here.',
+        'data'      => [
+            ['data-index-2' => 'data-index-value-2' ],
+            ['data-index-2' => 'data-index-value-2' ],
+            ['data-index-3' => 'data-index-value-3' ],
+        ],
+    ]);
 });

@@ -13,7 +13,15 @@ class BrandController extends Controller
 {
     public function index()
     {
-        return view('backend.kv.brands', ['brands' => Brand::latest()->get()]);
+        return view('backend.kv.brands', [
+            'brands'      => Brand::latest()->get(),
+            'permissions' => [
+                'canCreate' => allowed([self::class, 'store']),
+                'canView'   => allowed([self::class, 'show']),
+                'canEdit'   => allowed([self::class, 'edit']),
+                'canDelete' => allowed([self::class, 'destroy']),
+            ],
+        ]);
     }
 
     public function store(BrandRequest $request): JsonResponse

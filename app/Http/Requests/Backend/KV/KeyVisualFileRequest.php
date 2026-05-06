@@ -16,6 +16,13 @@ class KeyVisualFileRequest extends FormRequest
 
     public function rules(): array
     {
+        $kvType = null;
+        $kvId = $this->input('key_visual_id');
+        if ($kvId) {
+            $kv = \App\Models\KeyVisual::select('kv_type')->find((int) $kvId);
+            $kvType = $kv?->kv_type;
+        }
+
         $fileRule = $this->isMethod('post')
             ? ['required', 'file']
             : ['nullable', 'file'];
@@ -28,12 +35,23 @@ class KeyVisualFileRequest extends FormRequest
                 $fileRule,
                 [
                     'mimes:jpeg,jpg,png,gif,svg,webp,mp4,mov,avi,mkv,webm',
-                    function (string $attribute, mixed $value, Closure $fail) {
+                    function (string $attribute, mixed $value, Closure $fail) use ($kvType) {
                         if (! $value instanceof UploadedFile) {
                             return;
                         }
 
                         $mimeType = (string) ($value->getClientMimeType() ?? $value->getMimeType() ?? '');
+
+                        if ($kvType === 'image' && ! str_starts_with($mimeType, 'image/')) {
+                            $fail('This key visual only accepts image files (JPG, PNG, GIF, SVG, WEBP).');
+                            return;
+                        }
+
+                        if ($kvType === 'video' && ! str_starts_with($mimeType, 'video/')) {
+                            $fail('This key visual only accepts video files (MP4, MOV, AVI, MKV, WEBM).');
+                            return;
+                        }
+
                         $extension = strtolower((string) $value->getClientOriginalExtension());
                         $isImage = str_starts_with($mimeType, 'image/')
                             || in_array($extension, ['jpeg', 'jpg', 'png', 'gif', 'svg', 'webp'], true);

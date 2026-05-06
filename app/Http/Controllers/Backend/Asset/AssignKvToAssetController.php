@@ -26,6 +26,11 @@ class AssignKvToAssetController extends Controller
     public function index()
     {
         return view('backend.kv.assign-kv-to-asset', [
+            'permissions' => [
+                'canCreate' => allowed([self::class, 'store']),
+                'canEdit'   => allowed([self::class, 'edit']),
+                'canDelete' => allowed([self::class, 'destroy']),
+            ],
             'divisions' => Division::orderBy('name')->get(['id', 'name']),
             'districts' => District::orderBy('name')->get(['id', 'division_id', 'name']),
             'stores' => Store::query()
@@ -65,7 +70,7 @@ class AssignKvToAssetController extends Controller
 
     public function store(AssignKvToAssetRequest $request): JsonResponse
     {
-        if ($slotLimitResponse = $this->validateAvailableKvSlot((int) $request->asset_id)) {
+        if ($slotLimitResponse = $this->validateAvailableKvSlot((int) $request->asset_id, $request)) {
             return $slotLimitResponse;
         }
 
@@ -74,6 +79,19 @@ class AssignKvToAssetController extends Controller
             $assignment = DB::transaction(function () use ($request) {
                 return $this->persistAssignment($request);
             });
+
+            activity('workflow')
+                ->performedOn($assignment)
+                ->causedBy(auth()->user())
+                ->event('kv_assigned_to_asset')
+                ->withProperties([
+                    'asset_id' => $assignment->asset_id,
+                    'key_visual_id' => $assignment->key_visual_id,
+                    'key_visual_files_id' => $assignment->key_visual_files_id,
+                    'slot_number' => $assignment->slot_number,
+                    'instalation_status' => $assignment->instalation_status,
+                ])
+                ->log('Key visual assigned to asset.');
 
             return response()->json([
                 'success' => true,
@@ -99,7 +117,7 @@ class AssignKvToAssetController extends Controller
 
     public function update(AssignKvToAssetRequest $request, AssignKvToAsset $assignKvToAsset): JsonResponse
     {
-        if ($slotLimitResponse = $this->validateAvailableKvSlot((int) $request->asset_id, $assignKvToAsset->id)) {
+        if ($slotLimitResponse = $this->validateAvailableKvSlot((int) $request->asset_id, $request, $assignKvToAsset->id)) {
             return $slotLimitResponse;
         }
 
@@ -107,6 +125,19 @@ class AssignKvToAssetController extends Controller
             $assignment = DB::transaction(function () use ($request, $assignKvToAsset) {
                 return $this->persistAssignment($request, $assignKvToAsset);
             });
+
+            activity('workflow')
+                ->performedOn($assignment)
+                ->causedBy(auth()->user())
+                ->event('kv_asset_assignment_updated')
+                ->withProperties([
+                    'asset_id' => $assignment->asset_id,
+                    'key_visual_id' => $assignment->key_visual_id,
+                    'key_visual_files_id' => $assignment->key_visual_files_id,
+                    'slot_number' => $assignment->slot_number,
+                    'instalation_status' => $assignment->instalation_status,
+                ])
+                ->log('Key visual assignment updated.');
 
             return response()->json([
                 'success' => true,
@@ -186,7 +217,22 @@ class AssignKvToAssetController extends Controller
     public function destroy(AssignKvToAsset $assignKvToAsset): JsonResponse
     {
         try {
+            $assignmentSnapshot = [
+                'asset_id' => $assignKvToAsset->asset_id,
+                'key_visual_id' => $assignKvToAsset->key_visual_id,
+                'key_visual_files_id' => $assignKvToAsset->key_visual_files_id,
+                'slot_number' => $assignKvToAsset->slot_number,
+                'instalation_status' => $assignKvToAsset->instalation_status,
+            ];
+
             $assignKvToAsset->delete();
+
+            activity('workflow')
+                ->performedOn($assignKvToAsset)
+                ->causedBy(auth()->user())
+                ->event('kv_asset_assignment_deleted')
+                ->withProperties($assignmentSnapshot)
+                ->log('Key visual assignment deleted.');
 
             return response()->json([
                 'success' => true,
@@ -303,6 +349,7 @@ class AssignKvToAssetController extends Controller
             'asset_id' => $assignment->asset_id,
             'key_visual_id' => $assignment->key_visual_id,
             'key_visual_files_id' => $assignment->key_visual_files_id,
+            'slot_number' => (int) $assignment->slot_number,
             'has_perfect_size_kv' => (int) $assignment->has_perfect_size_kv,
             'assigned_date' => $assignment->assigned_date,
             'assigned_by_id' => $assignment->assigned_by,
@@ -384,7 +431,7 @@ class AssignKvToAssetController extends Controller
         ];
     }
 
-    private function validateAvailableKvSlot(int $assetId, ?int $ignoreAssignmentId = null): ?JsonResponse
+    private function validateAvailableKvSlot(int $assetId, $request, ?int $ignoreAssignmentId = null): ?JsonResponse
     {
         $asset = Asset::with('assetType:id,has_kv_space,total_kv_slot')->find($assetId);
 
@@ -404,18 +451,38 @@ class AssignKvToAssetController extends Controller
             ], 422);
         }
 
+//        $existingAssignments = AssignKvToAsset::query()
+//            ->where('asset_id', $assetId)
+//            ->when($ignoreAssignmentId, fn ($query) => $query->where('id', '!=', $ignoreAssignmentId))
+//            ->count();
+//
+//        if ($existingAssignments >= $maxKvSlots) {
+//            return response()->json([
+//                'success' => false,
+//                'message' => 'Max KV slot is reached.',
+//            ], 422);
+//        }
         $existingAssignments = AssignKvToAsset::query()
             ->where('asset_id', $assetId)
             ->when($ignoreAssignmentId, fn ($query) => $query->where('id', '!=', $ignoreAssignmentId))
-            ->count();
+            ->pluck('slot_number');
 
-        if ($existingAssignments >= $maxKvSlots) {
+        if ($existingAssignments->count() >= $maxKvSlots) {
             return response()->json([
                 'success' => false,
                 'message' => 'Max KV slot is reached.',
             ], 422);
         }
 
+        if ($existingAssignments->contains($request->slot_number)) {
+            return response()->json([
+                'success' => false,
+                'message' => "Slot {$request->slot_number} is already occupied.",
+            ], 422);
+        }
+
         return null;
     }
+
+
 }

@@ -71,16 +71,27 @@
                     <div class="card-body">
                         <form id="filter_form" class="form-inline justify-content-center">
                             <div class="row">
+{{--                                <div class="col-md-4">--}}
+{{--                                    <div class="input-group">--}}
+{{--                                        <span class="input-group-text text-muted"><i class="ri-calendar-line"></i></span>--}}
+{{--                                        <input type="text" name="from_date"  max="{{date('Y-m-d H:i:s')}}"  class="form-control py-2" id="from_date" placeholder="From date">--}}
+{{--                                    </div>--}}
+{{--                                </div>--}}
+{{--                                <div class="col-md-4">--}}
+{{--                                    <div class="input-group">--}}
+{{--                                        <span class="input-group-text text-muted"><i class="ri-calendar-line"></i></span>--}}
+{{--                                        <input type="text" name="to_date"  max="{{date('Y-m-d H:i:s')}}"  class="form-control py-2" id="to_date" placeholder="To date">--}}
+{{--                                    </div>--}}
+{{--                                </div>--}}
                                 <div class="col-md-4">
-                                    <div class="input-group">
-                                        <span class="input-group-text text-muted"><i class="ri-calendar-line"></i></span>
-                                        <input type="text" name="from_date"  max="{{date('Y-m-d H:i:s')}}"  class="form-control py-2" id="from_date" placeholder="From date">
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="input-group">
-                                        <span class="input-group-text text-muted"><i class="ri-calendar-line"></i></span>
-                                        <input type="text" name="to_date"  max="{{date('Y-m-d H:i:s')}}"  class="form-control py-2" id="to_date" placeholder="To date">
+                                    <div class="input-group ">
+                                        <span class="input-group-text text-muted"><i class="ri-group-line"></i></span>
+                                        <select name="role_id" id="selectRole" class="form-control ">
+                                            <option value="">All Roles</option>
+                                            @foreach($roles as $role)
+                                                <option value="{{ $role->role_id }}" >{{ $role->name ?? '' }}</option>
+                                            @endforeach
+                                        </select>
                                     </div>
                                 </div>
 
@@ -109,6 +120,9 @@
                         <h5 class="card-title mb-0">
                             <i class="mdi mdi-view-list me-1"></i> User List
                         </h5>
+                        <a href="javascript:void(0)" class="btn btn-sm btn-outline-primary ms-auto me-2" data-bs-toggle="modal" data-bs-target="#importUserModal">
+                            <i class="ri-import-line me-1"></i> Import
+                        </a>
                         <a href="{{ route('users.create') }}" class="btn btn-sm btn-outline-primary">
                             <i class="mdi mdi-plus-circle me-1"></i> Create
                         </a>
@@ -124,9 +138,541 @@
     </div>
 @endsection
 
+@section('modal')
+    <div class="modal fade" id="storeAssignModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-bottom-0 pb-0">
+                    <div>
+                        <h5 class="modal-title fw-semibold" id="storeAssignModalTitle">Manage Store Assignment</h5>
+                        <p class="text-muted fs-12 mb-0">Assign one or more stores to the selected user.</p>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="userStoreAssignmentModalForm">
+                    <div class="modal-body pt-3">
+                        <input type="hidden" id="modal_assignment_id">
+                        <input type="hidden" id="modal_assignment_user_id">
+
+                        <div class="assignment-user-summary mb-3">
+                            <div class="assignment-user-summary__meta">
+                                <span class="summary-label">Selected User</span>
+                                <div class="summary-name" id="assignment_modal_user_name">-</div>
+                                <div class="summary-email" id="assignment_modal_user_email">-</div>
+                                <div class="summary-email" id="assignment_modal_user_employee_id">Employee ID: -</div>
+                            </div>
+                            <div class="assignment-user-summary__state">
+                                <span class="badge bg-light text-dark border" id="assignment-modal-mode-badge">New assignment</span>
+                            </div>
+                        </div>
+
+                        <div class="assignment-current-state d-none mb-3" id="assignment-current-state">
+                            <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                                <div>
+                                    <div class="summary-label">Current Assignment</div>
+                                    <div class="summary-name fs-14 d-none" id="assignment-current-role">No role</div>
+                                    <div class="summary-email" id="assignment-current-meta">No assignment yet</div>
+                                </div>
+                                <button type="button" class="btn btn-sm btn-danger-light d-none" id="btn-delete-user-assignment">
+                                    <i class="ri-delete-bin-line me-1"></i>Delete Assignment
+                                </button>
+                            </div>
+                            <div class="d-flex flex-wrap gap-2 mt-3" id="assignment-current-stores"></div>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-6 d-none">
+                                <label for="modal_assignment_role_id" class="form-label">Role</label>
+                                <select class="form-select select-ele" id="modal_assignment_role_id">
+                                    <option value="">Select Role</option>
+                                    @foreach($roles as $role)
+                                        <option value="{{ $role->role_id }}">{{ $role->name }}</option>
+                                    @endforeach
+                                </select>
+                                <div class="invalid-feedback d-block" id="modal-error-role_id"></div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="modal_assignment_status" class="form-label">Status <span class="text-danger">*</span></label>
+                                <select class="form-select" id="modal_assignment_status">
+                                    <option value="1">Active</option>
+                                    <option value="0">Inactive</option>
+                                </select>
+                                <div class="invalid-feedback d-block" id="modal-error-status"></div>
+                            </div>
+                            <div class="col-12">
+                                <label for="modal_assignment_store_ids" class="form-label">Stores <span class="text-danger">*</span></label>
+                                <select class="form-select select-ele" id="modal_assignment_store_ids" multiple>
+                                    @foreach($stores as $store)
+                                        <option value="{{ $store->id }}">{{ $store->title }}{{ $store->code ? ' (' . $store->code . ')' : '' }}</option>
+                                    @endforeach
+                                </select>
+                                <div class="form-text">Selecting stores here will create or replace this user’s complete assignment group.</div>
+                                <div class="invalid-feedback d-block" id="modal-error-store_ids"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-top">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary" id="btn-save-user-assignment">
+                            <span class="btn-text"><i class="ri-save-line me-1"></i>Save Assignment</span>
+                            <span class="spinner-border spinner-border-sm d-none" id="modal-save-spinner"></span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="importUserModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Import User</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <h6 class="mb-2">Import User</h6>
+                    <p class="text-muted mb-3">Download sample file from <a href="{{ asset('import-samples/import-user.xlsx') }}">here</a>.</p>
+                    <div class="alert alert-info py-2 px-3 small mb-3">
+                        Default password for imported users: <strong>remarkhb</strong>
+                    </div>
+                    <form action="{{ route('users.import') }}" method="post" enctype="multipart/form-data" id="importUserForm">
+                        @csrf
+                        <div class="mb-3">
+                            <label for="import_user_file" class="form-label">Upload File</label>
+                            <input
+                                type="file"
+                                id="import_user_file"
+                                name="file"
+                                class="filepond-user-import"
+                                accept=".xlsx,.xls,.csv"
+                            >
+                            <div class="invalid-feedback d-block" id="import-user-file-error"></div>
+                        </div>
+                        <div class="d-none" id="import-user-row-errors-wrap">
+                            <div class="alert alert-danger">
+                                <div class="fw-semibold mb-2">Import errors</div>
+                                <ul class="mb-0 ps-3 small" id="import-user-row-errors"></ul>
+                            </div>
+                        </div>
+                        <div class="mt-2 text-end">
+                            <button type="submit" class="btn btn-sm btn-success ms-auto" id="btn-import-user-submit">
+                                <span class="btn-text">Upload</span>
+                                <span class="spinner-border spinner-border-sm d-none" id="import-user-spinner"></span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </div>
+@endsection
+
+@push('styles')
+    <link rel="stylesheet" href="{{ asset('backend/build/assets/libs/filepond/filepond.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('backend/build/assets/libs/filepond-plugin-image-preview/filepond-plugin-image-preview.min.css') }}">
+    <style>
+        .assignment-user-summary,
+        .assignment-current-state {
+            border: 1px solid var(--default-border, #e9ebec);
+            border-radius: 12px;
+            padding: 14px 16px;
+            background: #fff;
+        }
+
+        .assignment-user-summary {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 16px;
+        }
+
+        .summary-label {
+            display: inline-block;
+            margin-bottom: 6px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: var(--text-muted, #6c757d);
+        }
+
+        .summary-name {
+            font-weight: 600;
+            color: var(--default-text-color);
+        }
+
+        .summary-email {
+            color: var(--text-muted, #6c757d);
+            font-size: 0.8rem;
+            margin-top: 4px;
+        }
+    </style>
+@endpush
+
 @push('scripts')
+    @include('backend.includes.plugins.select2')
     <script src="{{asset('backend/build/assets/libs/flatpickr/flatpickr.min.js')}}"></script>
     @include('backend.user-management.datatables.datatable-script')
     @include('backend.user-management.toasts')
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     @include('backend.user-management.partials.user.user-index-script')
+    <script src="{{ asset('backend/build/assets/libs/filepond/filepond.min.js') }}"></script>
+    <script src="{{ asset('backend/build/assets/libs/filepond-plugin-image-preview/filepond-plugin-image-preview.min.js') }}"></script>
+    <script src="{{ asset('backend/build/assets/libs/filepond-plugin-image-exif-orientation/filepond-plugin-image-exif-orientation.min.js') }}"></script>
+    <script src="{{ asset('backend/build/assets/libs/filepond-plugin-file-validate-type/filepond-plugin-file-validate-type.min.js') }}"></script>
+    <script src="{{ asset('backend/build/assets/libs/filepond-plugin-file-validate-size/filepond-plugin-file-validate-size.min.js') }}"></script>
+    <script>
+        $(function () {
+            const storeAssignModalEl = document.getElementById('storeAssignModal');
+            const storeAssignModal = new bootstrap.Modal(storeAssignModalEl);
+            const assignmentBaseUrl = "{{ url('user-store-assignments') }}";
+            const currentAssignmentUrlTemplate = @json(route('user-store-assignments.current-by-user', ['user' => '__USER__']));
+
+            const assignmentState = {
+                userId: '',
+                userName: '',
+                userEmail: '',
+                userEmployeeId: '',
+                assignmentId: '',
+                hasExistingAssignment: false,
+            };
+
+            function currentAssignmentUrl(userId) {
+                return currentAssignmentUrlTemplate.replace('__USER__', String(userId));
+            }
+
+            function clearAssignmentErrors() {
+                ['role_id', 'store_ids', 'status'].forEach(function (field) {
+                    $('#modal-error-' + field).text('');
+                });
+
+                $('#modal_assignment_role_id, #modal_assignment_store_ids, #modal_assignment_status').removeClass('is-invalid');
+            }
+
+            function setAssignmentSavingState(isLoading) {
+                $('#btn-save-user-assignment').prop('disabled', isLoading);
+                $('#modal-save-spinner').toggleClass('d-none', !isLoading);
+            }
+
+            function resetAssignmentModal() {
+                assignmentState.userId = '';
+                assignmentState.userName = '';
+                assignmentState.userEmail = '';
+                assignmentState.userEmployeeId = '';
+                assignmentState.assignmentId = '';
+                assignmentState.hasExistingAssignment = false;
+
+                clearAssignmentErrors();
+                $('#userStoreAssignmentModalForm')[0].reset();
+                $('#modal_assignment_id').val('');
+                $('#modal_assignment_user_id').val('');
+                $('#modal_assignment_role_id').val('').trigger('change.select2');
+                $('#modal_assignment_store_ids').val([]).trigger('change.select2');
+                $('#modal_assignment_status').val('1');
+                $('#assignment_modal_user_name').text('-');
+                $('#assignment_modal_user_email').text('-');
+                $('#assignment_modal_user_employee_id').text('Employee ID: -');
+                $('#assignment-current-role').text('No role');
+                $('#assignment-current-meta').text('No assignment yet');
+                $('#assignment-current-stores').empty();
+                $('#assignment-current-state').addClass('d-none');
+                $('#btn-delete-user-assignment').addClass('d-none').prop('disabled', false);
+                $('#assignment-modal-mode-badge').text('New assignment');
+                $('#storeAssignModalTitle').text('Manage Store Assignment');
+                $('#btn-save-user-assignment .btn-text').html('<i class="ri-save-line me-1"></i>Save Assignment');
+            }
+
+            function applyAssignmentErrors(errors) {
+                if (errors.role_id) {
+                    $('#modal_assignment_role_id').addClass('is-invalid');
+                    $('#modal-error-role_id').text(errors.role_id[0]);
+                }
+
+                if (errors.store_ids || errors['store_ids.0']) {
+                    $('#modal_assignment_store_ids').addClass('is-invalid');
+                    $('#modal-error-store_ids').text((errors.store_ids && errors.store_ids[0]) || errors['store_ids.0'][0]);
+                }
+
+                if (errors.status) {
+                    $('#modal_assignment_status').addClass('is-invalid');
+                    $('#modal-error-status').text(errors.status[0]);
+                }
+            }
+
+            function renderCurrentAssignment(data) {
+                const stores = Array.isArray(data?.stores) ? data.stores : [];
+                const assignedBy = data?.assigned_by?.name || 'System';
+                const assignedAt = data?.assigned_at || 'N/A';
+                const roleName = data?.role?.name || 'No role';
+                const storeCount = Number(data?.store_count || 0);
+
+                assignmentState.assignmentId = String(data?.id || '');
+                assignmentState.hasExistingAssignment = !!assignmentState.assignmentId;
+
+                $('#modal_assignment_id').val(assignmentState.assignmentId);
+                $('#modal_assignment_role_id').val(data?.role_id ? String(data.role_id) : '').trigger('change.select2');
+                $('#modal_assignment_store_ids').val((data?.store_ids || []).map(String)).trigger('change.select2');
+                $('#modal_assignment_status').val(String(data?.status ?? 1));
+                $('#assignment-current-role').text(roleName);
+                $('#assignment-current-meta').text(`${storeCount} store(s) • ${assignedAt} • ${assignedBy}`);
+                $('#assignment-current-stores').html(
+                    stores.map(function (store) {
+                        const title = $('<div>').text(store.title || '').html();
+                        const code = store.code ? ` <small class="text-muted ms-1">${$('<div>').text(store.code).html()}</small>` : '';
+                        return `<span class="badge bg-light text-dark border">${title}${code}</span>`;
+                    }).join('')
+                );
+                $('#assignment-current-state').removeClass('d-none');
+                $('#btn-delete-user-assignment').removeClass('d-none');
+                $('#assignment-modal-mode-badge').text('Existing assignment');
+                $('#storeAssignModalTitle').text(`Manage Store Assignment: ${assignmentState.userName}`);
+                $('#btn-save-user-assignment .btn-text').html('<i class="ri-save-line me-1"></i>Update Assignment');
+            }
+
+            function renderEmptyAssignmentState() {
+                assignmentState.assignmentId = '';
+                assignmentState.hasExistingAssignment = false;
+
+                $('#modal_assignment_id').val('');
+                $('#modal_assignment_role_id').val('').trigger('change.select2');
+                $('#modal_assignment_store_ids').val([]).trigger('change.select2');
+                $('#modal_assignment_status').val('1');
+                $('#assignment-current-role').text('No role');
+                $('#assignment-current-meta').text('No assignment yet');
+                $('#assignment-current-stores').empty();
+                $('#assignment-current-state').removeClass('d-none');
+                $('#btn-delete-user-assignment').addClass('d-none');
+                $('#assignment-modal-mode-badge').text('New assignment');
+                $('#storeAssignModalTitle').text(`Manage Store Assignment: ${assignmentState.userName}`);
+                $('#btn-save-user-assignment .btn-text').html('<i class="ri-save-line me-1"></i>Save Assignment');
+            }
+
+            function loadCurrentAssignment(userId) {
+                return $.get(currentAssignmentUrl(userId))
+                    .done(function (response) {
+                        if (response?.exists && response.data) {
+                            renderCurrentAssignment(response.data);
+                            return;
+                        }
+
+                        renderEmptyAssignmentState();
+                    })
+                    .fail(function () {
+                        showAjaxToast('error', 'Failed to load store assignment details.');
+                    });
+            }
+
+            $(document).on('click', '.open-store-assign-modal', function (event) {
+                event.preventDefault();
+
+                assignmentState.usagesState = $(this).data('usages-sector') || 'field';
+                if (assignmentState.usagesState == 'corporate'){
+                    showAjaxToast('danger', 'No need to assign stores to corporate users.');
+                    return;
+                }
+
+                resetAssignmentModal();
+
+                assignmentState.userId = String($(this).data('user-id') || '');
+                assignmentState.userName = $(this).data('user-name') || 'Selected User';
+                assignmentState.userEmail = $(this).data('user-email') || '';
+                assignmentState.userEmployeeId = $(this).data('user-employee-id') || '';
+
+                $('#modal_assignment_user_id').val(assignmentState.userId);
+                $('#assignment_modal_user_name').text(assignmentState.userName);
+                $('#assignment_modal_user_email').text(assignmentState.userEmail || 'No email available');
+                $('#assignment_modal_user_employee_id').text(`Employee ID: ${assignmentState.userEmployeeId || 'N/A'}`);
+                $('#storeAssignModalTitle').text(`Manage Store Assignment: ${assignmentState.userName}`);
+
+                storeAssignModal.show();
+                loadCurrentAssignment(assignmentState.userId);
+            });
+
+            $('#userStoreAssignmentModalForm').on('submit', function (event) {
+                event.preventDefault();
+                clearAssignmentErrors();
+
+                const assignmentId = $('#modal_assignment_id').val();
+                const payload = {
+                    user_id: $('#modal_assignment_user_id').val(),
+                    role_id: $('#modal_assignment_role_id').val(),
+                    store_ids: $('#modal_assignment_store_ids').val(),
+                    status: $('#modal_assignment_status').val()
+                };
+
+                setAssignmentSavingState(true);
+
+                $.ajax({
+                    url: assignmentId ? `${assignmentBaseUrl}/${assignmentId}` : assignmentBaseUrl,
+                    type: assignmentId ? 'PUT' : 'POST',
+                    data: payload,
+                    success: function (response) {
+                        showAjaxToast('success', response.message || 'Store assignment saved successfully.');
+
+                        if (response?.data) {
+                            renderCurrentAssignment(response.data);
+                            return;
+                        }
+
+                        loadCurrentAssignment(payload.user_id);
+                    },
+                    error: function (xhr) {
+                        if (xhr.status === 422) {
+                            applyAssignmentErrors(xhr.responseJSON?.errors || {});
+                            return;
+                        }
+
+                        showAjaxToast('error', xhr.responseJSON?.message || 'Failed to save store assignment.');
+                    },
+                    complete: function () {
+                        setAssignmentSavingState(false);
+                    }
+                });
+            });
+
+            $('#btn-delete-user-assignment').on('click', function () {
+                const assignmentId = $('#modal_assignment_id').val();
+
+                if (!assignmentId) {
+                    return;
+                }
+
+                // if (!confirm(`Remove all store assignments for ${assignmentState.userName}?`)) {
+                //     return;
+                // }
+                $(this).prop('disabled', true);
+                Swal.fire({
+                    title: `Are you sure?`,
+                    text: `Remove all store assignments for ${assignmentState.userName}?`,
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#3085d6",
+                    cancelButtonColor: "#d33",
+                    confirmButtonText: "Yes, Remove !"
+                }).then((result) => {
+                    if (result.isConfirmed)
+                    {
+                        $.ajax({
+                            url: `${assignmentBaseUrl}/${assignmentId}`,
+                            type: 'DELETE',
+                            success: function (response) {
+                                showAjaxToast('success', response.message || 'Store assignment deleted successfully.');
+                                renderEmptyAssignmentState();
+                            },
+                            error: function (xhr) {
+                                showAjaxToast('error', xhr.responseJSON?.message || 'Failed to delete store assignment.');
+                            },
+                            complete: function () {
+                                $('#btn-delete-user-assignment').prop('disabled', false);
+                            }
+                        });
+                    }
+                });
+                $(this).prop('disabled', false);
+            });
+
+            storeAssignModalEl.addEventListener('hidden.bs.modal', function () {
+                resetAssignmentModal();
+            });
+        });
+    </script>
+    <script>
+        $(function () {
+            const importUserModalEl = document.getElementById('importUserModal');
+            const importUserModal = new bootstrap.Modal(importUserModalEl);
+
+            FilePond.registerPlugin(
+                FilePondPluginFileValidateType,
+                FilePondPluginFileValidateSize
+            );
+
+            const importUserPond = FilePond.create(document.querySelector('.filepond-user-import'), {
+                labelIdle: '<i class="ri-upload-cloud-2-line" style="font-size:1.45rem;color:var(--text-muted)"></i><br><span class="text-muted fs-13">Drag & drop Excel/CSV file or <span class="filepond--label-action">browse</span></span>',
+                acceptedFileTypes: [
+                    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                    'application/vnd.ms-excel',
+                    'text/csv'
+                ],
+                maxFileSize: '5MB',
+                credits: false,
+            });
+
+            function resetImportUserState() {
+                $('#import-user-file-error').text('');
+                $('#import-user-row-errors').empty();
+                $('#import-user-row-errors-wrap').addClass('d-none');
+                $('#btn-import-user-submit').prop('disabled', false);
+                $('#import-user-spinner').addClass('d-none');
+                importUserPond.removeFiles();
+            }
+
+            $('#importUserForm').on('submit', function (event) {
+                event.preventDefault();
+
+                $('#import-user-file-error').text('');
+                $('#import-user-row-errors').empty();
+                $('#import-user-row-errors-wrap').addClass('d-none');
+
+                const uploadedFile = importUserPond.getFile();
+
+                if (!uploadedFile) {
+                    $('#import-user-file-error').text('Please select an import file.');
+                    return;
+                }
+
+                const formData = new FormData(this);
+                formData.set('file', uploadedFile.file);
+
+                $('#btn-import-user-submit').prop('disabled', true);
+                $('#import-user-spinner').removeClass('d-none');
+
+                $.ajax({
+                    url: $(this).attr('action'),
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function (response) {
+                        showAjaxToast('success', response.message || 'Users imported successfully.');
+                        importUserModal.hide();
+                        $('#userDataTable').DataTable().ajax.reload(null, false);
+                        resetImportUserState();
+                    },
+                    error: function (xhr) {
+                        if (xhr.status === 422) {
+                            if (xhr.responseJSON?.errors?.file?.[0]) {
+                                $('#import-user-file-error').text(xhr.responseJSON.errors.file[0]);
+                                return;
+                            }
+
+                            if (Array.isArray(xhr.responseJSON?.errors) && xhr.responseJSON.errors.length) {
+                                const rowsHtml = xhr.responseJSON.errors
+                                    .map(function (item) {
+                                        const rowErrors = Array.isArray(item.errors) ? item.errors.join(', ') : 'Unknown error';
+                                        return `<li><strong>Row ${item.row}:</strong> ${rowErrors}</li>`;
+                                    })
+                                    .join('');
+
+                                $('#import-user-row-errors').html(rowsHtml);
+                                $('#import-user-row-errors-wrap').removeClass('d-none');
+                                showAjaxToast('error', xhr.responseJSON?.message || 'Import failed. Please fix the listed rows.');
+                                return;
+                            }
+                        }
+
+                        showAjaxToast('error', xhr.responseJSON?.message || 'User import failed.');
+                    },
+                    complete: function () {
+                        $('#btn-import-user-submit').prop('disabled', false);
+                        $('#import-user-spinner').addClass('d-none');
+                    }
+                });
+            });
+
+            importUserModalEl.addEventListener('hidden.bs.modal', function () {
+                resetImportUserState();
+            });
+        });
+    </script>
 @endpush

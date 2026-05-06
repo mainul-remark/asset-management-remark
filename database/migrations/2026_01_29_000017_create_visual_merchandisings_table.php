@@ -19,16 +19,21 @@ return new class extends Migration {
             $table
                 ->enum('issue_fix_status', [
                     'pending',
-                    'reviewed',
+                    'planned',
                     'assigned',
                     'processing',
                     'solved',
                 ])
-                ->default('pending');
+                ->default('pending')
+                ->nullable();
             $table
                 ->tinyInteger('status')
                 ->default(1)
                 ->nullable();
+            $table->unsignedBigInteger('assigned_by')->nullable();
+            $table->unsignedBigInteger('assigned_to')->nullable();
+            $table->text('fix_proof')->nullable();
+            $table->text('fix_note')->nullable();
 
             $table->timestamps();
             $table->softDeletes();

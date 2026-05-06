@@ -2,6 +2,8 @@
 
 namespace App\DataTables;
 
+use App\Http\Controllers\Backend\Asset\VisualMerchandisingController;
+use App\Models\UserStoreAssignment;
 use App\Models\VisualMerchandising;
 use Illuminate\Database\Eloquent\Builder;
 use Mainul\CustomHelperFunctions\Helpers\CustomHelper;
@@ -52,24 +54,24 @@ class VmIssuesDataTable extends DataTable
                 return '<span class="inst-no-photos">File</span>' . $extra;
             })
             ->addColumn('actions', function ($row) {
-                $nextStatusMap = [
-                    'pending'    => 'reviewed',
-                    'reviewed'   => 'assigned',
-                    'assigned'   => 'processing',
-                    'processing' => 'solved',
-                ];
-                $nextStatus = $nextStatusMap[$row->issue_fix_status] ?? null;
-                $changeBtn  = $nextStatus
-                    ? '<button class="btn-action change-vm-status" data-id="' . $row->id . '" data-fix-status="' . $nextStatus . '" title="Advance status"><i class="bi bi-arrow-repeat"></i></button>'
-                    : '';
+                $canView   = allowed([VisualMerchandisingController::class, 'show']);
+                $canEdit   = allowed([VisualMerchandisingController::class, 'edit']);
+                $canDelete = allowed([VisualMerchandisingController::class, 'destroy']);
 
-                return '
-                    <div class="d-flex gap-1">
-                        ' . $changeBtn . '
-                        <button class="btn-action btn-view-vm"   data-id="' . $row->id . '" title="View"><i class="bi bi-eye"></i></button>
-                        <button class="btn-action btn-edit-vm"   data-id="' . $row->id . '" title="Edit"><i class="bi bi-pencil"></i></button>
-                        <button class="btn-action text-danger btn-delete-vm" data-id="' . $row->id . '" data-name="' . e($row->asset?->name ?? 'VM Issue') . '" title="Delete"><i class="bi bi-trash"></i></button>
-                    </div>';
+                $buttons = '';
+                if ($canView) {
+                    $buttons .= '<button class="btn-action btn-view-vm" data-id="' . $row->id . '" title="View"><i class="bi bi-eye"></i></button>';
+                }
+                if ($canEdit && $row->issue_fix_status == 'pending') {
+                    $buttons .= '<button class="btn-action btn-edit-vm" data-id="' . $row->id . '" title="Edit"><i class="bi bi-pencil"></i></button>';
+                }
+                if ($canDelete && $row->issue_fix_status == 'pending') {
+                    $buttons .= '<button class="btn-action text-danger btn-delete-vm" data-id="' . $row->id . '" data-name="' . e($row->asset?->name ?? 'VM Issue') . '" title="Delete"><i class="bi bi-trash"></i></button>';
+                }
+
+                return $buttons
+                    ? '<div class="d-flex gap-1">' . $buttons . '</div>'
+                    : '<span class="text-muted fs-12">—</span>';
             })
             ->rawColumns(['fix_status_badge', 'file_preview', 'actions'])
             ->filterColumn('store_name',    fn ($query, $keyword) => $query->whereHas('store', fn ($q) => $q->where('title', 'like', "%{$keyword}%")))
@@ -79,15 +81,24 @@ class VmIssuesDataTable extends DataTable
 
     public function query(): Builder
     {
-        return VisualMerchandising::query()
+        $user = CustomHelper::loggedUser();
+
+        $query = VisualMerchandising::query()
             ->with([
                 'store:id,title,code',
                 'asset:id,name,asset_code,store_id,is_common_asset,asset_type_id',
                 'asset.assetType:id,name',
                 'visualMerchandisingFiles' => fn ($q) => $q->latest('id'),
-            ])
-            ->where('creator_id', CustomHelper::loggedUser()->id)
-            ->latest();
+            ]);
+
+        if ($user->usages_sector === 'field') {
+            $assignedStoreIds = UserStoreAssignment::where('user_id', $user->id)->pluck('store_id');
+            $query->whereIn('store_id', $assignedStoreIds);
+        } else {
+            $query->where('creator_id', $user->id);
+        }
+
+        return $query->latest();
     }
 
     protected function filename(): string

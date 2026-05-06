@@ -92,6 +92,17 @@
                                     <small id="confirmHelp" class="text-danger d-none"></small>
                                 </div>
                             </div>
+                            <div class="row mb-3">
+                                <label class="col-lg-2 col-form-label" for="employee_id">Employee Id <span class="text-danger">*</span></label>
+                                <div class="col-md-10">
+                                    <input  required  id="employee_id" type="text" name="employee_id" value="{{old('employee_id')}}" class="form-control @error('employee_id') is-invalid @enderror"  placeholder="Enter Employee ID" />
+                                    @error('employee_id')
+                                    <span class="invalid-feedback" role="alert">
+                                      <strong>{{$message}}</strong>
+                                    </span>
+                                    @enderror
+                                </div>
+                            </div>
 {{--                            <div class="row mb-3">--}}
 {{--                                <label class="col-lg-2 col-form-label" for="mobile_no"> Mobile Number <span class="text-danger">*</span></label>--}}
 {{--                                <div class="col-md-10">--}}
@@ -112,6 +123,20 @@
                                         @endforeach
                                     </select>
                                     @error('role_id')
+                                    <span class="invalid-feedback" role="alert">
+                                       <strong>{{ $message }}</strong>
+                                     </span>
+                                    @enderror
+                                </div>
+                            </div>
+                            <div class="row mb-3 usages_sector">
+                                <label class="col-lg-2" for="usages_sector"> Select Field <span class="text-danger">*</span></label>
+                                <div class="col-lg-10">
+                                    <select  name="usages_sector" class="form-select @error('usages_sector') is-invalid @enderror role_id select_role role_select">
+                                        <option value="corporate" {{ old('usages_sector') == 'corporate' ? 'selected' : '' }}>Corporate</option>
+                                        <option value="field" {{ old('usages_sector') == 'field' ? 'selected' : '' }}>Field</option>
+                                    </select>
+                                    @error('usages_sector')
                                     <span class="invalid-feedback" role="alert">
                                        <strong>{{ $message }}</strong>
                                      </span>

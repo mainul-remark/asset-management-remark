@@ -31,6 +31,20 @@ return new class extends Migration {
                 ->on('users')
                 ->onUpdate('CASCADE')
                 ->onDelete('CASCADE');
+
+            $table
+                ->foreign('assigned_by')
+                ->references('id')
+                ->on('users')
+                ->onUpdate('CASCADE')
+                ->onDelete('CASCADE');
+
+            $table
+                ->foreign('assigned_to')
+                ->references('id')
+                ->on('users')
+                ->onUpdate('CASCADE')
+                ->onDelete('CASCADE');
         });
     }
 
@@ -43,6 +57,8 @@ return new class extends Migration {
             $table->dropForeign(['store_id']);
             $table->dropForeign(['asset_id']);
             $table->dropForeign(['creator_id']);
+            $table->dropForeign(['assigned_by']);
+            $table->dropForeign(['assigned_to']);
         });
     }
 };

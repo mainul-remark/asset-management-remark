@@ -179,6 +179,9 @@
 </head>
 
 <body class="">
+{{--<div class="alert alert-primary" role="alert">--}}
+{{--    <p class="">This is prototype </p>--}}
+{{--</div>--}}
 
 <!-- Switcher -->
 @include('backend.includes.switcher')
@@ -196,6 +199,9 @@
     @include('backend.includes.header')
     <!-- End Main-Header -->
 
+
+
+
     <!-- Country-selector modal -->
     <!-- Start::Off-canvas sidebar-->
 {{--    @include('backend.includes.notification-right-side')--}}
@@ -210,6 +216,14 @@
 
     <!-- Start::app-content -->
     <div class="main-content app-content">
+
+
+        <div class="alert alert-primary text-center mb-0" role="alert">
+            <strong>Prototype Notice:</strong>
+            This website is open for testing and review. Some features may not work properly.
+            If you find any issue, kindly inform the developer or whatsapp (01646688970).
+        </div>
+
         @yield('body')
     </div>
     <!-- End::content  -->

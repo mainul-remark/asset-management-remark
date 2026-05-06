@@ -33,7 +33,14 @@ class CategoryController extends Controller
         // For parent dropdown in modal: show categories that are valid parents (exclude current level's children context)
         $allCategories = Category::latest()->get();
 
-        return view('backend.kv.categories', compact('categories', 'allCategories', 'parent', 'breadcrumbs'));
+        return view('backend.kv.categories', compact('categories', 'allCategories', 'parent', 'breadcrumbs') + [
+            'permissions' => [
+                'canCreate' => allowed([self::class, 'store']),
+                'canView'   => allowed([self::class, 'show']),
+                'canEdit'   => allowed([self::class, 'edit']),
+                'canDelete' => allowed([self::class, 'destroy']),
+            ],
+        ]);
     }
 
     public function store(Request $request)

@@ -441,6 +441,7 @@
             };
 
             let currentAssignments = [];
+            let editBrandAssignmentMap = {};
 
             function endpoint(urlTemplate, id) {
                 return urlTemplate.replace('__ID__', id);
@@ -832,10 +833,10 @@
                             ` : ''}
                         `
                         : `
-                            <button type="button" class="btn btn-icon btn-sm btn-primary-light btn-wave btn-edit" data-id="${item.id}" title="Filter by a single brand to edit this asset assignment.">
+                            <button type="button" class="btn btn-icon btn-sm btn-primary-light btn-wave btn-edit" data-id="${item.id}" title="Edit">
                                 <i class="ri-edit-box-line"></i>
                             </button>
-                            <button type="button" class="btn btn-icon btn-sm btn-danger-light btn-wave btn-delete" data-id="${item.id}" title="Filter by a single brand to delete one assignment row.">
+                            <button type="button" class="btn btn-icon btn-sm btn-danger-light btn-wave btn-delete" data-id="${item.id}" title="Delete">
                                 <i class="ri-delete-bin-line"></i>
                             </button>
                         `;
@@ -973,6 +974,7 @@
             }
 
             function resetModalForm() {
+                editBrandAssignmentMap = {};
                 $('#assignmentForm')[0].reset();
                 $('#assignment_id').val('');
                 $('#assignmentModalLabel').text('Assign Asset to Brand');
@@ -1010,33 +1012,30 @@
                 viewAssignmentModal.show();
             }
 
-            function loadAssignmentForEdit(id) {
+            function loadAssignmentForEdit(item) {
                 resetModalForm();
                 $('#assignmentModalLabel').text('Edit Asset to Brand Assignment');
                 $('#btn-save-assignment .btn-text').html('<i class="ri-save-line me-1"></i>Update Assignment');
-                $('#modal-brand-help').text('Editing updates one assignment row, so keep exactly one brand selected.');
+                $('#modal-brand-help').text('Each selected brand will have its assignment updated.');
 
-                $.get(endpoint(routes.edit, id))
-                    .done(function (data) {
-                        $('#assignment_id').val(data.id);
-                        $('#modal-brand').val(data.brand_id ? [String(data.brand_id)] : []).trigger('change');
-                        $('#modal-status').val(String(data.status ?? 1));
+                editBrandAssignmentMap = item.brand_assignment_map || {};
 
-                        const asset = data.asset || null;
-                        const store = asset?.store || null;
+                $('#assignment_id').val(item.id);
+                const brandIds = (item.brand_ids || []).map(String);
+                $('#modal-brand').val(brandIds).trigger('change');
+                $('#modal-status').val(String(item.status ?? 1));
 
-                        $('#modal-division').val(store?.division_id ? String(store.division_id) : '').trigger('change.select2');
-                        syncDistrictAndStoreOptions('modal');
-                        $('#modal-district').val(store?.district_id ? String(store.district_id) : '').trigger('change.select2');
-                        syncDistrictAndStoreOptions('modal');
-                        $('#modal-store').val(store?.id ? String(store.id) : '').trigger('change.select2');
-                        $('#modal-asset-type').val(asset?.asset_type_id ? String(asset.asset_type_id) : '').trigger('change.select2');
-                        setRemoteAssetSelection($('#modal-asset'), asset);
-                        assignmentModal.show();
-                    })
-                    .fail(function () {
-                        showToast('Failed to load assignment for editing.', 'danger');
-                    });
+                const asset = item.asset || null;
+                const store = asset?.store || null;
+
+                $('#modal-division').val(store?.division_id ? String(store.division_id) : '').trigger('change.select2');
+                syncDistrictAndStoreOptions('modal');
+                $('#modal-district').val(store?.district_id ? String(store.district_id) : '').trigger('change.select2');
+                syncDistrictAndStoreOptions('modal');
+                $('#modal-store').val(store?.id ? String(store.id) : '').trigger('change.select2');
+                $('#modal-asset-type').val(asset?.asset_type_id ? String(asset.asset_type_id) : '').trigger('change.select2');
+                setRemoteAssetSelection($('#modal-asset'), asset);
+                assignmentModal.show();
             }
 
             $('#filter-division').on('change', function () {
@@ -1099,53 +1098,92 @@
                 event.preventDefault();
                 clearErrors();
 
-                const id = $('#assignment_id').val();
+                const editModeId = $('#assignment_id').val();
                 const selectedBrands = $('#modal-brand').val() || [];
 
-                if (id && selectedBrands.length !== 1) {
+                if (selectedBrands.length === 0) {
                     setSelect2Validation($('#modal-brand'));
-                    $('#error-brand_id').text('Please keep exactly one brand selected while editing.');
+                    $('#error-brand_ids').text('Please select at least one brand.');
                     return;
                 }
 
-                const payload = {
+                const basePayload = {
                     asset_id: $('#modal-asset').val(),
                     status: $('#modal-status').val(),
                 };
 
-                if (id) {
-                    payload.brand_id = selectedBrands[0] || '';
-                } else {
-                    payload.brand_ids = selectedBrands;
+                if (!editModeId) {
+                    setSaveLoading(true);
+                    $.ajax({
+                        url: routes.store,
+                        type: 'POST',
+                        data: $.extend({}, basePayload, { brand_ids: selectedBrands }),
+                        success: function (response) {
+                            if (response.success === false) {
+                                showToast(response.message || 'Failed to save assignment.', 'danger');
+                                return;
+                            }
+                            assignmentModal.hide();
+                            loadData(1);
+                            showToast(response.message || 'Assignment saved successfully.');
+                        },
+                        error: function (xhr) {
+                            if (xhr.status === 422) {
+                                applyValidationErrors(xhr.responseJSON?.errors || {});
+                                return;
+                            }
+                            showToast(xhr.responseJSON?.message || 'Failed to save assignment.', 'danger');
+                        },
+                        complete: function () {
+                            setSaveLoading(false);
+                        }
+                    });
+                    return;
                 }
 
                 setSaveLoading(true);
 
-                $.ajax({
-                    url: id ? endpoint(routes.update, id) : routes.store,
-                    type: id ? 'PUT' : 'POST',
-                    data: payload,
-                    success: function (response) {
-                        if (response.success === false) {
-                            showToast(response.message || 'Failed to save assignment.', 'danger');
-                            return;
-                        }
+                const requests = selectedBrands.map(function (brandId) {
+                    const targetId = editBrandAssignmentMap[String(brandId)] || editModeId;
+                    return $.ajax({
+                        url: endpoint(routes.update, targetId),
+                        type: 'PUT',
+                        data: $.extend({}, basePayload, { brand_id: brandId }),
+                    });
+                });
 
-                        assignmentModal.hide();
-                        loadData(id ? paginationState.current_page : 1);
-                        showToast(response.message || 'Assignment saved successfully.');
-                    },
-                    error: function (xhr) {
-                        if (xhr.status === 422) {
-                            applyValidationErrors(xhr.responseJSON?.errors || {});
-                            return;
-                        }
+                let done = 0;
+                let firstError = null;
 
-                        showToast(xhr.responseJSON?.message || 'Failed to save assignment.', 'danger');
-                    },
-                    complete: function () {
-                        setSaveLoading(false);
-                    }
+                requests.forEach(function (req) {
+                    req.then(
+                        function () {
+                            done++;
+                            if (done === requests.length) {
+                                setSaveLoading(false);
+                                if (firstError) {
+                                    return;
+                                }
+                                assignmentModal.hide();
+                                loadData(paginationState.current_page);
+                                showToast(requests.length === 1
+                                    ? 'Assignment updated successfully.'
+                                    : requests.length + ' assignments updated successfully.');
+                            }
+                        },
+                        function (xhr) {
+                            done++;
+                            if (!firstError) {
+                                firstError = xhr;
+                                setSaveLoading(false);
+                                if (xhr.status === 422) {
+                                    applyValidationErrors(xhr.responseJSON?.errors || {});
+                                } else {
+                                    showToast(xhr.responseJSON?.message || 'Failed to update assignment.', 'danger');
+                                }
+                            }
+                        }
+                    );
                 });
             });
 
@@ -1161,12 +1199,7 @@
                     return;
                 }
 
-                if (!item.can_edit) {
-                    showToast('Filter by a single brand first to edit one assignment row.', 'danger');
-                    return;
-                }
-
-                loadAssignmentForEdit(item.id);
+                loadAssignmentForEdit(item);
             });
 
             $(document).on('click', '.btn-delete', function () {
@@ -1175,11 +1208,6 @@
 
                 if (!item) {
                     showToast('Failed to load assignment for deletion.', 'danger');
-                    return;
-                }
-
-                if (!item.can_delete) {
-                    showToast('Filter by a single brand first to delete one assignment row.', 'danger');
                     return;
                 }
 
