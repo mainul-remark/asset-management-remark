@@ -239,6 +239,18 @@ class VisualMerchandisingController extends Controller
             $filename
         );
 
+        activity('system')
+            ->causedBy(auth()->user())
+            ->event('vm_issues_export_requested')
+            ->withProperties([
+                'export_key' => $key,
+                'file_name' => $filename,
+                'fix_status' => $request->filled('fix_status') ? $request->fix_status : null,
+                'store_id' => $request->filled('store_id') ? (int) $request->store_id : null,
+                'usages_sector' => CustomHelper::loggedUser()->usages_sector,
+            ])
+            ->log('VM issues export requested.');
+
         return response()->json(['key' => $key]);
     }
 

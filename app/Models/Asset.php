@@ -8,11 +8,14 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\File;
 use Mainul\CustomHelperFunctions\Helpers\CustomHelper;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Asset extends Model
 {
     use HasFactory;
     use Searchable, softDeletes;
+    use LogsActivity;
 
     protected $fillable = [
         'asset_type_id',
@@ -31,6 +34,29 @@ class Asset extends Model
     ];
 
     protected $searchableFields = ['*'];
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->useLogName('data')
+            ->logOnly([
+                'asset_type_id',
+                'name',
+                'default_image',
+                'store_id',
+                'asset_code',
+                'has_kv_slot',
+                'minimum_fee',
+                'asset_price',
+                'is_common_asset',
+                'planogram_pdf',
+                'status',
+                'has_self',
+                'total_self',
+            ])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
+    }
 
     protected static function booted(): void
     {

@@ -6,12 +6,15 @@ use App\Models\Scopes\Searchable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class AssignKvToAsset extends Model
 {
     use HasFactory;
     use Searchable;
     use SoftDeletes;
+    use LogsActivity;
 
     protected $fillable = [
         'asset_id',
@@ -30,6 +33,27 @@ class AssignKvToAsset extends Model
     protected $searchableFields = ['*'];
 
     protected $table = 'assign_kv_to_assets';
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->useLogName('data')
+            ->logOnly([
+                'asset_id',
+                'key_visual_id',
+                'key_visual_files_id',
+                'has_perfect_size_kv',
+                'assigned_date',
+                'assigned_by',
+                'installed_by',
+                'instalation_proof',
+                'instalation_status',
+                'instalation_date',
+                'slot_number',
+            ])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
+    }
 
     protected $casts = [
         'asset_id' => 'integer',

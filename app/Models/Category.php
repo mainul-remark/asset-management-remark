@@ -6,12 +6,15 @@ use App\Models\Scopes\Searchable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Category extends Model
 {
     use HasFactory;
     use Searchable;
     use SoftDeletes;
+    use LogsActivity;
 
     protected $fillable = [
         'category_id',
@@ -24,6 +27,23 @@ class Category extends Model
     ];
 
     protected $searchableFields = ['*'];
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->useLogName('data')
+            ->logOnly([
+                'category_id',
+                'name',
+                'code',
+                'description',
+                'status',
+                'is_common',
+                'created_by',
+            ])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
+    }
 
     public function parent()
     {

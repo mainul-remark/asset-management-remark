@@ -50,15 +50,19 @@
                     <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
                         <div class="card-title">Asset Management</div>
                         <div class="d-flex flex-wrap align-items-center gap-2 ms-auto">
+                            @if($permissions['canImport'])
                             <button type="button" data-bs-toggle="modal" data-bs-target="#assetImportModal" class="btn btn-sm btn-teal btn-wave">
                                 <i class="ri-pages-line me-1"></i> Import Asset
                             </button>
+                            @endif
                             <a href="{{ route('asset-types.index') }}" class="btn btn-sm btn-secondary btn-wave">
                                 <i class="ri-pages-line me-1"></i> Asset Category
                             </a>
+                            @allowed('assets.create')
                             <button type="button" class="btn btn-sm btn-primary btn-wave" id="btn-add-asset">
                                 <i class="ri-add-line me-1"></i> Add Asset
                             </button>
+                            @endallowed
                         </div>
                     </div>
                     <div class="card-body">
@@ -91,6 +95,7 @@
 @section('modal')
 
     {{-- ── Create / Edit Modal ──────────────────────────────────────────────── --}}
+    @if($permissions['canCreate'] || $permissions['canEdit'])
     <div class="modal fade" id="assetModal" >
         <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered modal-lg">
             <div class="modal-content">
@@ -507,7 +512,10 @@
         </div>
     </div>
 
+    @endif
+
     {{-- ── View Modal ───────────────────────────────────────────────────────── --}}
+    @if($permissions['canView'])
     <div class="modal fade" id="viewModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content">
@@ -552,7 +560,10 @@
         </div>
     </div>
 
+    @endif
+
     {{-- ── Delete Confirmation Modal ────────────────────────────────────────── --}}
+    @if($permissions['canDelete'])
     <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-sm">
             <div class="modal-content text-center">
@@ -580,6 +591,8 @@
             </div>
         </div>
     </div>
+
+    @endif
 
     {{-- ────────────────── manage asset kv Modal ──────────────────────── --}}
     <div class="modal fade" id="assetKvManage" tabindex="-1" aria-hidden="true">
@@ -1123,13 +1136,15 @@
     $(document).ready(function () {
 
         // ── Bootstrap modals & AJAX setup ─────────────────────────────────────
-        const assetModal    = new bootstrap.Modal(document.getElementById('assetModal'));
-        const viewModalEl   = new bootstrap.Modal(document.getElementById('viewModal'));
-        const deleteModalEl = new bootstrap.Modal(document.getElementById('deleteModal'));
+        const assetPermissions = @json($permissions);
+        const _nm = { show: () => {}, hide: () => {}, _isNull: true };
+        const assetModal         = (assetPermissions.canCreate || assetPermissions.canEdit) && document.getElementById('assetModal')           ? new bootstrap.Modal(document.getElementById('assetModal'))           : _nm;
+        const viewModalEl        = assetPermissions.canView                                 && document.getElementById('viewModal')            ? new bootstrap.Modal(document.getElementById('viewModal'))            : _nm;
+        const deleteModalEl      = assetPermissions.canDelete                               && document.getElementById('deleteModal')          ? new bootstrap.Modal(document.getElementById('deleteModal'))          : _nm;
         $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
 
 
-        const assetCategoryModal = new bootstrap.Modal(document.getElementById('addAssetCategoryModal'));
+        const assetCategoryModal = (assetPermissions.canCreate || assetPermissions.canEdit) && document.getElementById('addAssetCategoryModal') ? new bootstrap.Modal(document.getElementById('addAssetCategoryModal')) : _nm;
         const assetCategoryApiUrl = id => base_url + 'asset-types' + (id ? '/' + id : '');
 
         // ── Server-side DataTable ──────────────────────────────────────────────

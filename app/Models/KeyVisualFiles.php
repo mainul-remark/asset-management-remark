@@ -6,12 +6,15 @@ use App\Models\Scopes\Searchable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class KeyVisualFiles extends Model
 {
     use HasFactory;
     use Searchable;
     use SoftDeletes;
+    use LogsActivity;
 
     protected $fillable = [
         'name',
@@ -29,6 +32,26 @@ class KeyVisualFiles extends Model
     protected $searchableFields = ['*'];
 
     protected $table = 'key_visual_files';
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->useLogName('data')
+            ->logOnly([
+                'name',
+                'key_visual_id',
+                'key_visual_size_id',
+                'kv_file',
+                'kv_size',
+                'aspect_ratio',
+                'file_type',
+                'file_duration',
+                'kv_file_code',
+                'status',
+            ])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
+    }
 
     protected $casts = [
         'key_visual_id' => 'integer',

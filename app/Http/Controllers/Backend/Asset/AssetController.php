@@ -3,6 +3,9 @@
 namespace App\Http\Controllers\Backend\Asset;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Backend\Asset\AssignAssetToBrandController;
+use App\Http\Controllers\Backend\Asset\AssetImportController;
+use App\Http\Controllers\Backend\Asset\AssignKvToAssetController;
 use App\Http\Requests\Backend\Asset\AssetRequest;
 use App\Models\Asset;
 use App\Models\AssetType;
@@ -25,6 +28,12 @@ class AssetController extends Controller
 {
     public function index(Request $request)
     {
+        $canView        = allowed([self::class, 'show']);
+        $canEdit        = allowed([self::class, 'edit']);
+        $canDelete      = allowed([self::class, 'destroy']);
+        $canBrandAssign = allowed([AssignAssetToBrandController::class, 'store']);
+        $canKvAssign    = allowed([AssignKvToAssetController::class, 'store']);
+
         if ($request->ajax()) {
             $query = Asset::query()
                 ->leftJoin('asset_types', 'asset_types.id', '=', 'assets.asset_type_id')
@@ -96,29 +105,27 @@ class AssetController extends Controller
 
                     return '<span class="badge bg-danger-transparent">Inactive</span>';
                 })
-                ->addColumn('actions', function ($asset) {
-                    $id = (int) $asset->id;
+                ->addColumn('actions', function ($asset) use ($canView, $canEdit, $canDelete, $canBrandAssign, $canKvAssign) {
+                    $id   = (int) $asset->id;
                     $name = e($asset->name);
-
-                    return <<<HTML
-<div class="btn-list">
-    <button class="btn btn-icon btn-sm btn-info-light btn-wave open-brand-assign-form" data-id="{$id}" title="View brands">
-        <i class="ri-emphasis"></i>
-    </button>
-    <button class="btn btn-icon btn-sm btn-info-light btn-wave open-kv-assign-form" data-id="{$id}" title="View KV">
-        <i class="ri-tv-line"></i>
-    </button>
-    <button class="btn btn-icon btn-sm btn-info-light btn-wave btn-view" data-id="{$id}" title="View">
-        <i class="ri-eye-line"></i>
-    </button>
-    <button class="btn btn-icon btn-sm btn-primary-light btn-wave btn-edit" data-id="{$id}" title="Edit">
-        <i class="ri-edit-box-line"></i>
-    </button>
-    <button class="btn btn-icon btn-sm btn-danger-light btn-wave btn-delete" data-id="{$id}" data-name="{$name}" title="Delete">
-        <i class="ri-delete-bin-line"></i>
-    </button>
-</div>
-HTML;
+                    $html = '<div class="btn-list">';
+                    if ($canBrandAssign) {
+                        $html .= '<button class="btn btn-icon btn-sm btn-info-light btn-wave open-brand-assign-form" data-id="'.$id.'" title="View brands"><i class="ri-emphasis"></i></button>';
+                    }
+                    if ($canKvAssign) {
+                        $html .= '<button class="btn btn-icon btn-sm btn-info-light btn-wave open-kv-assign-form" data-id="'.$id.'" title="View KV"><i class="ri-tv-line"></i></button>';
+                    }
+                    if ($canView) {
+                        $html .= '<button class="btn btn-icon btn-sm btn-info-light btn-wave btn-view" data-id="'.$id.'" title="View"><i class="ri-eye-line"></i></button>';
+                    }
+                    if ($canEdit) {
+                        $html .= '<button class="btn btn-icon btn-sm btn-primary-light btn-wave btn-edit" data-id="'.$id.'" title="Edit"><i class="ri-edit-box-line"></i></button>';
+                    }
+                    if ($canDelete) {
+                        $html .= '<button class="btn btn-icon btn-sm btn-danger-light btn-wave btn-delete" data-id="'.$id.'" data-name="'.$name.'" title="Delete"><i class="ri-delete-bin-line"></i></button>';
+                    }
+                    $html .= '</div>';
+                    return $html;
                 })
                 ->rawColumns([
                     'image',
@@ -150,6 +157,15 @@ HTML;
                 ->whereNull('deleted_at')
                 ->orderBy('name')
                 ->get(['id', 'name', 'key_visual_id', 'key_visual_size_id', 'kv_file', 'kv_size', 'file_type']),
+            'permissions' => [
+                'canCreate'      => allowed([self::class, 'store']),
+                'canView'        => $canView,
+                'canEdit'        => $canEdit,
+                'canDelete'      => $canDelete,
+                'canBrandAssign' => $canBrandAssign,
+                'canKvAssign'    => $canKvAssign,
+                'canImport'      => allowed([AssetImportController::class, 'import']),
+            ],
         ]);
     }
 

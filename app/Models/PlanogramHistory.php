@@ -8,12 +8,15 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Mainul\CustomHelperFunctions\Helpers\CustomHelper;
 use App\Models\Asset;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class PlanogramHistory extends Model
 {
     use HasFactory;
     use Searchable;
     use SoftDeletes;
+    use LogsActivity;
 
     protected $fillable = [
         'store_id',
@@ -28,6 +31,23 @@ class PlanogramHistory extends Model
     protected $searchableFields = ['*'];
 
     protected $table = 'planogram_histories';
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->useLogName('data')
+            ->logOnly([
+                'store_id',
+                'asset_id',
+                'assigned_by',
+                'file_path',
+                'status',
+                'brand_id',
+                'changed_date',
+            ])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
+    }
 
     protected $casts = [
         'changed_date' => 'datetime',

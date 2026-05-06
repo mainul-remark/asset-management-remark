@@ -10,12 +10,15 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Collection;
 use Mainul\CustomHelperFunctions\Helpers\CustomHelper;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class UserStoreAssignment extends Model
 {
     use HasFactory;
     use Searchable;
     use SoftDeletes;
+    use LogsActivity;
 
     protected $fillable = [
         'store_id',
@@ -30,6 +33,23 @@ class UserStoreAssignment extends Model
     protected $searchableFields = ['*'];
 
     protected $table = 'user_store_assignments';
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->useLogName('data')
+            ->logOnly([
+                'store_id',
+                'user_id',
+                'role_id',
+                'employee_id',
+                'status',
+                'assigned_by',
+                'assigned_at',
+            ])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
+    }
 
     protected $casts = [
         'assigned_at' => 'datetime',

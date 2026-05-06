@@ -7,12 +7,15 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Mainul\CustomHelperFunctions\Helpers\CustomHelper;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class AssetType extends Model
 {
     use HasFactory;
     use Searchable;
     use SoftDeletes;
+    use LogsActivity;
 
     protected $fillable = [
         'name',
@@ -39,6 +42,35 @@ class AssetType extends Model
     protected $searchableFields = ['*'];
 
     protected $table = 'asset_types';
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->useLogName('data')
+            ->logOnly([
+                'name',
+                'default_image',
+                'height',
+                'width',
+                'depth',
+                'dimention_unit_name',
+                'default_price',
+                'status',
+                'is_digital',
+                'total_self',
+                'has_kv_space',
+                'has_default_dimension',
+                'need_asset_image',
+                'need_asset_planogram',
+                'has_asset_self',
+                'total_kv_slot',
+                'code',
+                'is_double_side',
+                'is_ground_type_assets',
+            ])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
+    }
 
     public static function generateUniqueCodeFromName(string $name, ?int $ignoreId = null): string
     {

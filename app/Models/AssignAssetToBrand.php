@@ -11,12 +11,15 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Mainul\CustomHelperFunctions\Helpers\CustomHelper;
 use RuntimeException;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class AssignAssetToBrand extends Model
 {
     use HasFactory;
     use Searchable;
     use SoftDeletes;
+    use LogsActivity;
 
     protected static function booted(): void
     {
@@ -40,6 +43,23 @@ class AssignAssetToBrand extends Model
     protected $searchableFields = ['*'];
 
     protected $table = 'assign_asset_to_brands';
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->useLogName('data')
+            ->logOnly([
+                'asset_id',
+                'brand_id',
+                'assigned_by_user_id',
+                'asset_charge',
+                'close_date',
+                'status',
+                'is_asset_assigned_currently',
+            ])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
+    }
 
     protected $casts = [
         'asset_id' => 'integer',

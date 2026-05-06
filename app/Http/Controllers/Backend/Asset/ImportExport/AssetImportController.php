@@ -23,12 +23,23 @@ class AssetImportController extends Controller
     public function import(AssetImportRequest $request): JsonResponse
     {
         $import = new AssetsImport();
+        $uploadedFile = $request->file('file');
 
-        Excel::import($import, $request->file('file'));
+        Excel::import($import, $uploadedFile);
 
         if ($import->hasFailures()) {
             // Build a structured error payload grouped by row
             $failures = $import->getFailures();
+
+            activity('system')
+                ->causedBy(auth()->user())
+                ->event('asset_import_failed')
+                ->withProperties([
+                    'file_name' => $uploadedFile?->getClientOriginalName(),
+                    'imported_count' => $import->getImportedCount(),
+                    'error_count' => count($failures),
+                ])
+                ->log('Asset import failed.');
 
             return response()->json([
                 'success'        => false,
@@ -38,6 +49,16 @@ class AssetImportController extends Controller
                 'errors'         => $this->formatFailures($failures),
             ], 422);
         }
+
+        activity('system')
+            ->causedBy(auth()->user())
+            ->event('asset_import_completed')
+            ->withProperties([
+                'file_name' => $uploadedFile?->getClientOriginalName(),
+                'imported_count' => $import->getImportedCount(),
+                'error_count' => 0,
+            ])
+            ->log('Asset import completed successfully.');
 
         return response()->json([
             'success'        => true,

@@ -1,4 +1,5 @@
 {{-- Create / Edit Modal --}}
+@if($permissions['canCreate'] || $permissions['canEdit'])
 <div class="modal fade" id="sizeModal" tabindex="-1" aria-labelledby="sizeModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -92,8 +93,10 @@
         </div>
     </div>
 </div>
+@endif
 
 {{-- View Modal --}}
+@if($permissions['canView'])
 <div class="modal fade" id="viewModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -148,8 +151,10 @@
         </div>
     </div>
 </div>
+@endif
 
 {{-- Delete Confirm Modal --}}
+@if($permissions['canDelete'])
 <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-sm modal-dialog-centered">
         <div class="modal-content text-center">
@@ -176,3 +181,4 @@
         </div>
     </div>
 </div>
+@endif

@@ -101,18 +101,41 @@ class UsersController extends Controller
     public function import(UserImportRequest $request): JsonResponse
     {
         $import = new UsersImport();
+        $uploadedFile = $request->file('file');
 
-        Excel::import($import, $request->file('file'));
+        Excel::import($import, $uploadedFile);
 
         if ($import->hasFailures()) {
+            $failures = $import->getFailures();
+
+            activity('system')
+                ->causedBy(auth()->user())
+                ->event('user_import_failed')
+                ->withProperties([
+                    'file_name' => $uploadedFile?->getClientOriginalName(),
+                    'imported_count' => $import->getImportedCount(),
+                    'error_count' => count($failures),
+                ])
+                ->log('User import failed.');
+
             return response()->json([
                 'success'        => false,
                 'message'        => 'Import failed. Please fix the listed rows and re-upload.',
                 'imported_count' => $import->getImportedCount(),
-                'error_count'    => count($import->getFailures()),
-                'errors'         => $import->getFailures(),
+                'error_count'    => count($failures),
+                'errors'         => $failures,
             ], 422);
         }
+
+        activity('system')
+            ->causedBy(auth()->user())
+            ->event('user_import_completed')
+            ->withProperties([
+                'file_name' => $uploadedFile?->getClientOriginalName(),
+                'imported_count' => $import->getImportedCount(),
+                'error_count' => 0,
+            ])
+            ->log('User import completed successfully.');
 
         return response()->json([
             'success'        => true,

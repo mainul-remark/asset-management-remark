@@ -25,7 +25,9 @@
         <div class="page-header-actions d-flex gap-2 flex-wrap">
 {{--            <button type="button" class="btn btn-outline-secondary btn-sm"><i class="bi bi-journal-text me-1"></i>Audit Log (0)</button>--}}
             <button type="button" class="btn btn-outline-secondary btn-sm"><i class="bi bi-download me-1"></i>Export Active</button>
+            @allowed('key-visuals.create')
             <button type="button" class="btn btn-warning btn-sm text-white btn-add-key-visual" id="btn-add-key-visual"><i class="bi bi-plus-circle me-1"></i>Add Key Visual</button>
+            @endallowed
         </div>
     </div>
 
@@ -105,11 +107,13 @@
 
                 <div class="tab-content">
                     <div class="tab-pane fade show active" id="kvBrandsPane">
+                        @allowed('brands.create')
                         <div class="p-3 border-bottom">
                             <button type="button" class="btn btn-outline-secondary btn-sm w-100" data-bs-toggle="modal" data-bs-target="#brandModal">
                                 <i class="bi bi-plus me-1"></i>Add Brand
                             </button>
                         </div>
+                        @endallowed
                         <div class="kv-list-scroll">
                             @forelse($brands as $brand)
                                 <div class="kv-brand-item" data-brand-id="{{ $brand->id }}">
@@ -119,14 +123,18 @@
                                         <div class="kv-brand-desc">{{ str()->words($brand->description, 10, '') }}</div>
                                     </div>
                                     <div class="kv-brand-actions">
+                                        @allowed('brands.edit')
                                         <button type="button" class="btn-action kv-sidebar-brand-edit"
                                             data-id="{{ $brand->id }}" title="Edit Brand">
                                             <i class="bi bi-pencil"></i>
                                         </button>
+                                        @endallowed
+                                        @allowed('brands.destroy')
                                         <button type="button" class="btn-action text-danger kv-sidebar-brand-delete"
                                             data-id="{{ $brand->id }}" data-name="{{ $brand->name }}" title="Delete Brand">
                                             <i class="bi bi-trash"></i>
                                         </button>
+                                        @endallowed
                                     </div>
                                 </div>
                             @empty
@@ -136,11 +144,13 @@
                     </div>
 
                     <div class="tab-pane fade" id="kvCategoriesPane">
+                        @allowed('categories.create')
                         <div class="p-3 border-bottom">
                             <button type="button" class="btn btn-outline-secondary btn-sm w-100" data-bs-toggle="modal" data-bs-target="#categoryModal">
                                 <i class="bi bi-plus me-1"></i>Add Category
                             </button>
                         </div>
+                        @endallowed
                         <div class="kv-list-scroll">
                             @forelse($categories as $category)
                                 <div class="kv-brand-item" data-category-id="{{ $category->id }}">
@@ -150,14 +160,18 @@
                                         <div class="kv-brand-desc">{{ str()->words($category->description, 10, '') }}</div>
                                     </div>
                                     <div class="kv-brand-actions">
+                                        @allowed('categories.edit')
                                         <button type="button" class="btn-action kv-sidebar-category-edit"
                                             data-id="{{ $category->id }}" title="Edit Category">
                                             <i class="bi bi-pencil"></i>
                                         </button>
+                                        @endallowed
+                                        @allowed('categories.destroy')
                                         <button type="button" class="btn-action text-danger kv-sidebar-category-delete"
                                             data-id="{{ $category->id }}" data-name="{{ $category->name }}" title="Delete Category">
                                             <i class="bi bi-trash"></i>
                                         </button>
+                                        @endallowed
                                     </div>
                                 </div>
                             @empty
@@ -192,7 +206,9 @@
                                 </li>
                             </ul>
                         </div>
+                        @allowed('key-visuals.create')
                         <button type="button" class="btn btn-warning btn-sm text-white btn-add-key-visual"><i class="bi bi-plus-circle me-1"></i>Add Key Visual</button>
+                        @endallowed
                     </div>
                 </div>
 
@@ -255,12 +271,16 @@
                                         <div class="d-flex gap-1 mt-2">
                                             <button type="button" class="btn btn-sm btn-outline-primary me-1 view-kv-files-modal" data-kv-id="{{ $keyVisual->id }}" data-kv-name="{{ $keyVisual->name }}" data-kv-code="{{ $keyVisual->unique_code }}" data-kv-type="{{ $keyVisual->kv_type }}" title="Manage KV Files"><i class="ri-file-line"></i></button>
 {{--                                            <a href="javascript:void(0)" class="btn btn-sm btn-outline-primary btn-view" data-kv-id="{{ $keyVisual->id }}"><i class="ri-eye-line me-1"></i></a>--}}
+                                            @allowed('key-visuals.edit')
                                             <button type="button" class="btn btn-sm btn-outline-primary btn-edit" data-id="{{ $keyVisual->id }}">
                                                 <i class="ri-edit-box-line me-1"></i>
                                             </button>
+                                            @endallowed
+                                            @allowed('key-visuals.destroy')
                                             <button type="button" class="btn btn-sm btn-outline-danger btn-delete" data-id="{{ $keyVisual->id }}" data-name="{{ $keyVisual->name }}">
                                                 <i class="ri-delete-bin-line me-1"></i>
                                             </button>
+                                            @endallowed
                                         </div>
                                     </div>
                                 </div>
@@ -332,15 +352,21 @@
                                 </div>
                                 <div class="kv-list-actions">
                                     <button type="button" class="btn btn-sm btn-outline-primary me-1 view-kv-files-modal" data-kv-id="{{ $keyVisual->id }}" data-kv-name="{{ $keyVisual->name }}" data-kv-code="{{ $keyVisual->unique_code }}" data-kv-type="{{ $keyVisual->kv_type }}" title="Manage KV Files"><i class="ri-file-line"></i></button>
+                                    @allowed('key-visuals.show')
                                     <button type="button" class="btn btn-sm btn-outline-info btn-view" data-id="{{ $keyVisual->id }}" title="View">
                                         <i class="ri-eye-line"></i>
                                     </button>
+                                    @endallowed
+                                    @allowed('key-visuals.edit')
                                     <button type="button" class="btn btn-sm btn-outline-primary btn-edit" data-id="{{ $keyVisual->id }}" title="Edit">
                                         <i class="ri-edit-box-line"></i>
                                     </button>
+                                    @endallowed
+                                    @allowed('key-visuals.destroy')
                                     <button type="button" class="btn btn-sm btn-outline-danger btn-delete" data-id="{{ $keyVisual->id }}" data-name="{{ $keyVisual->name }}" title="Delete">
                                         <i class="ri-delete-bin-line"></i>
                                     </button>
+                                    @endallowed
                                 </div>
                             </div>
                         @empty
@@ -377,6 +403,7 @@
 @section('modal')
 
 {{--      MAIN KEY VISUAL FORM MODAL --}}
+@if($permissions['canCreate'] || $permissions['canEdit'])
 <div class="modal fade" id="keyVisualModal" tabindex="-1" aria-labelledby="keyVisualModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <div class="modal-content kv-modal-content">
@@ -608,7 +635,10 @@
     </div>
 </div>
 
+@endif
+
 {{--  VIEW MODAL --}}
+@if($permissions['canView'])
 <div class="modal fade" id="viewModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -644,7 +674,10 @@
     </div>
 </div>
 
+@endif
+
 {{--      DELETE CONFIRMATION MODAL --}}
+@if($permissions['canDelete'])
 <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-sm">
         <div class="modal-content text-center">
@@ -673,7 +706,10 @@
     </div>
 </div>
 
+@endif
+
 {{--  CREATE BRAND MODAL (child) --}}
+@if($permissions['canCreateBrand'] || $permissions['canEditBrand'])
 <div class="modal fade" id="brandModal" tabindex="-1" aria-labelledby="brandModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
@@ -732,7 +768,10 @@
     </div>
 </div>
 
+@endif
+
 {{--      CREATE CATEGORY MODAL (child) --}}
+@if($permissions['canCreateCategory'] || $permissions['canEditCategory'])
 <div class="modal fade" id="categoryModal" tabindex="-1" aria-labelledby="categoryModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -784,6 +823,8 @@
         </div>
     </div>
 </div>
+
+@endif
 
 {{-- ── MANAGE KV FILES MODAL ──────────────────────────────────── --}}
 <div class="modal fade" id="manageKvFiles" tabindex="-1" aria-hidden="true">
@@ -1456,11 +1497,13 @@ $(function () {
     const catEditUrl    = (id) => `${CAT_URL}/${id}/edit`;
 
     // MODAL INSTANCES
-    const kvModal      = new bootstrap.Modal('#keyVisualModal');
-    const viewModalEl  = new bootstrap.Modal('#viewModal');
-    const deleteModal  = new bootstrap.Modal('#deleteModal');
-    const brandModal   = new bootstrap.Modal('#brandModal');
-    const catModal     = new bootstrap.Modal('#categoryModal');
+    const kvPermissions = @json($permissions);
+    const _nm = { show: () => {}, hide: () => {}, _isNull: true };
+    const kvModal     = (kvPermissions.canCreate || kvPermissions.canEdit)   && document.querySelector('#keyVisualModal') ? new bootstrap.Modal('#keyVisualModal') : _nm;
+    const viewModalEl = kvPermissions.canView                                && document.querySelector('#viewModal')       ? new bootstrap.Modal('#viewModal')       : _nm;
+    const deleteModal = kvPermissions.canDelete                              && document.querySelector('#deleteModal')     ? new bootstrap.Modal('#deleteModal')     : _nm;
+    const brandModal  = (kvPermissions.canCreateBrand || kvPermissions.canEditBrand)       && document.querySelector('#brandModal')    ? new bootstrap.Modal('#brandModal')    : _nm;
+    const catModal    = (kvPermissions.canCreateCategory || kvPermissions.canEditCategory) && document.querySelector('#categoryModal') ? new bootstrap.Modal('#categoryModal') : _nm;
     let restoreKvModal = false;
 
     // UNIQUE CODE REQUEST HANDLE
