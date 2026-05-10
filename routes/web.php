@@ -25,6 +25,8 @@ use App\Http\Controllers\Admin\UserStoreAssignmentController;
 use App\Http\Controllers\Backend\KV\KvInstallationController;
 
 use App\Http\Controllers\Backend\Asset\ImportExport\AssetImportController;
+use App\Http\Controllers\Backend\Billing\BillingController;
+use App\Http\Controllers\Backend\Billing\BillDisputeController;
 
 Route::get('/', function () {
     if (auth()->check())
@@ -134,6 +136,37 @@ Route::middleware([
             Route::post('/update-asset-assigned-kv-data', [KvInstallationController::class, 'updateAssignedKvStatusData'])->name('update-asset-assigned-kv-data');
         });
     });
+
+    // ── Billing ──────────────────────────────────────────────────────────────
+    Route::prefix('billing')->name('billing.')->group(function () {
+        // Periods
+        Route::get('/periods',                           [BillingController::class, 'index'])->name('periods.index');
+        Route::get('/periods/create',                    [BillingController::class, 'create'])->name('periods.create');
+        Route::post('/periods',                          [BillingController::class, 'store'])->name('periods.store');
+        Route::get('/periods/{period}',                  [BillingController::class, 'show'])->name('periods.show');
+        Route::get('/periods/{period}/status',                        [BillingController::class, 'periodStatus'])->name('periods.status');
+        Route::get('/periods/{period}/brand-invoice/{brand}',        [BillingController::class, 'brandInvoiceView'])->name('periods.brand-invoice');
+        Route::post('/periods/{period}/generate',                    [BillingController::class, 'generate'])->name('periods.generate');
+        Route::post('/periods/{period}/finalize',        [BillingController::class, 'finalizePeriod'])->name('periods.finalize');
+
+        // Bills
+        Route::get('/bills/{bill}',                      [BillingController::class, 'showBill'])->name('bills.show');
+        Route::post('/bills/{bill}/issue',               [BillingController::class, 'issueBill'])->name('bills.issue');
+        Route::post('/bills/{bill}/adjust',              [BillingController::class, 'adjustBill'])->name('bills.adjust');
+        Route::post('/bills/{bill}/finalize',            [BillingController::class, 'finalizeBill'])->name('bills.finalize');
+        Route::post('/bills/{bill}/paid',                [BillingController::class, 'markPaid'])->name('bills.paid');
+        Route::get('/bills/{bill}/invoice',              [BillingController::class, 'invoiceView'])->name('bills.invoice');
+        Route::post('/line-items/{lineItem}/override',   [BillingController::class, 'overrideLineItem'])->name('line-items.override');
+
+        // Disputes
+        Route::get('/disputes',                          [BillDisputeController::class, 'index'])->name('disputes.index');
+        Route::post('/disputes/{bill}',                  [BillDisputeController::class, 'store'])->name('disputes.store');
+        Route::get('/disputes/{dispute}',                [BillDisputeController::class, 'show'])->name('disputes.show');
+        Route::post('/disputes/{dispute}/approve',       [BillDisputeController::class, 'approve'])->name('disputes.approve');
+        Route::post('/disputes/{dispute}/partial',       [BillDisputeController::class, 'partialApprove'])->name('disputes.partial');
+        Route::post('/disputes/{dispute}/reject',        [BillDisputeController::class, 'reject'])->name('disputes.reject');
+    });
+    // ── End Billing ───────────────────────────────────────────────────────────
 
     Route::get('key-visualsx', [KeyVisualController::class, 'old']);
     Route::post('site-settings/theme', [SiteSettingsController::class, 'saveTheme'])->name('site-settings.theme');

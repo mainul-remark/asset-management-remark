@@ -27,7 +27,7 @@ class AssetRequest extends FormRequest
             'default_image'  => [!$isUpdate && $needImage ? 'required' : 'nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'store_id'       => ['required', 'nullable', 'exists:stores,id'],
             'has_kv_slot'    => ['nullable', 'boolean'],
-            'minimum_fee'    => ['nullable', 'numeric', 'min:0'],
+            'minimum_fee'    => [$assetType && $assetType->is_ground_type_assets == 0 ? 'required' : 'nullable', 'numeric', 'min:0'],
             'asset_price'    => ['nullable', 'numeric', 'min:0'],
             'is_common_asset'=> ['nullable', 'boolean'],
             'planogram_pdf'  => [!$isUpdate && $needPlanogram ? 'required' : 'nullable', 'mimes:pdf', 'max:10240'],
@@ -55,6 +55,7 @@ class AssetRequest extends FormRequest
 
             'store_id.exists'        => 'The selected store is invalid.',
 
+            'minimum_fee.required'   => 'Minimum charge is required for this asset.',
             'minimum_fee.numeric'    => 'Minimum charge must be a numeric value.',
             'minimum_fee.min'        => 'Minimum charge cannot be negative.',
 

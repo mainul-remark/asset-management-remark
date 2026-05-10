@@ -140,7 +140,7 @@ class AssetController extends Controller
         }
 
         return view('backend.asset-management.assets', [
-            'assetTypes' => AssetType::orderBy('name')->get(['id', 'name', 'need_asset_image', 'need_asset_planogram', 'has_asset_self', 'is_digital', 'total_self', 'has_kv_space', 'total_kv_slot']),
+            'assetTypes' => AssetType::orderBy('name')->get(['id', 'name', 'need_asset_image', 'need_asset_planogram', 'has_asset_self', 'is_digital', 'total_self', 'has_kv_space', 'total_kv_slot', 'is_ground_type_assets']),
             'stores'     => Store::orderBy('title')->get(['id', 'title', 'code']),
             'brands' => Brand::query()
                 ->where('status', 1)

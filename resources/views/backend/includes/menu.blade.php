@@ -3,10 +3,14 @@
     <!-- Start::main-sidebar-header -->
     <div class="main-sidebar-header">
         <a href="{{ route('admin.dashboard') }}" class="header-logo">
-            <img src="{{ asset('/') }}backend/build/assets/images/brand-logos/desktop-logo.png" alt="logo" class="desktop-logo">
-            <img src="{{ asset('/') }}backend/build/assets/images/brand-logos/toggle-logo.png" alt="logo" class="toggle-logo">
-            <img src="{{ asset('/') }}backend/build/assets/images/brand-logos/desktop-white.png" alt="logo" class="desktop-white">
-            <img src="{{ asset('/') }}backend/build/assets/images/brand-logos/toggle-white.png" alt="logo" class="toggle-white">
+{{--            <img src="{{ asset('/') }}backend/build/assets/images/brand-logos/desktop-logo.png" alt="logo" class="desktop-logo">--}}
+{{--            <img src="{{ asset('/') }}backend/build/assets/images/brand-logos/toggle-logo.png" alt="logo" class="toggle-logo">--}}
+{{--            <img src="{{ asset('/') }}backend/build/assets/images/brand-logos/desktop-white.png" alt="logo" class="desktop-white">--}}
+{{--            <img src="{{ asset('/') }}backend/build/assets/images/brand-logos/toggle-white.png" alt="logo" class="toggle-white">--}}
+            <img src="{{ asset('/backend/remark.png') }}" alt="logo" class="desktop-logo">
+            <img src="{{ asset('/backend/remark-logo.png') }}" alt="logo" class="toggle-logo">
+            <img src="{{ asset('/backend/remark.png') }}" alt="logo" class="desktop-white">
+            <img src="{{ asset('/backend/remark-logo.png') }}" alt="logo" class="toggle-white">
         </a>
     </div>
     <!-- End::main-sidebar-header -->
@@ -226,6 +230,27 @@
                         @endallowed
                     </ul>
                 </li>
+
+                <!-- Billing -->
+                <li class="slide has-sub">
+                    <a href="javascript:void(0);" class="side-menu__item">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="side-menu__icon" viewBox="0 0 24 24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z" opacity=".3"/><path d="M12 12c1.65 0 3-1.35 3-3s-1.35-3-3-3-3 1.35-3 3 1.35 3 3 3zm0-4c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm0 4.9c-2.67 0-8 1.34-8 4V19h16v-2.1c0-2.66-5.33-4-8-4zm6 3.1H6v-.58c.56-1.06 3.27-1.42 6-1.42s5.44.36 6 1.42V16z"/></svg>
+                        <span class="side-menu__label">Billing</span>
+                        <i class="fe fe-chevron-right side-menu__angle"></i>
+                    </a>
+                    <ul class="slide-menu child1">
+                        <li class="slide side-menu__label1">
+                            <a href="javascript:void(0);">Billing</a>
+                        </li>
+                        <li class="slide">
+                            <a href="{{ route('billing.periods.index') }}" class="side-menu__item">Billing Periods</a>
+                        </li>
+                        <li class="slide">
+                            <a href="{{ route('billing.disputes.index') }}" class="side-menu__item">Disputes</a>
+                        </li>
+                    </ul>
+                </li>
+                <!-- End Billing -->
 
                 <!-- Start::slide -->
 {{--                <li class="slide">--}}
