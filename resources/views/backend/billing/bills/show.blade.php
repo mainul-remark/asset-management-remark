@@ -321,15 +321,15 @@
 
     // Issue
     document.getElementById('btnIssueBill')?.addEventListener('click', function () {
-        if (!confirm('Issue this bill to the brand?')) return;
+        // if (!confirm('Issue this bill to the brand?')) return;
         Swal.fire({
             title: "Are you sure?",
-            text: "You won't be able to revert this!",
+            text: "Issue this bill to the brand?",
             icon: "warning",
             showCancelButton: true,
             confirmButtonColor: "#3085d6",
             cancelButtonColor: "#d33",
-            confirmButtonText: "Yes, delete it!"
+            confirmButtonText: "Yes, Issue !"
         }).then((result) => {
             if (result.isConfirmed)
             {
@@ -353,14 +353,66 @@
 
     // Finalize
     document.getElementById('btnFinalizeBill')?.addEventListener('click', function () {
-        if (!confirm('Finalize this bill?')) return;
-        post(`/billing/bills/${billId}/finalize`).then(res => { alert(res.message); if (res.success) location.reload(); });
+        // if (!confirm('Finalize this bill?')) return;
+        Swal.fire({
+            title: "Are you sure?",
+            text: "Finalize this bill?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Yes, Finalize !"
+        }).then((result) => {
+            if (result.isConfirmed)
+            {
+                post(`/billing/bills/${billId}/finalize`).then(res => {
+                    // alert(res.message);
+                    if (res.success)
+                    {
+                        toastr.success(res.message);
+                        setTimeout(function () {
+                            location.reload();
+                        }, 1500)
+
+                    } else {
+                        toastr.error(res.message);
+                    }
+                });
+            }
+        });
+        // post(`/billing/bills/${billId}/finalize`).then(res => { alert(res.message); if (res.success) location.reload(); });
     });
 
     // Mark Paid
     document.getElementById('btnMarkPaid')?.addEventListener('click', function () {
-        if (!confirm('Mark this bill as paid?')) return;
-        post(`/billing/bills/${billId}/paid`).then(res => { alert(res.message); if (res.success) location.reload(); });
+        // if (!confirm('Mark this bill as paid?')) return;
+        Swal.fire({
+            title: "Are you sure?",
+            text: "Mark this bill as paid?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Yes, Mark !"
+        }).then((result) => {
+            if (result.isConfirmed)
+            {
+                post(`/billing/bills/${billId}/paid`).then(res => {
+                    // alert(res.message);
+                    if (res.success)
+                    {
+                        toastr.success(res.message);
+                        setTimeout(function () {
+                            location.reload();
+                        }, 1500)
+
+                    } else {
+                        toastr.error(res.message);
+                    }
+                });
+            }
+        });
+        // post(`/billing/bills/${billId}/paid`).then(res => { alert(res.message); if (res.success) location.reload(); });
     });
 
     // Adjust
@@ -368,7 +420,19 @@
         post(`/billing/bills/${billId}/adjust`, {
             adjustment_amount: document.getElementById('adjustmentAmount').value,
             admin_note: document.getElementById('adminNote').value,
-        }).then(res => { alert(res.message); if (res.success) location.reload(); });
+        }).then(res => {
+            if (res.success)
+            {
+                toastr.success(res.message);
+                setTimeout(function () {
+                    location.reload();
+                }, 1500)
+
+            } else {
+                toastr.error(res.message);
+            }
+            // alert(res.message); if (res.success) location.reload();
+        });
     });
 
     // Dispute
@@ -376,7 +440,19 @@
         post(`/billing/disputes/${billId}`, {
             requested_amount: document.getElementById('requestedAmount').value,
             reason: document.getElementById('disputeReason').value,
-        }).then(res => { alert(res.message); if (res.success) location.reload(); });
+        }).then(res => {
+            if (res.success)
+            {
+                toastr.success(res.message);
+                setTimeout(function () {
+                    location.reload();
+                }, 1500)
+
+            } else {
+                toastr.error(res.message);
+            }
+            // alert(res.message); if (res.success) location.reload();
+        });
     });
 
     // Override Line Item
@@ -394,7 +470,19 @@
         post(`/billing/line-items/${lineId}/override`, {
             override_amount: document.getElementById('overrideAmount').value,
             note: document.getElementById('overrideNote').value,
-        }).then(res => { alert(res.message); if (res.success) location.reload(); });
+        }).then(res => {
+            if (res.success)
+            {
+                toastr.success(res.message);
+                setTimeout(function () {
+                    location.reload();
+                }, 1500)
+
+            } else {
+                toastr.error(res.message);
+            }
+            // alert(res.message); if (res.success) location.reload();
+        });
     });
 })();
 </script>
