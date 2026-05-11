@@ -147,6 +147,7 @@
     .app-sidebar, .app-header, .main-footer, .scrollToTop, #responsive-overlay, .alert { display: none !important; }
     .main-content { margin: 0 !important; padding: 0 !important; }
     #invoiceCard { border: none !important; box-shadow: none !important; }
+    .footer {visibility: hidden}
 }
 </style>
 @endsection

@@ -304,6 +304,8 @@
 @endsection
 
 @push('scripts')
+    @include('backend.includes.plugins.sweetalert2')
+    @include('backend.includes.plugins.toastr')
 <script>
 (function () {
     const csrf = document.querySelector('meta[name="csrf-token"]').content;
@@ -320,7 +322,33 @@
     // Issue
     document.getElementById('btnIssueBill')?.addEventListener('click', function () {
         if (!confirm('Issue this bill to the brand?')) return;
-        post(`/billing/bills/${billId}/issue`).then(res => { alert(res.message); if (res.success) location.reload(); });
+        Swal.fire({
+            title: "Are you sure?",
+            text: "You won't be able to revert this!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Yes, delete it!"
+        }).then((result) => {
+            if (result.isConfirmed)
+            {
+                post(`/billing/bills/${billId}/issue`).then(res => {
+                    // alert(res.message);
+                    if (res.success)
+                    {
+                        toastr.success(res.message);
+                        setTimeout(function () {
+                            location.reload();
+                        }, 1500)
+
+                    } else {
+                        toastr.error(res.message);
+                    }
+                });
+            }
+        });
+
     });
 
     // Finalize

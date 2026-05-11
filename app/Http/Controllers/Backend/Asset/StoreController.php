@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Backend\Asset;
 
+use App\Exports\Stores\StoresExport;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Backend\Asset\StoreRequest;
 use App\Models\AssetType;
@@ -15,6 +16,7 @@ use Mainul\CustomHelperFunctions\Helpers\CustomHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Maatwebsite\Excel\Facades\Excel;
 
 class StoreController extends Controller
 {
@@ -26,6 +28,13 @@ class StoreController extends Controller
             'divisions' => Division::orderBy('name')->get(),
             'assetTypes'=> AssetType::orderBy('name')->get(['id', 'name']),
         ]);
+    }
+
+    public function export()
+    {
+        $filename = 'stores-' . now()->format('Y-m-d_H-i-s') . '.xlsx';
+
+        return Excel::download(new StoresExport(), $filename);
     }
 
     public function jsonList()

@@ -187,7 +187,7 @@
                             <div id="dimension-fields" style="display:none;">
                                 <div class="row g-3">
                                     <div class="col-6 col-md-4">
-                                        <label for="height" class="form-label">Height</label>
+                                        <label for="height" class="form-label">Length</label>
                                         <input type="number" step="0.01" min="0" class="form-control"
                                             id="height" name="height" placeholder="0">
                                         <div class="invalid-feedback" id="error-height"></div>

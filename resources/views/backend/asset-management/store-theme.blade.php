@@ -43,7 +43,7 @@
             </div>
             <div class="page-header-actions d-flex gap-2">
                 <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#storeLocator"><i class="bi bi-map me-1"></i>View Stores</button>
-                <button class="btn btn-outline-secondary btn-sm"><i class="bi bi-download me-1"></i>Export Data</button>
+                <button type="button" class="btn btn-outline-secondary btn-sm" id="exportStoreData"><i class="bi bi-download me-1"></i>Export Data</button>
                 <button class="btn btn-primary btn-sm" id="btn-add-store"><i class="bi bi-plus me-1"></i>Add Store</button>
             </div>
         </div>
@@ -451,13 +451,13 @@
                         <div class="form-section-title">Store Dimensions & Rent</div>
                         <div class="row g-3 mb-3">
                             <div class="col-6 col-md-3">
-                                <label class="form-label fw-semibold" style="font-size:0.85rem;">Store Size (sq ft)</label>
-                                <input type="number" step="0.01" class="form-control form-control-sm" id="total_area_sqft" name="total_area_sqft" placeholder="0.00">
+                                <label class="form-label fw-semibold" style="font-size:0.85rem;">Store Size (sq ft) <span class="text-danger">*</span></label>
+                                <input type="number" step="0.01" class="form-control form-control-sm" required id="total_area_sqft" name="total_area_sqft" placeholder="0.00">
                                 <div class="invalid-feedback" id="error-total_area_sqft"></div>
                             </div>
                             <div class="col-6 col-md-3">
-                                <label class="form-label fw-semibold" style="font-size:0.85rem;">Monthly Rent (৳)</label>
-                                <input type="number" step="0.01" class="form-control form-control-sm" id="monthly_rent" name="monthly_rent" placeholder="0.00">
+                                <label class="form-label fw-semibold" style="font-size:0.85rem;">Monthly Rent (৳) <span class="text-danger">*</span></label>
+                                <input type="number" step="0.01" class="form-control form-control-sm" required id="monthly_rent" name="monthly_rent" placeholder="0.00">
                                 <div class="invalid-feedback" id="error-monthly_rent"></div>
                             </div>
                             <div class="col-6 col-md-3">
@@ -935,6 +935,7 @@
     <script src="{{ asset('backend/build/assets/libs/filepond-plugin-file-validate-size/filepond-plugin-file-validate-size.min.js') }}"></script>
     <script>
     $(document).ready(function () {
+        const exportStoresUrl = @json(route('stores.export'));
         const storeModal = new bootstrap.Modal(document.getElementById('storeModal'));
         const viewModalEl = new bootstrap.Modal(document.getElementById('viewModal'));
         const deleteModalEl = new bootstrap.Modal(document.getElementById('deleteModal'));
@@ -1184,6 +1185,41 @@
         // Search filter
         $('#filter-search').on('input', function () {
             storesTable.search($(this).val()).draw();
+        });
+
+        $('#exportStoreData').on('click', function () {
+            const $button = $(this);
+            const originalHtml = $button.html();
+
+            $button.prop('disabled', true).html('<i class="bi bi-arrow-repeat spin me-1"></i>Exporting...');
+
+            $.ajax({
+                url: exportStoresUrl,
+                type: 'POST',
+                xhrFields: {
+                    responseType: 'blob'
+                },
+                success: function (blob, _status, xhr) {
+                    const disposition = xhr.getResponseHeader('Content-Disposition') || '';
+                    const match = disposition.match(/filename="?([^"]+)"?/i);
+                    const filename = match && match[1] ? match[1] : 'stores.xlsx';
+                    const downloadUrl = window.URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+
+                    link.href = downloadUrl;
+                    link.download = filename;
+                    document.body.appendChild(link);
+                    link.click();
+                    link.remove();
+                    window.URL.revokeObjectURL(downloadUrl);
+                },
+                error: function () {
+                    toastr.error('Store export failed. Please try again.');
+                },
+                complete: function () {
+                    $button.prop('disabled', false).html(originalHtml);
+                }
+            });
         });
 
         // Custom filter function for division, size, and rent
@@ -1461,6 +1497,29 @@
         $('#storeForm').on('submit', function (e) {
             e.preventDefault();
             clearErrors();
+
+            let hasError = false;
+            const areaVal = $('#total_area_sqft').val();
+            if (!areaVal) {
+                $('#total_area_sqft').addClass('is-invalid');
+                $('#error-total_area_sqft').text('Store size (sq ft) is required.');
+                hasError = true;
+            } else if (parseFloat(areaVal) < 0) {
+                $('#total_area_sqft').addClass('is-invalid');
+                $('#error-total_area_sqft').text('Store size cannot be negative.');
+                hasError = true;
+            }
+            const rentVal = $('#monthly_rent').val();
+            if (!rentVal) {
+                $('#monthly_rent').addClass('is-invalid');
+                $('#error-monthly_rent').text('Monthly rent is required.');
+                hasError = true;
+            } else if (parseFloat(rentVal) < 0) {
+                $('#monthly_rent').addClass('is-invalid');
+                $('#error-monthly_rent').text('Monthly rent cannot be negative.');
+                hasError = true;
+            }
+            if (hasError) return;
 
             const id = $('#store_id').val();
             const url = id ? base_url + 'stores/' + id : base_url + 'stores';

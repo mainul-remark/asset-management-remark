@@ -84,6 +84,16 @@ class BillGenerationService
         // unique brand ids active in this store
         $brandIds = $activeAssignments->pluck('brand_id')->unique()->filter()->values();
 
+        // purge stale bills from previous runs for brands no longer active in this store
+        StoreBrandBill::where('bill_period_id', $period->id)
+            ->where('store_id', $store->id)
+            ->whereNotIn('brand_id', $brandIds->all())
+            ->get()
+            ->each(function (StoreBrandBill $bill) {
+                $bill->lineItems()->delete();
+                $bill->delete();
+            });
+
         // group assignments by brand
         $byBrand = $activeAssignments->groupBy('brand_id');
 
@@ -371,17 +381,18 @@ class BillGenerationService
 
     public function getAssetFootprintSqft(AssetType $assetType): float
     {
-        $width = (float) ($assetType->width ?? 0);
-        $depth = (float) ($assetType->depth ?? 0);
+        $width  = (float) ($assetType->width ?? 0);
+        $height = (float) ($assetType->height ?? 0);
+        // $depth = (float) ($assetType->depth ?? 0);
 
-        if ($width <= 0 || $depth <= 0) {
+        if ($width <= 0 || $height <= 0) {
             return 0.0;
         }
 
         $unit   = strtolower(trim($assetType->dimention_unit_name ?? 'ft'));
         $factor = self::SQFT_FACTORS[$unit] ?? 1.0;
 
-        return round($width * $depth * $factor, 4);
+        return round($width * $height * $factor, 4);
     }
 
     private function countActiveBrandsForAsset(int $assetId): int

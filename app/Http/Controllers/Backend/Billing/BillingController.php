@@ -94,13 +94,17 @@ class BillingController extends Controller
             ->with('store:id,title,code')
             ->get();
 
+        $summaryBase = StoreBrandBill::where('bill_period_id', $period->id)
+            ->when($brandId, fn ($q) => $q->where('brand_id', $brandId))
+            ->when($storeId, fn ($q) => $q->where('store_id', $storeId));
+
         $summary = [
-            'total_bills'     => StoreBrandBill::where('bill_period_id', $period->id)->count(),
-            'total_amount'    => StoreBrandBill::where('bill_period_id', $period->id)->sum('final_amount'),
-            'draft_count'     => StoreBrandBill::where('bill_period_id', $period->id)->where('bill_status', 'draft')->count(),
-            'issued_count'    => StoreBrandBill::where('bill_period_id', $period->id)->where('bill_status', 'issued')->count(),
-            'disputed_count'  => StoreBrandBill::where('bill_period_id', $period->id)->where('bill_status', 'disputed')->count(),
-            'finalized_count' => StoreBrandBill::where('bill_period_id', $period->id)->where('bill_status', 'finalized')->count(),
+            'total_bills'     => (clone $summaryBase)->count(),
+            'total_amount'    => (clone $summaryBase)->sum('final_amount'),
+            'draft_count'     => (clone $summaryBase)->where('bill_status', 'draft')->count(),
+            'issued_count'    => (clone $summaryBase)->where('bill_status', 'issued')->count(),
+            'disputed_count'  => (clone $summaryBase)->where('bill_status', 'disputed')->count(),
+            'finalized_count' => (clone $summaryBase)->where('bill_status', 'finalized')->count(),
         ];
 
         // distinct brands & stores that have bills in this period (for filter dropdowns)

@@ -47,6 +47,7 @@ Route::middleware([
     Route::get('/admin/activity-log', [AdminViewController::class, 'activityLog'])->name('admin.activity-logs');
 
     Route::get('stores/json-list', [StoreController::class, 'jsonList'])->name('stores.json-list');
+    Route::post('stores/export', [StoreController::class, 'export'])->name('stores.export');
     Route::get('stores/layout-list', [StoreController::class, 'layoutStores'])->name('stores.layout-list');
     Route::post('stores/{store}/layouts', [StoreController::class, 'uploadLayout'])->name('stores.upload-layout');
     Route::get('key-visuals/next-unique-code', [KeyVisualController::class, 'nextUniqueCode'])->name('key-visuals.next-unique-code');

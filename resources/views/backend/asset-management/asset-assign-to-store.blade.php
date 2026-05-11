@@ -83,7 +83,7 @@
                             <table id="assign-table" class="table table-bordered text-nowrap w-100 mb-0">
                                 <thead>
                                 <tr>
-                                    <th width="60">SL</th>
+{{--                                    <th width="60">SL</th>--}}
                                     <th>Store</th>
                                     <th width="60">#</th>
                                     <th>Asset</th>
@@ -354,13 +354,11 @@
             }
 
             // Two-level grouping: Store > Asset
-            let storeSerial = 0;
             let i = 0;
 
             while (i < items.length) {
                 const storeGroupKey = items[i].storeGroup;
                 const storeStart = i;
-                storeSerial++;
 
                 // Find all rows in this store group
                 while (i < items.length && items[i].storeGroup === storeGroupKey) {
@@ -369,21 +367,16 @@
                 const storeEnd = i;
                 const storeRowCount = storeEnd - storeStart;
 
-                // Store-level rowspan on SL (col 0) and Store (col 1)
+                // Store-level rowspan on Store (col 0)
                 const $firstStoreRow = $(items[storeStart].node).children('td');
                 $firstStoreRow.eq(0)
-                    .attr('rowspan', storeRowCount)
-                    .addClass('sl-cell')
-                    .text(storeSerial);
-                $firstStoreRow.eq(1)
                     .attr('rowspan', storeRowCount)
                     .addClass('store-cell')
                     .html(items[storeStart].data.store_summary || '');
 
-                // Hide SL and Store for subsequent rows
+                // Hide Store for subsequent rows
                 for (let r = storeStart + 1; r < storeEnd; r++) {
                     $(items[r].node).children('td').eq(0).hide();
-                    $(items[r].node).children('td').eq(1).hide();
                 }
 
                 // Asset-level grouping within this store
@@ -401,19 +394,19 @@
                     const assetEnd = j;
                     const assetRowCount = assetEnd - assetStart;
 
-                    // Asset-level rowspan on # (col 2) and Asset (col 3)
+                    // Asset-level rowspan on # (col 1) and Asset (col 2)
                     const $firstAssetRow = $(items[assetStart].node).children('td');
-                    $firstAssetRow.eq(2)
+                    $firstAssetRow.eq(1)
                         .attr('rowspan', assetRowCount)
                         .addClass('group-item-cell')
                         .text(assetIndex);
-                    $firstAssetRow.eq(3)
+                    $firstAssetRow.eq(2)
                         .attr('rowspan', assetRowCount);
 
                     // Hide # and Asset for subsequent KV rows
                     for (let r = assetStart + 1; r < assetEnd; r++) {
+                        $(items[r].node).children('td').eq(1).hide();
                         $(items[r].node).children('td').eq(2).hide();
-                        $(items[r].node).children('td').eq(3).hide();
                     }
                 }
 
@@ -423,7 +416,7 @@
                     distinctAssets.add(items[r].assetGroup);
                 }
                 const assetCount = distinctAssets.size;
-                $firstStoreRow.eq(1).append(
+                $firstStoreRow.eq(0).append(
                     `<div class="store-count">${assetCount} asset${assetCount > 1 ? 's' : ''} assigned</div>`
                 );
             }
@@ -489,7 +482,7 @@
                 }
             },
             columns: [
-                { data: 'DT_RowIndex', name: 'DT_RowIndex', searchable: false, orderable: false, className: 'text-center text-muted fw-semibold' },
+                // { data: 'DT_RowIndex', name: 'DT_RowIndex', searchable: false, orderable: false, className: 'text-center text-muted fw-semibold' },
                 { data: 'store_summary', name: 'store_summary' },
                 { data: null, name: 'group_item_index', searchable: false, orderable: false, defaultContent: '' },
                 { data: 'asset_display', name: 'asset_display' },
