@@ -22,6 +22,7 @@ class BillLineItem extends Model
         'full_calculated_amount',
         'calculated_amount',
         'override_amount',
+        'override_type',
         'final_amount',
         'note',
     ];
@@ -35,6 +36,7 @@ class BillLineItem extends Model
         'full_calculated_amount'  => 'decimal:2',
         'calculated_amount'       => 'decimal:2',
         'override_amount'         => 'decimal:2',
+        'override_type'           => 'string',
         'final_amount'            => 'decimal:2',
     ];
 

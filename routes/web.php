@@ -147,6 +147,9 @@ Route::middleware([
         Route::get('/periods/{period}',                  [BillingController::class, 'show'])->name('periods.show');
         Route::get('/periods/{period}/status',                        [BillingController::class, 'periodStatus'])->name('periods.status');
         Route::get('/periods/{period}/brand-invoice/{brand}',        [BillingController::class, 'brandInvoiceView'])->name('periods.brand-invoice');
+        Route::post('/periods/{period}/issue-all',                   [BillingController::class, 'issueAllBills'])->name('periods.issue-all');
+        Route::post('/periods/{period}/brands/{brand}/issue-all',    [BillingController::class, 'issueBrandBills'])->name('periods.brand-issue-all');
+        Route::post('/periods/{period}/brands/{brand}/finalize-all', [BillingController::class, 'finalizeBrandBills'])->name('periods.brand-finalize-all');
         Route::post('/periods/{period}/generate',                    [BillingController::class, 'generate'])->name('periods.generate');
         Route::post('/periods/{period}/finalize',        [BillingController::class, 'finalizePeriod'])->name('periods.finalize');
 

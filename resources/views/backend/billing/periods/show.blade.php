@@ -25,6 +25,12 @@
                     <i class="las la-cog me-1" id="genIcon"></i><span id="genText">{{ $period->isGenerated() ? 'Regenerate Bills' : 'Generate Bills' }}</span>
                 </button>
             @endif
+            @if(!$period->isFinalized() && ($summary['issuable_count'] ?? 0) > 0)
+                <button class="btn btn-sm btn-warning btn-issue-all-period" data-id="{{ $period->id }}">
+                    <i class="las la-paper-plane me-1"></i> Issue All Bills
+                    <span class="badge bg-white text-dark ms-1">{{ $summary['issuable_count'] }}</span>
+                </button>
+            @endif
             @if($period->isGenerated() && !$period->isFinalized())
                 <button class="btn btn-sm btn-success btn-finalize-period" data-id="{{ $period->id }}" data-name="{{ $period->name }}">
                     <i class="las la-lock me-1"></i> Finalize Period
@@ -218,6 +224,8 @@
                             <th class="text-end">Subtotal (৳)</th>
                             <th class="text-end">Adj (৳)</th>
                             <th class="text-end">Final (৳)</th>
+                            <th class="text-end" style="min-width:120px">Group Total (৳)</th>
+                            <th class="text-end" style="min-width:120px">Override Δ (৳)</th>
                             <th>Status</th>
                             <th class="text-end">Actions</th>
                         </tr>
@@ -234,13 +242,33 @@
                                 @if($loop->first)
                                     {{-- Rowspan cell: Store or Brand depending on mode --}}
                                     @if($groupBy === 'brand')
+                                    @php $brandIssuable = $groupRows->whereIn('bill_status', ['draft','adjusted'])->count(); @endphp
                                     <td rowspan="{{ $groupRows->count() }}" class="align-middle border-end">
                                         <div class="fw-semibold">{{ $bill->brand?->name }}</div>
                                         <div class="text-muted small">{{ $bill->brand?->code }}</div>
-                                        <div class="mt-1">
+                                        <div class="mt-1 d-flex flex-wrap gap-1">
                                             <span class="badge bg-light text-dark border small">
                                                 {{ $groupRows->count() }} {{ Str::plural('store', $groupRows->count()) }}
                                             </span>
+                                            @if(!$period->isFinalized() && $brandIssuable > 0)
+                                            <button class="btn btn-outline-warning btn-issue-brand-all"
+                                                style="font-size:0.7rem;padding:1px 6px;line-height:1.4"
+                                                data-period-id="{{ $period->id }}"
+                                                data-brand-id="{{ $groupId }}"
+                                                data-brand-name="{{ $bill->brand?->name }}">
+                                                <i class="las la-paper-plane"></i> Issue ({{ $brandIssuable }})
+                                            </button>
+                                            @endif
+                                            @php $brandFinalizable = $groupRows->where('bill_status', 'issued')->count(); @endphp
+                                            @if(!$period->isFinalized() && $brandFinalizable > 0)
+                                            <button class="btn btn-outline-success btn-finalize-brand-all"
+                                                style="font-size:0.7rem;padding:1px 6px;line-height:1.4"
+                                                data-period-id="{{ $period->id }}"
+                                                data-brand-id="{{ $groupId }}"
+                                                data-brand-name="{{ $bill->brand?->name }}">
+                                                <i class="las la-check-circle"></i> Finalize ({{ $brandFinalizable }})
+                                            </button>
+                                            @endif
                                         </div>
                                     </td>
                                     @else
@@ -277,6 +305,34 @@
                                     {{ $bill->adjustment_amount != 0 ? number_format($bill->adjustment_amount, 2) : '—' }}
                                 </td>
                                 <td class="text-end fw-bold text-primary">{{ number_format($bill->final_amount, 2) }}</td>
+
+                                @if($loop->first)
+                                @php
+                                    $groupTotal  = $groupRows->sum('final_amount');
+                                    $groupDelta  = $groupRows->sum('line_item_override_delta');
+                                    $deltaAbs    = abs($groupDelta);
+                                    $deltaColor  = $groupDelta < 0 ? 'danger' : ($groupDelta > 0 ? 'success' : 'muted');
+                                    $deltaLabel  = $groupDelta < 0 ? 'discount' : 'extra';
+                                @endphp
+                                <td rowspan="{{ $groupRows->count() }}"
+                                    class="text-end align-middle fw-bold text-success border-start"
+                                    style="background:rgba(25,135,84,.05)">
+                                    ৳ {{ number_format($groupTotal, 2) }}
+                                </td>
+                                <td rowspan="{{ $groupRows->count() }}"
+{{--                                    class="text-end align-middle fw-semibold text-{{ $deltaColor }} border-start"--}}
+                                    class="text-end align-middle fw-semibold text-{{ $deltaLabel == 'discount' ? 'success' : 'danger' }} border-start"
+                                    style="background:rgba(0,0,0,.02)">
+                                    @if($groupDelta == 0)
+                                        <span class="text-muted">—</span>
+                                    @else
+                                        ৳ {{ number_format($deltaAbs, 2) }}
+{{--                                        <div class="small fw-normal text-{{ $deltaColor }}">{{ $deltaLabel }}</div>--}}
+                                        <div class="small fw-normal text-{{ $deltaLabel == 'discount' ? 'success' : 'danger' }}">{{ $deltaLabel }}</div>
+                                    @endif
+                                </td>
+                                @endif
+
                                 <td>
                                     @php
                                         $bc = match($bill->bill_status) {
@@ -310,7 +366,7 @@
                             @endforeach
                         @empty
                         <tr>
-                            <td colspan="10" class="text-center py-5 text-muted">
+                            <td colspan="12" class="text-center py-5 text-muted">
                                 <i class="las la-file-invoice-dollar fs-2 d-block mb-2"></i>
                                 No bills generated yet. Click "Generate Bills" above.
                             </td>
@@ -351,9 +407,12 @@
                 fetch(url, { method: 'POST', headers: { 'X-CSRF-TOKEN': csrf } })
                     .then(r => r.json())
                     .then(res => {
-                        // alert(res.message);
-                        toastr.success(res.message);
-                        if (res.success) successCb();
+                        if (res.success) {
+                            toastr.success(res.message);
+                            successCb();
+                        } else {
+                            toastr.error(res.message);
+                        }
                     });
             }
         });
@@ -466,7 +525,41 @@
         postAction(`/billing/periods/${id}/finalize`, `Finalize period "${name}"? This cannot be undone.`, () => location.reload());
     });
 
-    // Issue Bill
+    // Issue All Bills (period-level)
+    document.querySelector('.btn-issue-all-period')?.addEventListener('click', function () {
+        const id = this.dataset.id;
+        postAction(`/billing/periods/${id}/issue-all`, 'Issue all draft/adjusted bills in this period to brands?', () => location.reload());
+    });
+
+    // Issue All Bills (per-brand)
+    document.querySelectorAll('.btn-issue-brand-all').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const periodId  = this.dataset.periodId;
+            const brandId   = this.dataset.brandId;
+            const brandName = this.dataset.brandName;
+            postAction(
+                `/billing/periods/${periodId}/brands/${brandId}/issue-all`,
+                `Issue all draft/adjusted bills for "${brandName}"?`,
+                () => location.reload()
+            );
+        });
+    });
+
+    // Finalize All Bills (per-brand)
+    document.querySelectorAll('.btn-finalize-brand-all').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const periodId  = this.dataset.periodId;
+            const brandId   = this.dataset.brandId;
+            const brandName = this.dataset.brandName;
+            postAction(
+                `/billing/periods/${periodId}/brands/${brandId}/finalize-all`,
+                `Finalize all issued bills for "${brandName}"?`,
+                () => location.reload()
+            );
+        });
+    });
+
+    // Issue Bill (single)
     document.querySelectorAll('.btn-issue-bill').forEach(btn => {
         btn.addEventListener('click', function () {
             postAction(`/billing/bills/${this.dataset.id}/issue`, 'Issue this bill to the brand?', () => location.reload());

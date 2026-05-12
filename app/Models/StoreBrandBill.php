@@ -21,6 +21,7 @@ class StoreBrandBill extends Model
         'common_amount',
         'subtotal',
         'adjustment_amount',
+        'line_item_override_delta',
         'final_amount',
         'bill_status',
         'dispute_reason',
@@ -35,8 +36,9 @@ class StoreBrandBill extends Model
         'static_amount'     => 'decimal:2',
         'common_amount'     => 'decimal:2',
         'subtotal'          => 'decimal:2',
-        'adjustment_amount' => 'decimal:2',
-        'final_amount'      => 'decimal:2',
+        'adjustment_amount'        => 'decimal:2',
+        'line_item_override_delta' => 'decimal:2',
+        'final_amount'             => 'decimal:2',
         'issued_at'         => 'datetime',
         'finalized_at'      => 'datetime',
     ];
@@ -92,6 +94,12 @@ class StoreBrandBill extends Model
         $this->common_amount     = $this->lineItems()->where('payment_type', 'common')->sum('final_amount');
         $this->subtotal          = $this->ground_amount + $this->static_amount + $this->common_amount;
         $this->final_amount      = $this->subtotal + $this->adjustment_amount;
+
+        $this->line_item_override_delta = $this->lineItems()
+            ->whereNotNull('override_amount')
+            ->selectRaw('COALESCE(SUM(override_amount - calculated_amount), 0) as delta')
+            ->value('delta') ?? 0;
+
         $this->save();
     }
 }

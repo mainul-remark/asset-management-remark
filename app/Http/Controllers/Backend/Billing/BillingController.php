@@ -105,6 +105,7 @@ class BillingController extends Controller
             'issued_count'    => (clone $summaryBase)->where('bill_status', 'issued')->count(),
             'disputed_count'  => (clone $summaryBase)->where('bill_status', 'disputed')->count(),
             'finalized_count' => (clone $summaryBase)->where('bill_status', 'finalized')->count(),
+            'issuable_count'  => (clone $summaryBase)->whereIn('bill_status', ['draft', 'adjusted'])->count(),
         ];
 
         // distinct brands & stores that have bills in this period (for filter dropdowns)
@@ -116,6 +117,105 @@ class BillingController extends Controller
 
         return view('backend.billing.periods.show',
             compact('period', 'bills', 'commonLogs', 'summary', 'filterBrands', 'filterStores', 'groupBy'));
+    }
+
+    public function issueAllBills(BillPeriod $period): JsonResponse
+    {
+        if ($period->isFinalized()) {
+            return response()->json(['success' => false, 'message' => 'Period is finalized.'], 422);
+        }
+
+        try {
+            $count = StoreBrandBill::where('bill_period_id', $period->id)
+                ->whereIn('bill_status', ['draft', 'adjusted'])
+                ->update(['bill_status' => 'issued', 'issued_at' => now()]);
+
+            activity('billing')
+                ->performedOn($period)
+                ->causedBy(auth()->user())
+                ->event('bills_issued_bulk')
+                ->withProperties(['count' => $count])
+                ->log("Bulk issued {$count} bills for period '{$period->name}'.");
+
+            return response()->json([
+                'success' => true,
+                'message' => "{$count} bill(s) issued successfully.",
+                'count'   => $count,
+            ]);
+        } catch (Throwable $e) {
+            report($e);
+            return response()->json(['success' => false, 'message' => 'Failed to issue bills.'], 500);
+        }
+    }
+
+    public function issueBrandBills(BillPeriod $period, Brand $brand): JsonResponse
+    {
+        if ($period->isFinalized()) {
+            return response()->json(['success' => false, 'message' => 'Period is finalized.'], 422);
+        }
+
+        try {
+            $count = StoreBrandBill::where('bill_period_id', $period->id)
+                ->where('brand_id', $brand->id)
+                ->whereIn('bill_status', ['draft', 'adjusted'])
+                ->update(['bill_status' => 'issued', 'issued_at' => now()]);
+
+            activity('billing')
+                ->performedOn($period)
+                ->causedBy(auth()->user())
+                ->event('bills_issued_brand_bulk')
+                ->withProperties(['brand_id' => $brand->id, 'count' => $count])
+                ->log("Bulk issued {$count} bills for brand '{$brand->name}' in period '{$period->name}'.");
+
+            return response()->json([
+                'success' => true,
+                'message' => "{$count} bill(s) issued for {$brand->name}.",
+                'count'   => $count,
+            ]);
+        } catch (Throwable $e) {
+            report($e);
+            return response()->json(['success' => false, 'message' => 'Failed to issue bills.'], 500);
+        }
+    }
+
+    public function finalizeBrandBills(BillPeriod $period, Brand $brand): JsonResponse
+    {
+        if ($period->isFinalized()) {
+            return response()->json(['success' => false, 'message' => 'Period is already finalized.'], 422);
+        }
+
+        $pendingCount = BillDispute::whereHas('storeBrandBill', function ($q) use ($period, $brand) {
+            $q->where('bill_period_id', $period->id)
+              ->where('brand_id', $brand->id);
+        })->where('status', 'pending')->count();
+
+        if ($pendingCount > 0) {
+            return response()->json([
+                'success' => false,
+                'message' => "Cannot finalize: {$pendingCount} pending dispute(s) for \"{$brand->name}\" must be resolved first.",
+            ], 422);
+        }
+
+        try {
+            $count = StoreBrandBill::where('bill_period_id', $period->id)
+                ->where('brand_id', $brand->id)
+                ->where('bill_status', 'issued')
+                ->update(['bill_status' => 'finalized', 'finalized_at' => now(), 'finalized_by' => auth()->id()]);
+
+            activity('billing')->performedOn($period)->causedBy(auth()->user())
+                ->event('bills_finalized_brand_bulk')
+                ->withProperties(['brand_id' => $brand->id, 'count' => $count])
+                ->log("Bulk finalized {$count} bills for brand '{$brand->name}' in period '{$period->name}'.");
+
+            return response()->json([
+                'success' => true,
+                'message' => "{$count} bill(s) finalized for {$brand->name}.",
+                'count'   => $count,
+            ]);
+        } catch (Throwable $e) {
+            report($e);
+            return response()->json(['success' => false, 'message' => 'Failed to finalize bills.'], 500);
+        }
     }
 
     public function brandInvoiceView(BillPeriod $period, Brand $brand): View
@@ -387,15 +487,25 @@ class BillingController extends Controller
     public function overrideLineItem(Request $request, BillLineItem $lineItem): JsonResponse
     {
         $validated = $request->validate([
-            'override_amount' => ['required', 'numeric', 'min:0'],
-            'note'            => ['nullable', 'string', 'max:500'],
+            'override_amount' => [
+                'required', 'numeric', 'min:0',
+                function ($attr, $value, $fail) use ($lineItem) {
+                    if ((float) $value === (float) $lineItem->calculated_amount) {
+                        $fail('Override amount must differ from the calculated amount.');
+                    }
+                },
+            ],
+            'note' => ['nullable', 'string', 'max:500'],
         ]);
 
         try {
             DB::transaction(function () use ($lineItem, $validated) {
+                $overrideAmount = $validated['override_amount'];
+
                 $lineItem->update([
-                    'override_amount' => $validated['override_amount'],
-                    'final_amount'    => $validated['override_amount'],
+                    'override_amount' => $overrideAmount,
+                    'override_type'   => $overrideAmount < $lineItem->calculated_amount ? 'discount' : 'extra', // equal case blocked by validation above
+                    'final_amount'    => $overrideAmount,
                     'note'            => $validated['note'] ?? null,
                 ]);
 
