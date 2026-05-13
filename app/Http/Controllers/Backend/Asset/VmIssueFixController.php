@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\VisualMerchandising;
 use App\Models\VmIssueFix;
+use App\Services\StatusPermission\StatusPermissionService;
 use http\Env\Response;
 use Illuminate\Http\Request;
 use Mainul\CustomHelperFunctions\Helpers\CustomHelper;
@@ -189,6 +190,8 @@ class VmIssueFixController extends Controller
     public function changeFixStatus(Request $request, $vmId)
     {
         try {
+            app(StatusPermissionService::class)->authorize($request->issue_fix_status);
+
             $vm = VisualMerchandising::findOrFail($vmId);
             if (!$vm)
 //            return back()->withErrors('Vm Issue Not Found');

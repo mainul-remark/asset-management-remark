@@ -122,8 +122,14 @@ class BillingController extends Controller
             ->pluck('brand_id')
             ->toArray();
 
+        // brand IDs whose brand-level dispute has already been resolved
+        $brandResolvedDisputeIds = BrandBillDispute::where('bill_period_id', $period->id)
+            ->whereIn('status', ['approved', 'partially_approved'])
+            ->pluck('brand_id')
+            ->toArray();
+
         return view('backend.billing.periods.show',
-            compact('period', 'bills', 'commonLogs', 'summary', 'filterBrands', 'filterStores', 'groupBy', 'brandPendingDisputeIds'));
+            compact('period', 'bills', 'commonLogs', 'summary', 'filterBrands', 'filterStores', 'groupBy', 'brandPendingDisputeIds', 'brandResolvedDisputeIds'));
     }
 
     public function issueAllBills(BillPeriod $period): JsonResponse

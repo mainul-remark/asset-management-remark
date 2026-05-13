@@ -58,10 +58,19 @@
                                         <label class="col-md-3 fw-bold">{{ $key ?? '' }} :</label>
                                         <div class="col-md-9">
 
+                                            <div class="row mb-3">
+                                                <div class="col-md-12">
+                                                    <div class="form-check">
+                                                        <input type="checkbox" class="form-check-input border-primary select-sub-options" data-key="{{ $key ?? '' }}" id="select-sub-options-{{ $key }}">
+                                                        <label class="form-check-label" for="select-sub-options-{{ $key }}">Select All</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+
                                             @foreach($actions as $act)
                                                 @php $id = $act['id'] ?? null; @endphp
                                                 <div class="form-check  d-flex align-items-center mb-2">
-                                                    <input type="checkbox" class="form-check-input border-primary resource-checkbox"
+                                                    <input type="checkbox" class="form-check-input border-primary resource-checkbox child-{{ $key }}"
                                                            name="resource[]"
                                                            id="chk{{ $id }}"
                                                            value="{{ $id }}"
@@ -99,13 +108,44 @@
 
 @push('scripts')
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const selectAll = document.getElementById('select-all');
-            if (!selectAll) return;
+        // document.addEventListener('DOMContentLoaded', function () {
+        //     const selectAll = document.getElementById('select-all');
+        //     if (!selectAll) return;
+        //
+        //     selectAll.addEventListener('change', function () {
+        //         const checked = this.checked;
+        //         document.querySelectorAll('.resource-checkbox').forEach(cb => cb.checked = checked);
+        //     });
+        // });
 
-            selectAll.addEventListener('change', function () {
-                const checked = this.checked;
-                document.querySelectorAll('.resource-checkbox').forEach(cb => cb.checked = checked);
+        document.getElementById('select-all').addEventListener('change', function() {
+            const checked = this.checked;
+            document.querySelectorAll('.resource-checkbox').forEach(cb => cb.checked = checked);
+            document.querySelectorAll('.select-sub-options').forEach(cb => cb.checked = checked);
+        });
+
+        $(document).on('change', '.select-sub-options', function () {
+            let key = $(this).data('key');
+            let isChecked = $(this).is(':checked');
+
+            $('.child-' + key).prop('checked', isChecked);
+        });
+
+        $(document).on('change', '.resource-checkbox', function () {
+            let classList = $(this).attr('class').split(/\s+/);
+            let childClass = classList.find(function (cls) {
+                return cls.startsWith('child-');
+            });
+
+            if (!childClass) return;
+
+            let total = $('.' + childClass).length;
+            let checked = $('.' + childClass + ':checked').length;
+
+            $('.select-sub-options').each(function () {
+                if ('child-' + $(this).data('key') === childClass) {
+                    $(this).prop('checked', total > 0 && total === checked);
+                }
             });
         });
     </script>

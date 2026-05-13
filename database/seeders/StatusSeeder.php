@@ -15,6 +15,8 @@ class StatusSeeder extends Seeder
     {
         $statuses = [
             ['slug' => 'pending',    'label' => 'Pending',    'is_active' => true],
+            ['slug' => 'reviewed',   'label' => 'Reviewed',   'is_active' => true],
+            ['slug' => 'assigned',   'label' => 'Assigned',   'is_active' => true],
             ['slug' => 'processing', 'label' => 'Processing', 'is_active' => true],
             ['slug' => 'solved',     'label' => 'Solved',     'is_active' => true],
             ['slug' => 'rejected',   'label' => 'Rejected',   'is_active' => true],

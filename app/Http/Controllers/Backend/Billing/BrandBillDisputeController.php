@@ -38,6 +38,16 @@ class BrandBillDisputeController extends Controller
             return response()->json(['success' => false, 'message' => 'A pending brand dispute already exists for this brand.'], 422);
         }
 
+        if (BrandBillDispute::where('bill_period_id', $period->id)
+            ->where('brand_id', $brand->id)
+            ->whereIn('status', ['approved', 'partially_approved'])
+            ->exists()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'A dispute for this brand has already been resolved. Further disputes are not allowed.',
+            ], 422);
+        }
+
         $validated = $request->validate([
             'requested_amount' => ['required', 'numeric', 'min:0'],
             'reason'           => ['required', 'string', 'max:2000'],

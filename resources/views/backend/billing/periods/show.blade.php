@@ -270,11 +270,12 @@
                                             </button>
                                             @endif
                                             @php
-                                                $hasPendingBrandDispute = in_array($groupId, $brandPendingDisputeIds ?? []);
-                                                $brandEligible  = $groupRows->whereIn('bill_status', ['draft','adjusted','issued'])->count();
-                                                $brandDraftCount = $groupRows->whereIn('bill_status', ['draft','adjusted'])->count();
+                                                $hasPendingBrandDispute  = in_array($groupId, $brandPendingDisputeIds ?? []);
+                                                $hasResolvedBrandDispute = in_array($groupId, $brandResolvedDisputeIds ?? []);
+                                                $brandEligible           = $groupRows->whereIn('bill_status', ['draft','adjusted','issued'])->count();
+                                                $brandDraftCount         = $groupRows->whereIn('bill_status', ['draft','adjusted'])->count();
                                             @endphp
-                                            @if(!$period->isFinalized() && $brandEligible > 0 && !$hasPendingBrandDispute)
+                                            @if(!$period->isFinalized() && $brandEligible > 0 && !$hasPendingBrandDispute && !$hasResolvedBrandDispute)
                                             <button class="btn btn-outline-danger btn-raise-brand-dispute"
                                                 style="font-size:0.7rem;padding:1px 6px;line-height:1.4"
                                                 data-period-id="{{ $period->id }}"
@@ -287,6 +288,10 @@
                                             @elseif($hasPendingBrandDispute)
                                             <span class="badge bg-danger" style="font-size:0.65rem;padding:3px 5px">
                                                 <i class="las la-exclamation-triangle"></i> Dispute Pending
+                                            </span>
+                                            @elseif($hasResolvedBrandDispute)
+                                            <span class="badge bg-secondary" style="font-size:0.65rem;padding:3px 5px">
+                                                <i class="las la-check"></i> Dispute Resolved
                                             </span>
                                             @endif
                                         </div>
