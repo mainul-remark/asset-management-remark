@@ -76,6 +76,7 @@ class VmIssueFixDataTable extends DataTable
 
                 if (!($this->permissions['canChangeStatus'] ?? false) || $allowedSlugs->isEmpty()) {
                     $labels = [
+                        'pending'    => 'Pending',
                         'planned'    => 'Planned',
                         'assigned'   => 'Assigned',
                         'processing' => 'Processing',
@@ -85,6 +86,7 @@ class VmIssueFixDataTable extends DataTable
                 }
                 // all possible options — filtered to what this user may set
                 $allOptions = [
+                    'pending'    => 'Pending',
                     'planned'    => 'Planned',
                     'assigned'   => 'Assigned',
                     'processing' => 'Processing',
@@ -112,7 +114,7 @@ class VmIssueFixDataTable extends DataTable
                 if ($perms['canView'] ?? false) {
                     $buttons .= '<a href="" class="btn btn-sm btn-secondary view-vm" data-vm-id="' . $row->id . '" title="View"><i class="ri-eye-line"></i></a>';
                 }
-                if ($perms['canAssignUser'] ?? false) {
+                if (($perms['canAssignUser'] ?? false) && $row->issue_fix_status !== 'solved') {
                     $buttons .= '<a href="" class="btn btn-sm btn-secondary assign-user" data-vm-id="' . $row->id . '" title="Assign"><i class="ri-user-line"></i></a>';
                 }
                 if ($perms['canUploadProof'] ?? false) {

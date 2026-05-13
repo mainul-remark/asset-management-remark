@@ -118,8 +118,9 @@ class VmIssueFixController extends Controller
                 return response()->json(['message' => 'Vm Issue Not Found', 'success' => false]);
             }
             $vm->update([
-                'assigned_by'   => auth()->id(),
-                'assigned_to'   => $request->assigned_to,
+                'assigned_by'      => auth()->id(),
+                'assigned_to'      => $request->assigned_to,
+                'issue_fix_status' => 'assigned',
             ]);
 
             activity('workflow')
@@ -127,9 +128,9 @@ class VmIssueFixController extends Controller
                 ->causedBy(auth()->user())
                 ->event('vm_issue_assigned')
                 ->withProperties([
-                    'assigned_by' => auth()->id(),
-                    'assigned_to' => (int) $request->assigned_to,
-                    'issue_fix_status' => $vm->issue_fix_status,
+                    'assigned_by'      => auth()->id(),
+                    'assigned_to'      => (int) $request->assigned_to,
+                    'issue_fix_status' => 'assigned',
                 ])
                 ->log('Visual merchandising issue assigned to a user.');
 

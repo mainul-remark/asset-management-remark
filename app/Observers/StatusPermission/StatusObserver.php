@@ -15,16 +15,18 @@ class StatusObserver
      */
     public function created(Status $status): void
     {
+        $fullAction = StatusPermissionController::class . '@' . $status->aclAction();
+
         Resource::firstOrCreate(
             [
                 'controller' => StatusPermissionController::class,
-                'action'     => $status->aclAction(),
+                'action'     => $fullAction,
             ],
             [
                 'resource_id' => (string) Str::uuid(),
                 'name'        => 'Change status to ' . $status->label,
                 'controller'  => StatusPermissionController::class,
-                'action'      => $status->aclAction(),
+                'action'      => $fullAction,
             ]
         );
     }
@@ -35,8 +37,9 @@ class StatusObserver
     public function updated(Status $status): void
     {
         if ($status->isDirty('label')) {
+            $fullAction = StatusPermissionController::class . '@' . $status->aclAction();
             Resource::where('controller', StatusPermissionController::class)
-                ->where('action', $status->aclAction())
+                ->where('action', $fullAction)
                 ->update(['name' => 'Change status to ' . $status->label]);
         }
     }
@@ -46,8 +49,9 @@ class StatusObserver
      */
     public function deleted(Status $status): void
     {
+        $fullAction = StatusPermissionController::class . '@' . $status->aclAction();
         Resource::where('controller', StatusPermissionController::class)
-            ->where('action', $status->aclAction())
+            ->where('action', $fullAction)
             ->delete();
     }
 }
