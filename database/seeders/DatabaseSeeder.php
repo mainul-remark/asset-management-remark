@@ -29,6 +29,9 @@ class DatabaseSeeder extends Seeder
 //            BrandSeeder::class,
             RoleTableSeeder::class,
             UserRoleTableSeeder::class,
+            AssetTypeSeeder::class,
+            StoreSeeder::class,
+            AssetSeeder::class,
         ]);
     }
 }

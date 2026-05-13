@@ -2,8 +2,10 @@
 
 namespace Database\Seeders;
 
-use App\Models\Store;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
+use RuntimeException;
 
 class StoreSeeder extends Seeder
 {
@@ -12,8 +14,19 @@ class StoreSeeder extends Seeder
      */
     public function run(): void
     {
-        Store::factory()
-            ->count(5)
-            ->create();
+        $sqlPath = database_path('seeders/sql/stores.sql');
+
+        if (! File::exists($sqlPath)) {
+            throw new RuntimeException("Store seed data file not found: {$sqlPath}");
+        }
+
+        DB::statement('SET FOREIGN_KEY_CHECKS=0');
+
+        try {
+            DB::table('stores')->truncate();
+            DB::unprepared(File::get($sqlPath));
+        } finally {
+            DB::statement('SET FOREIGN_KEY_CHECKS=1');
+        }
     }
 }

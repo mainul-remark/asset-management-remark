@@ -17,14 +17,19 @@ class BrandBillDisputeController extends Controller
 {
     public function store(Request $request, BillPeriod $period, Brand $brand): JsonResponse
     {
-        $issuedCount = StoreBrandBill::where('bill_period_id', $period->id)
+        $billCount = StoreBrandBill::where('bill_period_id', $period->id)
             ->where('brand_id', $brand->id)
-            ->where('bill_status', 'issued')
             ->count();
 
-        if ($issuedCount === 0) {
-            return response()->json(['success' => false, 'message' => 'No issued bills found for this brand in this period.'], 422);
+        if ($billCount === 0) {
+            return response()->json(['success' => false, 'message' => 'No bills found for this brand in this period.'], 422);
         }
+
+        // Auto-issue any draft/adjusted bills before raising the dispute
+        StoreBrandBill::where('bill_period_id', $period->id)
+            ->where('brand_id', $brand->id)
+            ->whereIn('bill_status', ['draft', 'adjusted'])
+            ->update(['bill_status' => 'issued', 'issued_at' => now()]);
 
         if (BrandBillDispute::where('bill_period_id', $period->id)
             ->where('brand_id', $brand->id)

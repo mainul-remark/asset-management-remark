@@ -271,15 +271,17 @@
                                             @endif
                                             @php
                                                 $hasPendingBrandDispute = in_array($groupId, $brandPendingDisputeIds ?? []);
-                                                $brandIssuedCount = $groupRows->where('bill_status', 'issued')->count();
+                                                $brandEligible  = $groupRows->whereIn('bill_status', ['draft','adjusted','issued'])->count();
+                                                $brandDraftCount = $groupRows->whereIn('bill_status', ['draft','adjusted'])->count();
                                             @endphp
-                                            @if(!$period->isFinalized() && $brandIssuedCount > 0 && !$hasPendingBrandDispute)
+                                            @if(!$period->isFinalized() && $brandEligible > 0 && !$hasPendingBrandDispute)
                                             <button class="btn btn-outline-danger btn-raise-brand-dispute"
                                                 style="font-size:0.7rem;padding:1px 6px;line-height:1.4"
                                                 data-period-id="{{ $period->id }}"
                                                 data-brand-id="{{ $groupId }}"
                                                 data-brand-name="{{ $bill->brand?->name }}"
-                                                data-total="{{ $groupRows->sum('final_amount') }}">
+                                                data-total="{{ $groupRows->sum('final_amount') }}"
+                                                data-draft-count="{{ $brandDraftCount }}">
                                                 <i class="las la-exclamation-circle"></i> Dispute
                                             </button>
                                             @elseif($hasPendingBrandDispute)
@@ -412,6 +414,10 @@
             <div class="modal-body">
                 <p class="text-muted small mb-1">Brand: <strong id="bdBrandName"></strong></p>
                 <p class="text-muted small mb-3">Current Total: <strong id="bdCurrentTotal"></strong></p>
+                <div id="bdDraftNote" class="alert alert-warning small py-2 d-none">
+                    <i class="las la-info-circle me-1"></i>
+                    <span id="bdDraftNoteText"></span>
+                </div>
                 <div class="mb-3">
                     <label class="form-label fw-semibold">Requested Total Amount <span class="text-danger">*</span></label>
                     <input type="number" step="0.01" id="bdRequestedAmount" class="form-control" placeholder="Amount you want to pay in total">
@@ -615,10 +621,19 @@
             btn.addEventListener('click', function () {
                 activePeriodId = this.dataset.periodId;
                 activeBrandId  = this.dataset.brandId;
+                const draftCount = parseInt(this.dataset.draftCount || 0);
                 document.getElementById('bdBrandName').textContent    = this.dataset.brandName;
                 document.getElementById('bdCurrentTotal').textContent = '৳ ' + parseFloat(this.dataset.total).toLocaleString('en-US', {minimumFractionDigits:2});
                 document.getElementById('bdRequestedAmount').value    = '';
                 document.getElementById('bdReason').value             = '';
+                const noteEl = document.getElementById('bdDraftNote');
+                if (draftCount > 0) {
+                    document.getElementById('bdDraftNoteText').textContent =
+                        `${draftCount} draft/adjusted bill(s) will be automatically issued before the dispute is submitted.`;
+                    noteEl.classList.remove('d-none');
+                } else {
+                    noteEl.classList.add('d-none');
+                }
                 modal.show();
             });
         });
