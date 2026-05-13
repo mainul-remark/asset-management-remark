@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class DatabaseSeeder extends Seeder
 {
@@ -20,8 +21,10 @@ class DatabaseSeeder extends Seeder
 //            'email' => 'dev@email.com',
 //            'password' => '123',
 //        ]);
+
+        // Disable foreign key checks before seeding
+        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
         $this->call([
-            BrandSeeder::class,
             DivisionSeeder::class,
             DistrictSeeder::class,
             ThanaSeeder::class,
@@ -29,9 +32,12 @@ class DatabaseSeeder extends Seeder
 //            BrandSeeder::class,
             RoleTableSeeder::class,
             UserRoleTableSeeder::class,
+            BrandSeeder::class,
             AssetTypeSeeder::class,
             StoreSeeder::class,
             AssetSeeder::class,
         ]);
+        // Re-enable foreign key checks after seeding
+        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
     }
 }

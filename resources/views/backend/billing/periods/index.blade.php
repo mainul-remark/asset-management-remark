@@ -13,9 +13,11 @@
                 </ol>
             </nav>
         </div>
+        @allowed('billing.periods.create')
         <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createPeriodModal">
             <i class="las la-plus me-1"></i> New Period
         </button>
+        @endallowed
     </div>
 
     @if(session('success'))
@@ -67,24 +69,30 @@
                             <td class="text-end">
                                 <div class="d-flex gap-1 justify-content-end">
                                     @if(!$period->isFinalized())
+                                        @allowed('billing.periods.generate')
                                         <button class="btn btn-sm btn-outline-primary btn-generate"
                                             data-id="{{ $period->id }}"
                                             data-name="{{ $period->name }}"
                                             title="Generate Bills">
                                             <i class="las la-cog"></i>
                                         </button>
+                                        @endallowed
                                     @endif
+                                    @allowed('billing.periods.show')
                                     <a href="{{ route('billing.periods.show', $period) }}"
                                        class="btn btn-sm btn-outline-secondary" title="View Bills">
                                         <i class="las la-eye"></i>
                                     </a>
+                                    @endallowed
                                     @if($period->isGenerated() && !$period->isFinalized())
+                                        @allowed('billing.periods.finalize')
                                         <button class="btn btn-sm btn-outline-success btn-finalize-period"
                                             data-id="{{ $period->id }}"
                                             data-name="{{ $period->name }}"
                                             title="Finalize Period">
                                             <i class="las la-lock"></i>
                                         </button>
+                                        @endallowed
                                     @endif
                                 </div>
                             </td>
@@ -111,6 +119,7 @@
 @endsection
 
 @section('modal')
+@allowed('billing.periods.create')
 <!-- Create Period Modal -->
 <div class="modal fade" id="createPeriodModal" tabindex="-1">
     <div class="modal-dialog">
@@ -157,6 +166,7 @@
         </div>
     </div>
 </div>
+@endallowed
 @endsection
 
 @push('scripts')

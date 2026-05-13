@@ -16,18 +16,28 @@
             </nav>
         </div>
         <div class="d-flex gap-2 flex-wrap">
+            @allowed('billing.bills.invoice')
             <a href="{{ route('billing.bills.invoice', $bill) }}" target="_blank" class="btn btn-sm btn-outline-secondary">
                 <i class="las la-print me-1"></i> Invoice
             </a>
+            @endallowed
             @if($bill->bill_status === 'draft' || $bill->bill_status === 'adjusted')
+                @allowed('billing.bills.issue')
                 <button class="btn btn-sm btn-primary" id="btnIssueBill"><i class="las la-paper-plane me-1"></i> Issue to Brand</button>
+                @endallowed
             @endif
             @if(in_array($bill->bill_status, ['issued','adjusted']))
+                @allowed('billing.bills.adjust')
                 <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#adjustModal"><i class="las la-edit me-1"></i> Adjust Bill</button>
+                @endallowed
+                @allowed('billing.bills.finalize')
                 <button class="btn btn-sm btn-success" id="btnFinalizeBill"><i class="las la-check-circle me-1"></i> Finalize</button>
+                @endallowed
             @endif
             @if($bill->bill_status === 'finalized')
+                @allowed('billing.bills.paid')
                 <button class="btn btn-sm btn-dark" id="btnMarkPaid"><i class="las la-money-check me-1"></i> Mark as Paid</button>
+                @endallowed
             @endif
         </div>
     </div>
@@ -155,6 +165,7 @@
                                     </td>
                                     <td>
                                         @if(!$bill->billPeriod?->isFinalized())
+                                        @allowed('billing.line-items.override')
                                         <button class="btn btn-xs btn-outline-secondary py-0 px-1 btn-override-line"
                                             data-id="{{ $item->id }}"
                                             data-amount="{{ $item->final_amount }}"
@@ -162,6 +173,7 @@
                                             title="Override">
                                             <i class="las la-pen" style="font-size:12px"></i>
                                         </button>
+                                        @endallowed
                                         @endif
                                     </td>
                                 </tr>
@@ -203,7 +215,9 @@
                                     <td class="text-muted">{{ $dispute->admin_response ?? '—' }}</td>
                                     <td>
                                         @if($dispute->status === 'pending')
+                                            @allowed('billing.disputes.show')
                                             <a href="{{ route('billing.disputes.show', $dispute) }}" class="btn btn-xs btn-outline-primary py-0 px-2">Review</a>
+                                            @endallowed
                                         @endif
                                     </td>
                                 </tr>
@@ -217,11 +231,13 @@
 
             {{-- Submit dispute button for issued bills --}}
             @if(in_array($bill->bill_status, ['issued']))
+            @allowed('billing.disputes.store')
             <div class="mt-3 d-flex justify-content-end">
                 <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#disputeModal">
                     <i class="las la-exclamation-circle me-1"></i> Raise Dispute
                 </button>
             </div>
+            @endallowed
             @endif
         </div>
     </div>

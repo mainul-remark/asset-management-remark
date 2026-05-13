@@ -511,11 +511,11 @@
                                             @csrf
                                             <div class="form-group mb-3">
                                                 <label class="form-label">Email</label> <input class="form-control"
-                                                                                               placeholder="Enter your email" type="text" name="email" value="dev@email.com">
+                                                                                               placeholder="Enter your email" type="text" name="email" value="developer@remarkhb.com">
                                             </div>
                                             <div class="form-group mb-3">
                                                 <label class="form-label">Password</label> <input class="form-control"
-                                                                                                  placeholder="Enter your password" type="password" name="password" value="123">
+                                                                                                  placeholder="Enter your password" type="password" name="password" value="developer">
                                             </div>
                                             <button type="submit"  class="btn btn-primary btn-block w-100">Sign In</button>
 {{--                                            <div class="row mt-3">--}}

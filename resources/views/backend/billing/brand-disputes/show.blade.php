@@ -59,6 +59,7 @@
             </div>
 
             @if($dispute->status === 'pending')
+            @allowed('billing.brand-disputes.approve')
             <div class="card border-0 shadow-sm border-start border-primary border-3">
                 <div class="card-header bg-white fw-semibold text-primary">Admin Review</div>
                 <div class="card-body">
@@ -90,6 +91,7 @@
                     </div>
                 </div>
             </div>
+            @endallowed
             @endif
         </div>
 

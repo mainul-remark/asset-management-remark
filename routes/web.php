@@ -201,6 +201,7 @@ Route::get('/has-kv', function (){
 //    \App\Models\Asset::whereNotIn('id', [1,2])
 //        ->update(['has_kv_slot' => 1]);
 //    return \Illuminate\Support\Facades\Hash::make('@');
+//    return \Illuminate\Support\Facades\Hash::make('developer');
     return response()->json([
         'success'   => true,
         'message'   => 'Response message goes here.',

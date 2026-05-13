@@ -20,21 +20,27 @@
             @endphp
             <span class="badge bg-{{ $statusColor }} fs-6 text-capitalize px-3 py-2">{{ $period->status }}</span>
             @if(!$period->isFinalized())
+                @allowed('billing.periods.generate')
                 <button class="btn btn-sm btn-primary btn-generate" data-id="{{ $period->id }}" data-name="{{ $period->name }}">
                     <span class="spinner-border spinner-border-sm d-none me-1" id="genSpinner"></span>
                     <i class="las la-cog me-1" id="genIcon"></i><span id="genText">{{ $period->isGenerated() ? 'Regenerate Bills' : 'Generate Bills' }}</span>
                 </button>
+                @endallowed
             @endif
             @if(!$period->isFinalized() && ($summary['issuable_count'] ?? 0) > 0)
+                @allowed('billing.periods.issue-all')
                 <button class="btn btn-sm btn-warning btn-issue-all-period" data-id="{{ $period->id }}">
                     <i class="las la-paper-plane me-1"></i> Issue All Bills
                     <span class="badge bg-white text-dark ms-1">{{ $summary['issuable_count'] }}</span>
                 </button>
+                @endallowed
             @endif
             @if($period->isGenerated() && !$period->isFinalized())
+                @allowed('billing.periods.finalize')
                 <button class="btn btn-sm btn-success btn-finalize-period" data-id="{{ $period->id }}" data-name="{{ $period->name }}">
                     <i class="las la-lock me-1"></i> Finalize Period
                 </button>
+                @endallowed
             @endif
         </div>
     </div>
@@ -190,10 +196,12 @@
                         </a>
                     @endif
                     @if(request('brand_id'))
+                        @allowed('billing.periods.brand-invoice')
                         <a href="{{ route('billing.periods.brand-invoice', [$period, request('brand_id')]) }}"
                            target="_blank" class="btn btn-sm btn-success">
                             <i class="las la-file-invoice-dollar me-1"></i>Brand Invoice
                         </a>
+                        @endallowed
                     @endif
                 </div>
 
@@ -251,6 +259,7 @@
                                                 {{ $groupRows->count() }} {{ Str::plural('store', $groupRows->count()) }}
                                             </span>
                                             @if(!$period->isFinalized() && $brandIssuable > 0)
+                                            @allowed('billing.periods.brand-issue-all')
                                             <button class="btn btn-outline-warning btn-issue-brand-all"
                                                 style="font-size:0.7rem;padding:1px 6px;line-height:1.4"
                                                 data-period-id="{{ $period->id }}"
@@ -258,9 +267,11 @@
                                                 data-brand-name="{{ $bill->brand?->name }}">
                                                 <i class="las la-paper-plane"></i> Issue ({{ $brandIssuable }})
                                             </button>
+                                            @endallowed
                                             @endif
                                             @php $brandFinalizable = $groupRows->where('bill_status', 'issued')->count(); @endphp
                                             @if(!$period->isFinalized() && $brandFinalizable > 0)
+                                            @allowed('billing.periods.brand-finalize-all')
                                             <button class="btn btn-outline-success btn-finalize-brand-all"
                                                 style="font-size:0.7rem;padding:1px 6px;line-height:1.4"
                                                 data-period-id="{{ $period->id }}"
@@ -268,6 +279,7 @@
                                                 data-brand-name="{{ $bill->brand?->name }}">
                                                 <i class="las la-check-circle"></i> Finalize ({{ $brandFinalizable }})
                                             </button>
+                                            @endallowed
                                             @endif
                                             @php
                                                 $hasPendingBrandDispute  = in_array($groupId, $brandPendingDisputeIds ?? []);
@@ -276,6 +288,7 @@
                                                 $brandDraftCount         = $groupRows->whereIn('bill_status', ['draft','adjusted'])->count();
                                             @endphp
                                             @if(!$period->isFinalized() && $brandEligible > 0 && !$hasPendingBrandDispute && !$hasResolvedBrandDispute)
+                                            @allowed('billing.brand-disputes.store')
                                             <button class="btn btn-outline-danger btn-raise-brand-dispute"
                                                 style="font-size:0.7rem;padding:1px 6px;line-height:1.4"
                                                 data-period-id="{{ $period->id }}"
@@ -285,6 +298,7 @@
                                                 data-draft-count="{{ $brandDraftCount }}">
                                                 <i class="las la-exclamation-circle"></i> Dispute
                                             </button>
+                                            @endallowed
                                             @elseif($hasPendingBrandDispute)
                                             <span class="badge bg-danger" style="font-size:0.65rem;padding:3px 5px">
                                                 <i class="las la-exclamation-triangle"></i> Dispute Pending
@@ -369,21 +383,27 @@
                                 </td>
                                 <td class="text-end">
                                     <div class="d-flex gap-1 justify-content-end">
+                                        @allowed('billing.bills.show')
                                         <a href="{{ route('billing.bills.show', $bill) }}"
                                            class="btn btn-sm btn-outline-secondary" title="View">
                                             <i class="las la-eye"></i>
                                         </a>
+                                        @endallowed
                                         @if($bill->bill_status === 'draft' || $bill->bill_status === 'adjusted')
+                                            @allowed('billing.bills.issue')
                                             <button class="btn btn-sm btn-outline-primary btn-issue-bill"
                                                 data-id="{{ $bill->id }}" title="Issue to Brand">
                                                 <i class="las la-paper-plane"></i>
                                             </button>
+                                            @endallowed
                                         @endif
                                         @if($bill->bill_status === 'issued' || $bill->bill_status === 'adjusted')
+                                            @allowed('billing.bills.finalize')
                                             <button class="btn btn-sm btn-outline-success btn-finalize-bill"
                                                 data-id="{{ $bill->id }}" title="Finalize">
                                                 <i class="las la-check-circle"></i>
                                             </button>
+                                            @endallowed
                                         @endif
                                     </div>
                                 </td>

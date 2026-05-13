@@ -78,9 +78,11 @@
                                     <td class="small">{{ $dispute->requestedBy?->name }}</td>
                                     <td class="small text-muted">{{ $dispute->created_at?->format('d M Y') }}</td>
                                     <td>
+                                        @allowed('billing.disputes.show')
                                         <a href="{{ route('billing.disputes.show', $dispute) }}" class="btn btn-sm btn-outline-primary">
                                             {{ $dispute->status === 'pending' ? 'Review' : 'View' }}
                                         </a>
+                                        @endallowed
                                     </td>
                                 </tr>
                                 @empty
@@ -141,9 +143,11 @@
                                     <td class="small">{{ $dispute->requestedBy?->name }}</td>
                                     <td class="small text-muted">{{ $dispute->created_at?->format('d M Y') }}</td>
                                     <td>
+                                        @allowed('billing.brand-disputes.show')
                                         <a href="{{ route('billing.brand-disputes.show', $dispute) }}" class="btn btn-sm btn-outline-primary">
                                             {{ $dispute->status === 'pending' ? 'Review' : 'View' }}
                                         </a>
+                                        @endallowed
                                     </td>
                                 </tr>
                                 @empty
