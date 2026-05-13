@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Backend\Billing;
 
 use App\Http\Controllers\Controller;
 use App\Models\BillDispute;
+use App\Models\BrandBillDispute;
 use App\Models\BillLineItem;
 use App\Models\BillPeriod;
 use App\Models\Brand;
@@ -115,8 +116,14 @@ class BillingController extends Controller
         $filterStores  = Store::whereIn('id', (clone $periodBillIds)->pluck('store_id'))
             ->orderBy('title')->get(['id', 'title', 'code']);
 
+        // brand IDs that have a pending brand-level dispute in this period
+        $brandPendingDisputeIds = BrandBillDispute::where('bill_period_id', $period->id)
+            ->where('status', 'pending')
+            ->pluck('brand_id')
+            ->toArray();
+
         return view('backend.billing.periods.show',
-            compact('period', 'bills', 'commonLogs', 'summary', 'filterBrands', 'filterStores', 'groupBy'));
+            compact('period', 'bills', 'commonLogs', 'summary', 'filterBrands', 'filterStores', 'groupBy', 'brandPendingDisputeIds'));
     }
 
     public function issueAllBills(BillPeriod $period): JsonResponse
@@ -192,7 +199,19 @@ class BillingController extends Controller
         if ($pendingCount > 0) {
             return response()->json([
                 'success' => false,
-                'message' => "Cannot finalize: {$pendingCount} pending dispute(s) for \"{$brand->name}\" must be resolved first.",
+                'message' => "Cannot finalize: {$pendingCount} pending bill dispute(s) for \"{$brand->name}\" must be resolved first.",
+            ], 422);
+        }
+
+        $pendingBrandDispute = BrandBillDispute::where('bill_period_id', $period->id)
+            ->where('brand_id', $brand->id)
+            ->where('status', 'pending')
+            ->exists();
+
+        if ($pendingBrandDispute) {
+            return response()->json([
+                'success' => false,
+                'message' => "Cannot finalize: a pending brand dispute for \"{$brand->name}\" must be resolved first.",
             ], 422);
         }
 

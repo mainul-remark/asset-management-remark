@@ -269,6 +269,24 @@
                                                 <i class="las la-check-circle"></i> Finalize ({{ $brandFinalizable }})
                                             </button>
                                             @endif
+                                            @php
+                                                $hasPendingBrandDispute = in_array($groupId, $brandPendingDisputeIds ?? []);
+                                                $brandIssuedCount = $groupRows->where('bill_status', 'issued')->count();
+                                            @endphp
+                                            @if(!$period->isFinalized() && $brandIssuedCount > 0 && !$hasPendingBrandDispute)
+                                            <button class="btn btn-outline-danger btn-raise-brand-dispute"
+                                                style="font-size:0.7rem;padding:1px 6px;line-height:1.4"
+                                                data-period-id="{{ $period->id }}"
+                                                data-brand-id="{{ $groupId }}"
+                                                data-brand-name="{{ $bill->brand?->name }}"
+                                                data-total="{{ $groupRows->sum('final_amount') }}">
+                                                <i class="las la-exclamation-circle"></i> Dispute
+                                            </button>
+                                            @elseif($hasPendingBrandDispute)
+                                            <span class="badge bg-danger" style="font-size:0.65rem;padding:3px 5px">
+                                                <i class="las la-exclamation-triangle"></i> Dispute Pending
+                                            </span>
+                                            @endif
                                         </div>
                                     </td>
                                     @else
@@ -383,6 +401,35 @@
         @endif
     </div>
 </div>
+{{-- Brand Dispute Modal --}}
+<div class="modal fade" id="brandDisputeModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="las la-exclamation-circle me-1 text-danger"></i> Raise Brand Dispute</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted small mb-1">Brand: <strong id="bdBrandName"></strong></p>
+                <p class="text-muted small mb-3">Current Total: <strong id="bdCurrentTotal"></strong></p>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Requested Total Amount <span class="text-danger">*</span></label>
+                    <input type="number" step="0.01" id="bdRequestedAmount" class="form-control" placeholder="Amount you want to pay in total">
+                    <div class="form-text">Will be distributed proportionally across all store bills for this brand.</div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Reason <span class="text-danger">*</span></label>
+                    <textarea class="form-control" id="bdReason" rows="4" placeholder="Explain the reason for the dispute..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                <button class="btn btn-danger btn-sm" id="bdSubmitBtn">Submit Dispute</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @endsection
 
 @push('scripts')
@@ -558,6 +605,46 @@
             );
         });
     });
+
+    // Raise Brand Dispute
+    (function () {
+        let activePeriodId = null, activeBrandId = null;
+        const modal = new bootstrap.Modal(document.getElementById('brandDisputeModal'));
+
+        document.querySelectorAll('.btn-raise-brand-dispute').forEach(btn => {
+            btn.addEventListener('click', function () {
+                activePeriodId = this.dataset.periodId;
+                activeBrandId  = this.dataset.brandId;
+                document.getElementById('bdBrandName').textContent    = this.dataset.brandName;
+                document.getElementById('bdCurrentTotal').textContent = '৳ ' + parseFloat(this.dataset.total).toLocaleString('en-US', {minimumFractionDigits:2});
+                document.getElementById('bdRequestedAmount').value    = '';
+                document.getElementById('bdReason').value             = '';
+                modal.show();
+            });
+        });
+
+        document.getElementById('bdSubmitBtn')?.addEventListener('click', function () {
+            const amount = document.getElementById('bdRequestedAmount').value.trim();
+            const reason = document.getElementById('bdReason').value.trim();
+            if (!amount || !reason) { toastr.error('Please fill in all required fields.'); return; }
+
+            fetch(`/billing/periods/${activePeriodId}/brands/${activeBrandId}/brand-dispute`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf },
+                body: JSON.stringify({ requested_amount: amount, reason: reason }),
+            })
+            .then(r => r.json())
+            .then(res => {
+                if (res.success) {
+                    toastr.success(res.message);
+                    modal.hide();
+                    setTimeout(() => location.reload(), 1200);
+                } else {
+                    toastr.error(res.message);
+                }
+            });
+        });
+    })();
 
     // Issue Bill (single)
     document.querySelectorAll('.btn-issue-bill').forEach(btn => {

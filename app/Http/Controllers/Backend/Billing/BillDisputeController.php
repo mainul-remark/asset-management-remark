@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Backend\Billing;
 
 use App\Http\Controllers\Controller;
 use App\Models\BillDispute;
+use App\Models\BrandBillDispute;
 use App\Models\StoreBrandBill;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -28,7 +29,20 @@ class BillDisputeController extends Controller
 
         $pendingCount = BillDispute::where('status', 'pending')->count();
 
-        return view('backend.billing.disputes.index', compact('disputes', 'pendingCount'));
+        $brandDisputes = BrandBillDispute::query()
+            ->with([
+                'billPeriod:id,name',
+                'brand:id,name,code',
+                'requestedBy:id,name',
+                'reviewedBy:id,name',
+            ])
+            ->latest()
+            ->paginate(20, ['*'], 'brand_page');
+
+        $brandPendingCount = BrandBillDispute::where('status', 'pending')->count();
+
+        return view('backend.billing.disputes.index',
+            compact('disputes', 'pendingCount', 'brandDisputes', 'brandPendingCount'));
     }
 
     public function store(Request $request, StoreBrandBill $bill): JsonResponse

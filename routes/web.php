@@ -27,6 +27,7 @@ use App\Http\Controllers\Backend\KV\KvInstallationController;
 use App\Http\Controllers\Backend\Asset\ImportExport\AssetImportController;
 use App\Http\Controllers\Backend\Billing\BillingController;
 use App\Http\Controllers\Backend\Billing\BillDisputeController;
+use App\Http\Controllers\Backend\Billing\BrandBillDisputeController;
 
 Route::get('/', function () {
     if (auth()->check())
@@ -162,13 +163,20 @@ Route::middleware([
         Route::get('/bills/{bill}/invoice',              [BillingController::class, 'invoiceView'])->name('bills.invoice');
         Route::post('/line-items/{lineItem}/override',   [BillingController::class, 'overrideLineItem'])->name('line-items.override');
 
-        // Disputes
+        // Disputes (per-bill)
         Route::get('/disputes',                          [BillDisputeController::class, 'index'])->name('disputes.index');
         Route::post('/disputes/{bill}',                  [BillDisputeController::class, 'store'])->name('disputes.store');
         Route::get('/disputes/{dispute}',                [BillDisputeController::class, 'show'])->name('disputes.show');
         Route::post('/disputes/{dispute}/approve',       [BillDisputeController::class, 'approve'])->name('disputes.approve');
         Route::post('/disputes/{dispute}/partial',       [BillDisputeController::class, 'partialApprove'])->name('disputes.partial');
         Route::post('/disputes/{dispute}/reject',        [BillDisputeController::class, 'reject'])->name('disputes.reject');
+
+        // Brand-level disputes
+        Route::post('/periods/{period}/brands/{brand}/brand-dispute',  [BrandBillDisputeController::class, 'store'])->name('brand-disputes.store');
+        Route::get('/brand-disputes/{dispute}',                        [BrandBillDisputeController::class, 'show'])->name('brand-disputes.show');
+        Route::post('/brand-disputes/{dispute}/approve',               [BrandBillDisputeController::class, 'approve'])->name('brand-disputes.approve');
+        Route::post('/brand-disputes/{dispute}/partial',               [BrandBillDisputeController::class, 'partialApprove'])->name('brand-disputes.partial');
+        Route::post('/brand-disputes/{dispute}/reject',                [BrandBillDisputeController::class, 'reject'])->name('brand-disputes.reject');
     });
     // ── End Billing ───────────────────────────────────────────────────────────
 
