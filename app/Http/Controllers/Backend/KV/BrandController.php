@@ -16,10 +16,10 @@ class BrandController extends Controller
         return view('backend.kv.brands', [
             'brands'      => Brand::latest()->get(),
             'permissions' => [
-                'canCreate' => allowed([self::class, 'store']),
-                'canView'   => allowed([self::class, 'show']),
-                'canEdit'   => allowed([self::class, 'edit']),
-                'canDelete' => allowed([self::class, 'destroy']),
+                'canCreate' => allowed('brands.store'),
+                'canView'   => allowed('brands.show'),
+                'canEdit'   => allowed('brands.edit'),
+                'canDelete' => allowed('brands.destroy'),
             ],
         ]);
     }

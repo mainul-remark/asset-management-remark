@@ -17,9 +17,9 @@ class KvInstallationController extends Controller
         return view('backend.kv.kv-installation', [
             'stores'      => Store::where('status', 1)->orderBy('title')->get(['id', 'title', 'slug', 'code']),
             'permissions' => [
-                'canView'         => allowed([self::class, 'kvInstallationDetail']),
-                'canChangeStatus' => allowed([self::class, 'updateAssignedKvStatusData']),
-                'canUploadProof'  => allowed([self::class, 'updateAssignedKvStatusData']),
+                'canView'         => allowed('key-visuals.kv-installation.detail'),
+                'canChangeStatus' => allowed('key-visuals.update-asset-assigned-kv-data'),
+                'canUploadProof'  => allowed('key-visuals.update-asset-assigned-kv-data'),
             ],
         ]);
     }
@@ -27,9 +27,9 @@ class KvInstallationController extends Controller
     public function kvInstallationDatatable(Request $request): JsonResponse
     {
         $permissions = [
-            'canView'         => allowed([self::class, 'kvInstallationDetail']),
-            'canChangeStatus' => allowed([self::class, 'updateAssignedKvStatusData']),
-            'canUploadProof'  => allowed([self::class, 'updateAssignedKvStatusData']),
+            'canView'         => allowed('key-visuals.kv-installation.detail'),
+            'canChangeStatus' => allowed('key-visuals.update-asset-assigned-kv-data'),
+            'canUploadProof'  => allowed('key-visuals.update-asset-assigned-kv-data'),
         ];
 
         $query = AssignKvToAsset::query()

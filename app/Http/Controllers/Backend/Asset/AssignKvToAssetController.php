@@ -27,9 +27,9 @@ class AssignKvToAssetController extends Controller
     {
         return view('backend.kv.assign-kv-to-asset', [
             'permissions' => [
-                'canCreate' => allowed([self::class, 'store']),
-                'canEdit'   => allowed([self::class, 'edit']),
-                'canDelete' => allowed([self::class, 'destroy']),
+                'canCreate' => allowed('key-visuals.assign-kvs.store'),
+                'canEdit'   => allowed('key-visuals.assign-kvs.edit'),
+                'canDelete' => allowed('key-visuals.assign-kvs.destroy'),
             ],
             'divisions' => Division::orderBy('name')->get(['id', 'name']),
             'districts' => District::orderBy('name')->get(['id', 'division_id', 'name']),

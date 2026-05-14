@@ -47,10 +47,10 @@ class KeyVisualFilesController extends Controller
                 ->get(),
             'selectedKeyVisualId' => $selectedKeyVisual?->id,
             'permissions'        => [
-                'canCreate' => allowed([self::class, 'store']),
-                'canView'   => allowed([self::class, 'show']),
-                'canEdit'   => allowed([self::class, 'edit']),
-                'canDelete' => allowed([self::class, 'destroy']),
+                'canCreate' => allowed('key-visual-files.store'),
+                'canView'   => allowed('key-visual-files.show'),
+                'canEdit'   => allowed('key-visual-files.edit'),
+                'canDelete' => allowed('key-visual-files.destroy'),
             ],
         ]);
     }

@@ -35,10 +35,10 @@ class CategoryController extends Controller
 
         return view('backend.kv.categories', compact('categories', 'allCategories', 'parent', 'breadcrumbs') + [
             'permissions' => [
-                'canCreate' => allowed([self::class, 'store']),
-                'canView'   => allowed([self::class, 'show']),
-                'canEdit'   => allowed([self::class, 'edit']),
-                'canDelete' => allowed([self::class, 'destroy']),
+                'canCreate' => allowed('categories.store'),
+                'canView'   => allowed('categories.show'),
+                'canEdit'   => allowed('categories.edit'),
+                'canDelete' => allowed('categories.destroy'),
             ],
         ]);
     }

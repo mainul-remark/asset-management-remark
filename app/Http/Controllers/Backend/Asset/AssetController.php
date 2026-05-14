@@ -28,11 +28,11 @@ class AssetController extends Controller
 {
     public function index(Request $request)
     {
-        $canView        = allowed([self::class, 'show']);
-        $canEdit        = allowed([self::class, 'edit']);
-        $canDelete      = allowed([self::class, 'destroy']);
-        $canBrandAssign = allowed([AssignAssetToBrandController::class, 'store']);
-        $canKvAssign    = allowed([AssignKvToAssetController::class, 'store']);
+        $canView        = allowed('assets.show');
+        $canEdit        = allowed('assets.edit');
+        $canDelete      = allowed('assets.destroy');
+        $canBrandAssign = allowed('assets.assign-asset-to-brand.store');
+        $canKvAssign    = allowed('key-visuals.assign-kvs.store');
 
         if ($request->ajax()) {
             $query = Asset::query()
@@ -158,13 +158,13 @@ class AssetController extends Controller
                 ->orderBy('name')
                 ->get(['id', 'name', 'key_visual_id', 'key_visual_size_id', 'kv_file', 'kv_size', 'file_type']),
             'permissions' => [
-                'canCreate'      => allowed([self::class, 'store']),
+                'canCreate'      => allowed('assets.store'),
                 'canView'        => $canView,
                 'canEdit'        => $canEdit,
                 'canDelete'      => $canDelete,
                 'canBrandAssign' => $canBrandAssign,
                 'canKvAssign'    => $canKvAssign,
-                'canImport'      => allowed([AssetImportController::class, 'import']),
+                'canImport'      => allowed('assets.import-assets'),
             ],
         ]);
     }

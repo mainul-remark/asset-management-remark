@@ -13,10 +13,10 @@ class KeyVisualSizesController extends Controller
         return view('backend.kv.kv-sizes', [
             'kvSizes'     => KeyVisualSize::latest()->get(),
             'permissions' => [
-                'canCreate' => allowed([self::class, 'store']),
-                'canView'   => allowed([self::class, 'show']),
-                'canEdit'   => allowed([self::class, 'edit']),
-                'canDelete' => allowed([self::class, 'destroy']),
+                'canCreate' => allowed('key-visual-sizes.store'),
+                'canView'   => allowed('key-visual-sizes.show'),
+                'canEdit'   => allowed('key-visual-sizes.edit'),
+                'canDelete' => allowed('key-visual-sizes.destroy'),
             ],
         ]);
     }

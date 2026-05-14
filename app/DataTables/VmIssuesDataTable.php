@@ -54,9 +54,9 @@ class VmIssuesDataTable extends DataTable
                 return '<span class="inst-no-photos">File</span>' . $extra;
             })
             ->addColumn('actions', function ($row) {
-                $canView   = allowed([VisualMerchandisingController::class, 'show']);
-                $canEdit   = allowed([VisualMerchandisingController::class, 'edit']);
-                $canDelete = allowed([VisualMerchandisingController::class, 'destroy']);
+                $canView   = allowed('visual-merchandising.show');
+                $canEdit   = allowed('visual-merchandising.edit');
+                $canDelete = allowed('visual-merchandising.destroy');
 
                 $buttons = '';
                 if ($canView) {

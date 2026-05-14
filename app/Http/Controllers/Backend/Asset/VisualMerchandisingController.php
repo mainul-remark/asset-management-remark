@@ -215,12 +215,12 @@ class VisualMerchandisingController extends Controller
             'assets' => $assetsQuery->get(['id', 'name', 'asset_code', 'store_id', 'is_common_asset', 'status', 'asset_type_id']),
             'issueFixStatuses' => VisualMerchandisingRequest::ISSUE_FIX_STATUSES,
             'permissions' => [
-                'canView'         => allowed([self::class, 'show']),
-                'canCreate'       => allowed([self::class, 'store']),
-                'canEdit'         => allowed([self::class, 'edit']),
-                'canDelete'       => allowed([self::class, 'destroy']),
-                'canExport'       => allowed([self::class, 'exportVmIssues']),
-                'canChangeStatus' => allowed([self::class, 'changeVmIssueStatus']),
+                'canView'         => allowed('visual-merchandising.show'),
+                'canCreate'       => allowed('visual-merchandising.store'),
+                'canEdit'         => allowed('visual-merchandising.edit'),
+                'canDelete'       => allowed('visual-merchandising.destroy'),
+                'canExport'       => allowed('vm.vm-issues.export'),
+                'canChangeStatus' => allowed('vm.change-vm-issue-status'),
             ],
         ]);
     }
