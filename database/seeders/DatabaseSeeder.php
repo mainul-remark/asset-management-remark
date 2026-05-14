@@ -32,6 +32,8 @@ class DatabaseSeeder extends Seeder
 //            BrandSeeder::class,
             RoleTableSeeder::class,
             UserRoleTableSeeder::class,
+            AclResourceSeeder::class,
+            AclPermissionSeeder::class,
             BrandSeeder::class,
             AssetTypeSeeder::class,
             StoreSeeder::class,

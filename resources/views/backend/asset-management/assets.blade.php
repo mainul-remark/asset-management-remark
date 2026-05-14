@@ -58,11 +58,11 @@
                             <a href="{{ route('asset-types.index') }}" class="btn btn-sm btn-secondary btn-wave">
                                 <i class="ri-pages-line me-1"></i> Asset Category
                             </a>
-{{--                            @allowed('assets.create')--}}
+                            @allowed('assets.create')
                                 <button type="button" class="btn btn-sm btn-primary btn-wave" id="btn-add-asset">
                                     <i class="ri-add-line me-1"></i> Add Asset
                                 </button>
-{{--                            @endallowed--}}
+                            @endallowed
                         </div>
                     </div>
                     <div class="card-body">
