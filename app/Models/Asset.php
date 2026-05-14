@@ -8,11 +8,14 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\File;
 use Mainul\CustomHelperFunctions\Helpers\CustomHelper;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Asset extends Model
 {
     use HasFactory;
     use Searchable, softDeletes;
+    use LogsActivity;
 
     protected $fillable = [
         'asset_type_id',
@@ -31,6 +34,29 @@ class Asset extends Model
     ];
 
     protected $searchableFields = ['*'];
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->useLogName('data')
+            ->logOnly([
+                'asset_type_id',
+                'name',
+                'default_image',
+                'store_id',
+                'asset_code',
+                'has_kv_slot',
+                'minimum_fee',
+                'asset_price',
+                'is_common_asset',
+                'planogram_pdf',
+                'status',
+                'has_self',
+                'total_self',
+            ])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
+    }
 
     protected static function booted(): void
     {
@@ -54,14 +80,15 @@ class Asset extends Model
     {
         $data = $request->validated();
 
+        $data['asset_type_id']   = is_array($data['asset_type_id'] ?? null) ? ($data['asset_type_id'][0] ?? null) : ($data['asset_type_id'] ?? null);
         $data['has_kv_slot']     = $request->boolean('has_kv_slot') ? 1 : 0;
         $data['is_common_asset'] = $request->boolean('is_common_asset') ? 1 : 0;
         $data['status']          = $request->boolean('status') ? 1 : 0;
         $data['has_self']        = $request->boolean('has_self') ? 1 : 0;
 
-        if ($data['is_common_asset']) {
-            $data['store_id'] = null;
-        }
+//        if ($data['is_common_asset']) {
+//            $data['store_id'] = null;
+//        }
 
         if (!$data['has_self']) {
             $data['total_self'] = null;
@@ -85,9 +112,9 @@ class Asset extends Model
                 $request->file('planogram_pdf'),
                 'asset-planogram',
                 'asset-planogram',
-                null,
-                null,
-                $asset->planogram_pdf ?? null
+//                null,
+//                null,
+//                $asset->planogram_pdf ?? null
             );
         } else {
             unset($data['planogram_pdf']);
@@ -122,5 +149,30 @@ class Asset extends Model
     public function assignAssetToStores()
     {
         return $this->hasMany(AssignAssetToStore::class);
+    }
+
+    public function assignKvToAssets()
+    {
+        return $this->hasMany(AssignKvToAsset::class);
+    }
+
+    public function visualMerchandisings()
+    {
+        return $this->hasMany(VisualMerchandising::class);
+    }
+
+    public function assignAssetToBrands()
+    {
+        return $this->hasMany(AssignAssetToBrand::class);
+    }
+
+    public function assetTypes()
+    {
+        return $this->belongsToMany(AssetType::class);
+    }
+
+    public function planogramHistories()
+    {
+        return $this->hasMany(PlanogramHistory::class);
     }
 }

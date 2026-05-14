@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Hash;
@@ -14,6 +15,8 @@ use Laravel\Jetstream\HasProfilePhoto;
 use Laravel\Jetstream\HasTeams;
 use Laravel\Sanctum\HasApiTokens;
 use Mainul\CustomHelperFunctions\Helpers\CustomHelper;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 use Uzzal\Acl\Traits\AccessControlled;
 
 class User extends Authenticatable
@@ -26,6 +29,7 @@ class User extends Authenticatable
     use HasTeams;
     use Notifiable;
     use TwoFactorAuthenticatable;
+    use LogsActivity;
 
     /**
      * The attributes that are mass assignable.
@@ -37,6 +41,7 @@ class User extends Authenticatable
         'email',
         'password',
         'profile_image',
+        'usages_sector',
     ];
 
     /**
@@ -73,6 +78,23 @@ class User extends Authenticatable
         ];
     }
 
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->useLogName('data')
+            ->logOnly([
+                'name',
+                'email',
+                'profile_image',
+                'usages_sector',
+                'employee_id',
+                'password_changed_at',
+                'email_verified_at',
+            ])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
+    }
+
 
 //    user code from valex crud by reza vai
 
@@ -100,6 +122,8 @@ class User extends Authenticatable
 //                'mobile_no'     => ['required','regex:/^(01)[0-9]{9}$/', 'unique:users,mobile_no'],
             'role_id'       => 'required|array',
             'role_id.*'     => 'integer',
+            'employee_id'   => 'required|string',
+            'usages_sector' => 'required|in:field,corporate',
             'profile_image' => 'nullable|image|mimes:jpeg,jpg,webp,png|max:1048',
 
         ], [
@@ -107,6 +131,7 @@ class User extends Authenticatable
             'email.required'        => 'Email is required.',
             'email.email'           => 'Provide valid email address.',
             'email.unique'          => 'Email already exists.',
+            'employee_id.required'  => 'Employee ID is required.',
             'password.required'     => 'Password field is required.',
             'password.min'          => 'Password must be at least 8 characters long.',
             'password.confirmed'    => 'Password confirmation does not match.',
@@ -115,6 +140,7 @@ class User extends Authenticatable
 //                'mobile_no.regex'       => 'Mobile number must be 11 digits & start with 01.',
 //                'mobile_no.unique'      => 'Mobile number already exists.',
             'role_id.required'      => 'Select at least one role.',
+            'usages_sector.required'=> 'Select at least one Sector among Corporate and Field.',
             'profile_image.image'   => 'Please upload valid image file.',
             'profile_image.mimes'   => 'Image must be jpeg, jpg, png or webp format.',
             'profile_image.max'     => 'Image size must be less than 1MB.',
@@ -138,6 +164,8 @@ class User extends Authenticatable
 //            'mobile_no'     => ['required','regex:/^(01)[0-9]{9}$/', 'unique:users,mobile_no,' . $user->id],
             'role_id'       => 'required|array',
             'role_id.*'     => 'integer',
+            'employee_id'   => 'required|string',
+            'usages_sector' => 'required|in:field,corporate',
             'profile_image' => 'nullable|image|mimes:jpeg,jpg,webp,png|max:1048',
 
         ], [
@@ -154,6 +182,7 @@ class User extends Authenticatable
 //            'mobile_no.regex'       => 'Mobile number must be 11 digits & start with 01.',
 //            'mobile_no.unique'      => 'Mobile number already exists.',
             'role_id.required'      => 'Select at least one role.',
+            'employee_id.required'  => 'Employee ID is required.',
             'profile_image.image'   => 'Please upload valid image file.',
             'profile_image.mimes'   => 'Image must be jpeg, jpg, png or webp format.',
             'profile_image.max'     => 'Image size must be less than 1MB.',
@@ -184,6 +213,8 @@ class User extends Authenticatable
             'password'              => Hash::make($request->password),
 //            'mobile_no'             => $request->mobile_no,
 //            'account_type'          => $request->account_type,
+            'usages_sector'         => $request->usages_sector ?? 'field',
+            'employee_id'           => $request->employee_id   ?? '',
             'password_changed_at'   => now(),
             'profile_image'         => CustomHelper::fileUpload($request->file('profile_image'), 'profile-image','profile-image', 200,160),
         ];
@@ -202,6 +233,8 @@ class User extends Authenticatable
         $userData = [
             'name'          => $request->name ?? $user->name,
             'email'         => $request->email ?? null,
+            'usages_sector' => $request->usages_sector ?? 'field',
+            'employee_id'   => $request->employee_id ?? '',
 //            'mobile_no'     => $request->mobile_no,
 //            'account_type'  => $request->account_type,
 //            'is_active'     => $request->is_active,
@@ -271,6 +304,64 @@ class User extends Authenticatable
         }
     }
 
+    public function assignedStore()
+    {
+        return $this->hasOne(Store::class, 'store_manager_id');
+    }
 
+    public function userStoreAssignments(): HasMany
+    {
+        return $this->hasMany(UserStoreAssignment::class, 'user_id');
+    }
+
+    public function assignAssetToStores()
+    {
+        return $this->hasMany(AssignAssetToStore::class, 'assigned_by_user_id');
+    }
+
+    public function brands()
+    {
+        return $this->hasMany(Brand::class, 'created_by');
+    }
+
+    public function assignKvToAssetsInstalledBy()
+    {
+        return $this->hasMany(AssignKvToAsset::class, 'installed_by');
+    }
+
+    public function assignKvToAssetsAssignedBy()
+    {
+        return $this->hasMany(AssignKvToAsset::class, 'assigned_by');
+    }
+
+    public function categories()
+    {
+        return $this->hasMany(Category::class, 'created_by');
+    }
+
+    public function visualMerchandisings()
+    {
+        return $this->hasMany(VisualMerchandising::class, 'creator_id');
+    }
+
+    public function assignAssetToBrands()
+    {
+        return $this->hasMany(AssignAssetToBrand::class, 'assigned_by_user_id');
+    }
+
+    public function vmIssueFixAssignedBy()
+    {
+        return $this->hasMany(VisualMerchandising::class, 'assigned_by');
+    }
+
+    public function vmIssueFixAssignedTo()
+    {
+        return $this->hasMany(VisualMerchandising::class, 'assigned_to');
+    }
+
+    public function userStoreAssignmentsAssignedBy()
+    {
+        return $this->hasMany(UserStoreAssignment::class, 'assigned_by');
+    }
 
 }

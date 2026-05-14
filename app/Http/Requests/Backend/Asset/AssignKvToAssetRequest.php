@@ -71,6 +71,7 @@ class AssignKvToAssetRequest extends FormRequest
             'instalation_proof' => ['nullable', 'string', 'max:5000'],
             'instalation_status' => ['nullable', Rule::in(['pending', 'planned', 'installed', 'verified'])],
             'instalation_date' => ['nullable', 'date'],
+            'slot_number' => ['required'],
         ];
     }
 

@@ -39,13 +39,19 @@ class KeyVisualFilesController extends Controller
         }
 
         return view('backend.kv.kv-files', [
-            'kvFiles' => $kvFilesQuery->get(),
-            'keyVisuals' => $keyVisuals,
-            'keyVisualSizes' => KeyVisualSize::query()
+            'kvFiles'            => $kvFilesQuery->get(),
+            'keyVisuals'         => $keyVisuals,
+            'keyVisualSizes'     => KeyVisualSize::query()
                 ->select('id', 'name', 'width', 'height', 'unit_name')
                 ->orderBy('name')
                 ->get(),
             'selectedKeyVisualId' => $selectedKeyVisual?->id,
+            'permissions'        => [
+                'canCreate' => allowed([self::class, 'store']),
+                'canView'   => allowed([self::class, 'show']),
+                'canEdit'   => allowed([self::class, 'edit']),
+                'canDelete' => allowed([self::class, 'destroy']),
+            ],
         ]);
     }
 
@@ -100,6 +106,19 @@ class KeyVisualFilesController extends Controller
         ]);
     }
 
+    public function getByKeyVisual(KeyVisual $keyVisual): \Illuminate\Http\JsonResponse
+    {
+        $files = KeyVisualFiles::with(['keyVisualSize:id,name,width,height,unit_name'])
+            ->where('key_visual_id', $keyVisual->id)
+            ->latest()
+            ->get();
+
+        return response()->json([
+            'key_visual' => $keyVisual->only(['id', 'name', 'unique_code']),
+            'files'      => $files,
+        ]);
+    }
+
     public function destroy(string $id)
     {
         $kvFile = KeyVisualFiles::findOrFail($id);
@@ -143,6 +162,12 @@ class KeyVisualFilesController extends Controller
         }
 
         $validated['status'] = (int) $validated['status'];
+
+        if ($kvFile === null) {
+            $validated['kv_file_code'] = KeyVisualFiles::generateUniqueKvFileCode((int) $validated['key_visual_id']);
+        } elseif (empty($kvFile->kv_file_code)) {
+            $validated['kv_file_code'] = KeyVisualFiles::generateUniqueKvFileCode((int) $kvFile->key_visual_id);
+        }
 
         if ($request->hasFile('kv_file_upload')) {
             $file = $request->file('kv_file_upload');

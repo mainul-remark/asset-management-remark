@@ -13,7 +13,15 @@ class BrandController extends Controller
 {
     public function index()
     {
-        return view('backend.kv.brands', ['brands' => Brand::latest()->get()]);
+        return view('backend.kv.brands', [
+            'brands'      => Brand::latest()->get(),
+            'permissions' => [
+                'canCreate' => allowed([self::class, 'store']),
+                'canView'   => allowed([self::class, 'show']),
+                'canEdit'   => allowed([self::class, 'edit']),
+                'canDelete' => allowed([self::class, 'destroy']),
+            ],
+        ]);
     }
 
     public function store(BrandRequest $request): JsonResponse
@@ -26,18 +34,15 @@ class BrandController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Brand created successfully.',
-                'data' => [
-                    'id' => $brand->id,
-                    'name' => $brand->name,
-                    'code' => $brand->code,
-                ],
+                'data' => $brand->only(['id', 'name', 'code', 'description', 'logo', 'status', 'is_common']),
             ]);
         } catch (Throwable $exception) {
             report($exception);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to create brand.',
+//                'message' => 'Failed to create brand.',
+                'message' => $exception->getMessage(),
             ], 500);
         }
     }
@@ -62,11 +67,7 @@ class BrandController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Brand updated successfully.',
-                'data' => [
-                    'id' => $brand->id,
-                    'name' => $brand->name,
-                    'code' => $brand->code,
-                ],
+                'data' => $brand->only(['id', 'name', 'code', 'description', 'logo', 'status', 'is_common']),
             ]);
         } catch (Throwable $exception) {
             report($exception);

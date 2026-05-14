@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Backend\Asset;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Backend\Asset\StoreRequest;
+use App\Models\AssetType;
 use App\Models\District;
 use App\Models\Division;
 use App\Models\Store;
@@ -23,7 +24,16 @@ class StoreController extends Controller
             'stores'    => Store::with('storeManager', 'division', 'district', 'thana', 'storeLayouts')->latest()->get(),
             'users'     => User::orderBy('name')->get(),
             'divisions' => Division::orderBy('name')->get(),
+            'assetTypes'=> AssetType::orderBy('name')->get(['id', 'name']),
         ]);
+    }
+
+    public function jsonList()
+    {
+        $stores = Store::with('division:id,name')
+            ->latest()
+            ->get(['id', 'title', 'code', 'store_code', 'total_area_sqft', 'monthly_rent', 'per_sqr_feet_rent', 'status', 'store_type', 'division_id']);
+        return response()->json($stores);
     }
 
     public function getDistricts($divisionId)

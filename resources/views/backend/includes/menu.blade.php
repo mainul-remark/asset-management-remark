@@ -2,7 +2,7 @@
 
     <!-- Start::main-sidebar-header -->
     <div class="main-sidebar-header">
-        <a href="{{ route('dashboard') }}" class="header-logo">
+        <a href="{{ route('admin.dashboard') }}" class="header-logo">
             <img src="{{ asset('/') }}backend/build/assets/images/brand-logos/desktop-logo.png" alt="logo" class="desktop-logo">
             <img src="{{ asset('/') }}backend/build/assets/images/brand-logos/toggle-logo.png" alt="logo" class="toggle-logo">
             <img src="{{ asset('/') }}backend/build/assets/images/brand-logos/desktop-white.png" alt="logo" class="desktop-white">
@@ -25,13 +25,16 @@
                 <!-- End::slide__category -->
 
                 <!-- Start::slide -->
-                <li class="slide">
-                    <a href="{{ route('dashboard') }}" class="side-menu__item">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="side-menu__icon" viewBox="0 0 24 24" ><path d="M0 0h24v24H0V0z" fill="none"/><path d="M5 5h4v6H5zm10 8h4v6h-4zM5 17h4v2H5zM15 5h4v2h-4z" opacity=".3"/><path d="M3 13h8V3H3v10zm2-8h4v6H5V5zm8 16h8V11h-8v10zm2-8h4v6h-4v-6zM13 3v6h8V3h-8zm6 4h-4V5h4v2zM3 21h8v-6H3v6zm2-4h4v2H5v-2z"/></svg>
-                        <span class="side-menu__label">Dashboard</span>
-                        <span class="badge bg-success ms-auto menu-badge">1</span>
-                    </a>
-                </li>
+
+                @allowed('admin.dashboard')
+                    <li class="slide">
+                        <a href="{{ route('admin.dashboard') }}" class="side-menu__item">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="side-menu__icon" viewBox="0 0 24 24" ><path d="M0 0h24v24H0V0z" fill="none"/><path d="M5 5h4v6H5zm10 8h4v6h-4zM5 17h4v2H5zM15 5h4v2h-4z" opacity=".3"/><path d="M3 13h8V3H3v10zm2-8h4v6H5V5zm8 16h8V11h-8v10zm2-8h4v6h-4v-6zM13 3v6h8V3h-8zm6 4h-4V5h4v2zM3 21h8v-6H3v6zm2-4h4v2H5v-2z"/></svg>
+                            <span class="side-menu__label">Dashboard</span>
+{{--                            <span class="badge bg-success ms-auto menu-badge">1</span>--}}
+                        </a>
+                    </li>
+                @endallowed
                 <!-- End::slide -->
 
                 <!-- Start::slide__category -->
@@ -50,12 +53,24 @@
                         <li class="slide side-menu__label1">
                             <a href="javascript:void(0);">User Module</a>
                         </li>
-                        <li class="slide">
-                            <a href="{{ route('roles.index') }}" class="side-menu__item">Roles</a>
-                        </li>
-                        <li class="slide">
-                            <a href="{{ route('users.index') }}" class="side-menu__item">Users</a>
-                        </li>
+                        @allowed('roles.index')
+                            <li class="slide">
+                                <a href="{{ route('roles.index') }}" class="side-menu__item">Roles</a>
+                            </li>
+                        @endallowed
+
+                        @allowed('users.index')
+                            <li class="slide">
+                                <a href="{{ route('users.index') }}" class="side-menu__item">Users</a>
+                            </li>
+                        @endallowed
+
+                        @allowed('user-store-assignments.index')
+                            <li class="slide">
+                                <a href="{{ route('user-store-assignments.index') }}" class="side-menu__item">User Assigned Stores</a>
+                            </li>
+                        @endallowed
+
                     </ul>
                 </li>
                 <!-- sample menu with nested sub menu -->
@@ -69,33 +84,37 @@
                         <li class="slide side-menu__label1">
                             <a href="javascript:void(0);">Asset Management</a>
                         </li>
-                        {{--                        <li class="slide has-sub">--}}
-                        {{--                            <a href="javascript:void(0);" class="side-menu__item">Apex Charts--}}
-                        {{--                                <i class="fe fe-chevron-right side-menu__angle"></i></a>--}}
-                        {{--                            <ul class="slide-menu child2">--}}
-                        {{--                                <li class="slide">--}}
-                        {{--                                    <a href="apex-line-charts.html" class="side-menu__item">Line Charts</a>--}}
-                        {{--                                </li>--}}
-                        {{--                                <li class="slide">--}}
-                        {{--                                    <a href="apex-area-charts.html" class="side-menu__item">Area Charts</a>--}}
-                        {{--                                </li>--}}
-                        {{--                                <li class="slide">--}}
-                        {{--                                    <a href="apex-column-charts.html" class="side-menu__item">Column Charts</a>--}}
-                        {{--                                </li>--}}
-                        {{--                            </ul>--}}
-                        {{--                        </li>--}}
-                        <li class="slide">
-                            <a href="{{ route('stores.index') }}" class="side-menu__item">Stores</a>
-                        </li>
-                        <li class="slide">
-                            <a href="{{ route('asset-types.index') }}" class="side-menu__item">Asset Categories</a>
-                        </li>
-                        <li class="slide">
-                            <a href="{{ route('assets.index') }}" class="side-menu__item">Assets</a>
-                        </li>
-                        <li class="slide">
-                            <a href="{{ route('assets.assign-assets') }}" class="side-menu__item">Assigned Assets</a>
-                        </li>
+{{--                        <li class="slide">--}}
+{{--                            <a href="{{ route('stores.index') }}" class="side-menu__item">Stores</a>--}}
+{{--                        </li>--}}
+                        @allowed('asset-types.index')
+                            <li class="slide">
+                                <a href="{{ route('asset-types.index') }}" class="side-menu__item">Asset Categories</a>
+                            </li>
+                        @endallowed
+
+                        @allowed('assets.index')
+                            <li class="slide">
+                                <a href="{{ route('assets.index') }}" class="side-menu__item">Assets</a>
+                            </li>
+                        @endallowed
+
+                        @allowed('assets.assign-asset-to-brand')
+                            <li class="slide">
+                                <a href="{{ route('assets.assign-asset-to-brand') }}" class="side-menu__item">Assign Asset to Brand</a>
+                            </li>
+                        @endallowed
+
+                        @allowed('assets.planogram-histories')
+                            <li class="slide">
+                                <a href="{{ route('assets.planogram-histories') }}" class="side-menu__item">Planogram Histories</a>
+                            </li>
+                        @endallowed
+
+{{--                        <li class="slide">--}}
+{{--                            <a href="{{ route('visual-merchandising-files.index') }}" class="side-menu__item">VM Issues</a>--}}
+{{--                            <a href="{{ route('vm.vm-issues') }}" class="side-menu__item">VM Issues</a>--}}
+{{--                        </li>--}}
                     </ul>
                 </li>
                 <!-- KV menu -->
@@ -109,35 +128,112 @@
                         <li class="slide side-menu__label1">
                             <a href="javascript:void(0);">KV</a>
                         </li>
-                        <li class="slide">
-                            <a href="{{ route('brands.index') }}" class="side-menu__item">Brands</a>
-                        </li>
-                        <li class="slide">
-                            <a href="{{ route('categories.index') }}" class="side-menu__item">Categories</a>
-                        </li>
-                        <li class="slide">
-                            <a href="{{ route('key-visual-sizes.index') }}" class="side-menu__item">Key Visual Sizes</a>
-                        </li>
-                        <li class="slide">
-                            <a href="{{ route('key-visuals.index') }}" class="side-menu__item">Key Visuals</a>
-                        </li>
-                        <li class="slide">
-                            <a href="{{ route('key-visual-files.index') }}" class="side-menu__item">Key Visual Files</a>
-                        </li>
-                        <li class="slide">
-                            <a href="{{ route('key-visuals.assign-kvs') }}" class="side-menu__item">Assign KV</a>
-                        </li>
+{{--                        <li class="slide">--}}
+{{--                            <a href="{{ route('brands.index') }}" class="side-menu__item">Brands</a>--}}
+{{--                        </li>--}}
+                        @allowed('categories.index')
+                            <li class="slide">
+                                <a href="{{ route('categories.index') }}" class="side-menu__item">KV Categories</a>
+                            </li>
+                        @endallowed
+
+                        @allowed('key-visual-sizes.index')
+                            <li class="slide">
+                                <a href="{{ route('key-visual-sizes.index') }}" class="side-menu__item">Key Visual Sizes</a>
+                            </li>
+                        @endallowed
+
+                        @allowed('key-visuals.index')
+                            <li class="slide">
+                                <a href="{{ route('key-visuals.index') }}" class="side-menu__item">Key Visuals</a>
+                            </li>
+                        @endallowed
+
+                        @allowed('key-visual-files.index')
+                            <li class="slide">
+                                <a href="{{ route('key-visual-files.index') }}" class="side-menu__item">Key Visual Files</a>
+                            </li>
+                        @endallowed
+
+                        @allowed('key-visuals.assign-kvs')
+                            <li class="slide">
+                                <a href="{{ route('key-visuals.assign-kvs') }}" class="side-menu__item">Assign KV</a>
+                            </li>
+                        @endallowed
+
+                        @allowed('key-visuals.kv-installation')
+                            <li class="slide">
+                                <a href="{{ route('key-visuals.kv-installation') }}" class="side-menu__item">KV Installation</a>
+                            </li>
+                        @endallowed
+
                     </ul>
                 </li>
                 <!-- End::slide -->
 
-                <!-- Start::slide -->
-                <li class="slide">
-                    <a href="{{ route('site-settings.index') }}" class="side-menu__item">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-settings"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065" /><path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /></svg>
-                        <span class="side-menu__label">Basic Setting</span>
+                <!-- VM Support -->
+                <li class="slide has-sub">
+                    <a href="javascript:void(0);" class="side-menu__item">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="side-menu__icon" viewBox="0 0 24 24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M5.64 9l-.6 3h13.92l-.6-3H5.64zm12.19-2L19 12.5V19c0 .55-.45 1-1 1h-1c-.55 0-1-.45-1-1v-1H8v1c0 .55-.45 1-1 1H6c-.55 0-1-.45-1-1v-6.5L6.17 7H4V5h16v2h-2.17zM8 14c0-.55-.45-1-1-1s-1 .45-1 1 .45 1 1 1 1-.45 1-1zm10 0c0-.55-.45-1-1-1s-1 .45-1 1 .45 1 1 1 1-.45 1-1z" opacity=".3"/><path d="M4 5h16v2h-2.17l1.17 5.5V19c0 .55-.45 1-1 1h-1c-.55 0-1-.45-1-1v-1H8v1c0 .55-.45 1-1 1H6c-.55 0-1-.45-1-1v-6.5L6.17 7H4V5zm1.64 4l-.6 3h13.92l-.6-3H5.64zM7 15c.55 0 1-.45 1-1s-.45-1-1-1-1 .45-1 1 .45 1 1 1zm10 0c.55 0 1-.45 1-1s-.45-1-1-1-1 .45-1 1 .45 1 1 1z"/></svg>
+                        <span class="side-menu__label">Supportive Modules</span>
+                        <i class="fe fe-chevron-right side-menu__angle"></i>
                     </a>
+                    <ul class="slide-menu child1">
+                        <li class="slide side-menu__label1">
+                            <a href="javascript:void(0);">Supportive Modules</a>
+                        </li>
+                        @allowed('stores.index')
+                            <li class="slide">
+                                <a href="{{ route('stores.index') }}" class="side-menu__item">Stores</a>
+                            </li>
+                        @endallowed
+
+                        @allowed('brands.index')
+                            <li class="slide">
+                                <a href="{{ route('brands.index') }}" class="side-menu__item">Brands</a>
+                            </li>
+                        @endallowed
+
+                        @allowed('assets.assigned-assets')
+                            <li class="slide">
+                                <a href="{{ route('assets.assigned-assets') }}" class="side-menu__item">At A Glance</a>
+                            </li>
+                        @endallowed
+
+                    </ul>
                 </li>
+
+                <!-- VM Support -->
+                <li class="slide has-sub">
+                    <a href="javascript:void(0);" class="side-menu__item">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="side-menu__icon" viewBox="0 0 24 24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M5.64 9l-.6 3h13.92l-.6-3H5.64zm12.19-2L19 12.5V19c0 .55-.45 1-1 1h-1c-.55 0-1-.45-1-1v-1H8v1c0 .55-.45 1-1 1H6c-.55 0-1-.45-1-1v-6.5L6.17 7H4V5h16v2h-2.17zM8 14c0-.55-.45-1-1-1s-1 .45-1 1 .45 1 1 1 1-.45 1-1zm10 0c0-.55-.45-1-1-1s-1 .45-1 1 .45 1 1 1 1-.45 1-1z" opacity=".3"/><path d="M4 5h16v2h-2.17l1.17 5.5V19c0 .55-.45 1-1 1h-1c-.55 0-1-.45-1-1v-1H8v1c0 .55-.45 1-1 1H6c-.55 0-1-.45-1-1v-6.5L6.17 7H4V5zm1.64 4l-.6 3h13.92l-.6-3H5.64zM7 15c.55 0 1-.45 1-1s-.45-1-1-1-1 .45-1 1 .45 1 1 1zm10 0c.55 0 1-.45 1-1s-.45-1-1-1-1 .45-1 1 .45 1 1 1z"/></svg>
+                        <span class="side-menu__label">VM Support</span>
+                        <i class="fe fe-chevron-right side-menu__angle"></i>
+                    </a>
+                    <ul class="slide-menu child1">
+                        <li class="slide side-menu__label1">
+                            <a href="javascript:void(0);">VM Support</a>
+                        </li>
+                        @allowed('vm.vm-issues')
+                            <li class="slide">
+                                <a href="{{ route('vm.vm-issues') }}" class="side-menu__item">VM Issues</a>
+                            </li>
+                        @endallowed
+                        @allowed('vm.fix-issues')
+                            <li class="slide">
+                                <a href="{{ route('vm.fix-issues') }}" class="side-menu__item">Technical Team</a>
+                            </li>
+                        @endallowed
+                    </ul>
+                </li>
+
+                <!-- Start::slide -->
+{{--                <li class="slide">--}}
+{{--                    <a href="{{ route('site-settings.index') }}" class="side-menu__item">--}}
+{{--                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-settings"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065" /><path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /></svg>--}}
+{{--                        <span class="side-menu__label">Basic Setting</span>--}}
+{{--                    </a>--}}
+{{--                </li>--}}
                 <!-- End::slide -->
 
 {{--                <!-- Start::slide__category -->--}}

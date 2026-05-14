@@ -10,7 +10,7 @@
                     <div class="card-body py-3">
                         <div class="d-flex align-items-center gap-2 mb-3">
                             <i class="ri-filter-3-line text-primary fs-16"></i>
-                            <span class="fw-semibold fs-14">Assignment Filters</span>
+                            <span class="fw-semibold fs-14">Assign Filters</span>
                         </div>
                         <div class="row g-2">
                             <div class="col-md-3">
@@ -94,9 +94,11 @@
                             <div class="card-title mb-0">KV Assignments</div>
                             <span class="badge bg-primary-transparent" id="result-count"></span>
                         </div>
+                        @if($permissions['canCreate'])
                         <button type="button" class="btn btn-sm btn-primary btn-wave" id="btn-add-assignment">
                             <i class="ri-add-line me-1"></i> Add Assignment
                         </button>
+                        @endif
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
@@ -129,12 +131,13 @@
 @endsection
 
 @section('modal')
+    @if($permissions['canCreate'] || $permissions['canEdit'])
     <div class="modal fade" id="assignmentModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header border-bottom-0 pb-0">
                     <div>
-                        <h5 class="modal-title fw-semibold" id="assignmentModalLabel">Add KV Assignment</h5>
+                        <h5 class="modal-title fw-semibold" id="assignmentModalLabel">KV Assignment</h5>
                         <p class="text-muted fs-12 mb-0">Link a key visual file to a store asset</p>
                     </div>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -196,15 +199,15 @@
                             </div>
                             <div class="section-card-body">
                                 <div class="row g-3">
-                                    <div class="col-md-4">
-                                        <label for="modal-asset-type" class="form-label">Asset Category</label>
-                                        <select id="modal-asset-type" class="form-select select-ele">
-                                            <option value="">All Categories</option>
-                                            @foreach($assetTypes as $assetType)
-                                                <option value="{{ $assetType->id }}">{{ $assetType->name }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
+{{--                                    <div class="col-md-4">--}}
+{{--                                        <label for="modal-asset-type" class="form-label">Asset Category</label>--}}
+{{--                                        <select id="modal-asset-type" class="form-select select-ele">--}}
+{{--                                            <option value="">All Categories</option>--}}
+{{--                                            @foreach($assetTypes as $assetType)--}}
+{{--                                                <option value="{{ $assetType->id }}">{{ $assetType->name }}</option>--}}
+{{--                                            @endforeach--}}
+{{--                                        </select>--}}
+{{--                                    </div>--}}
                                     <div class="col-md-4">
                                         <label for="modal-brand" class="form-label">Brand</label>
                                         <select id="modal-brand" class="form-select select-ele">
@@ -215,7 +218,7 @@
                                         </select>
                                     </div>
                                     <div class="col-md-4">
-                                        <label for="modal-category" class="form-label">Category</label>
+                                        <label for="modal-category" class="form-label">KV Category</label>
                                         <select id="modal-category" class="form-select select-ele">
                                             <option value="">All Categories</option>
                                             @foreach($categories as $category)
@@ -228,10 +231,15 @@
                                         <select id="modal-key-visual" class="form-select select-ele" name="key_visual_id"></select>
                                         <div class="invalid-feedback" id="error-key_visual_id"></div>
                                     </div>
-                                    <div class="col-md-6">
+                                    <div class="col-md-6 d-none" id="modal-key-visual-file-group">
                                         <label for="modal-key-visual-file" class="form-label">Key Visual File <span class="text-danger">*</span></label>
                                         <select id="modal-key-visual-file" class="form-select select-ele" name="key_visual_files_id"></select>
                                         <div class="invalid-feedback" id="error-key_visual_files_id"></div>
+                                    </div>
+                                    <div class="col-md-6 d-none" id="modal-key-visual-size-group">
+                                        <label for="modal-key-visual-size" class="form-label">Key Visual Size</label>
+                                        <select id="modal-key-visual-size" class="form-select select-ele" name="key_visual_size_id" disabled></select>
+                                        <div class="invalid-feedback" id="error-key_visual_size_id"></div>
                                     </div>
                                 </div>
                             </div>
@@ -249,7 +257,9 @@
             </div>
         </div>
     </div>
+    @endif
 
+    @if($permissions['canDelete'])
     <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-sm modal-dialog-centered">
             <div class="modal-content text-center">
@@ -273,6 +283,7 @@
             </div>
         </div>
     </div>
+    @endif
 @endsection
 
 @push('styles')
@@ -320,6 +331,7 @@
 @push('scripts')
     @include('backend.includes.plugins.select2')
     <script>
+    const assignKvPermissions = @json($permissions);
     $(document).ready(function () {
         $.ajaxSetup({
             headers: {
@@ -327,8 +339,10 @@
             }
         });
 
-        const assignmentModal = new bootstrap.Modal(document.getElementById('assignmentModal'));
-        const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+        const assignmentModal = (assignKvPermissions.canCreate || assignKvPermissions.canEdit)
+            ? new bootstrap.Modal(document.getElementById('assignmentModal')) : null;
+        const deleteModal = assignKvPermissions.canDelete
+            ? new bootstrap.Modal(document.getElementById('deleteModal')) : null;
         const assignmentUrl = base_url + 'kv/assign-kv-to-asset';
         const filterUrl = assignmentUrl + '/filter';
         const storeAssetsUrl = (storeId) => `${assignmentUrl}/stores/${storeId}/assets`;
@@ -337,9 +351,10 @@
         const stores = @json($stores);
         const assets = @json($assets);
         const keyVisuals = @json($keyVisuals);
-        const keyVisualFiles = @json($keyVisualFiles);
+        const keyVisualFiles = @json($keyVisualFiles ?? []);
         const currentUser = @json($currentUser);
         let modalAssets = [];
+        let modalAssetTypeId = '';
 
         function showToast(message, type) {
             $(`<div class="toast align-items-center text-bg-${type} border-0 show position-fixed top-0 end-0 m-3" style="z-index:9999" role="alert">
@@ -381,13 +396,48 @@
                 parts.push(file.file_type);
             }
 
-            if (size.name) {
+            const sizeMeta = formatSizeMeta(size);
+            if (sizeMeta !== '-') {
+                parts.push(sizeMeta);
+            }
+
+            return parts.join(' | ') || '-';
+        }
+
+        function formatSizeMeta(size) {
+            const parts = [];
+
+            if (size?.name) {
                 parts.push(size.name);
-            } else if (size.width && size.height) {
+            }
+
+            if (size?.width && size?.height) {
                 parts.push(`${size.width} x ${size.height} ${size.unit_name || ''}`.trim());
             }
 
             return parts.join(' | ') || '-';
+        }
+
+        function getSelectedModalAsset() {
+            return modalAssets.find(asset => String(asset.id) === String($('#modal-asset').val()));
+        }
+
+        function getModalAssetTypeId() {
+            const selectedAsset = getSelectedModalAsset();
+
+            if (selectedAsset?.asset_type_id) {
+                return String(selectedAsset.asset_type_id);
+            }
+
+            return modalAssetTypeId ? String(modalAssetTypeId) : '';
+        }
+
+        function syncModalKeyVisualDependencyVisibility() {
+            const hasSelectedKeyVisual = !!$('#modal-key-visual').val();
+            const hasSelectedKeyVisualFile = !!$('#modal-key-visual-file').val();
+
+            $('#modal-key-visual-file-group').toggleClass('d-none', !hasSelectedKeyVisual);
+            $('#modal-key-visual-size-group').toggleClass('d-none', !hasSelectedKeyVisualFile);
         }
 
         function statusBadge(status) {
@@ -575,6 +625,7 @@
             const categoryId = filters.categoryId || '';
             const selectedId = filters.selectedId || '';
             const placeholder = filters.placeholder || 'All Key Visuals';
+            const autoSelectFirst = Boolean(filters.autoSelectFirst);
 
             const filteredKeyVisuals = keyVisuals.filter(function (keyVisual) {
                 const assetTypeMatches = !assetTypeId || String(keyVisual.asset_type_id) === String(assetTypeId);
@@ -594,6 +645,8 @@
             $select.html(options);
             if (selectedId && filteredKeyVisuals.some(keyVisual => String(keyVisual.id) === String(selectedId))) {
                 $select.val(String(selectedId));
+            } else if (autoSelectFirst && filteredKeyVisuals.length) {
+                $select.val(String(filteredKeyVisuals[0].id));
             } else {
                 $select.val('');
             }
@@ -637,6 +690,36 @@
             $select.trigger('change.select2');
         }
 
+        function populateKeyVisualSizeOptions($select, fileId = '', placeholder = 'Select KV File First') {
+            if (!fileId) {
+                $select.html(`<option value="">${placeholder}</option>`)
+                    .prop('disabled', true)
+                    .val('')
+                    .trigger('change.select2');
+                return;
+            }
+
+            const selectedFile = keyVisualFiles.find(function (file) {
+                return String(file.id) === String(fileId);
+            });
+
+            if (!selectedFile?.key_visual_size_id) {
+                $select.html('<option value="">Size not available</option>')
+                    .prop('disabled', true)
+                    .val('')
+                    .trigger('change.select2');
+                return;
+            }
+
+            const sizeLabel = formatSizeMeta(selectedFile.key_visual_size || {});
+            const optionLabel = sizeLabel === '-' ? `Size #${selectedFile.key_visual_size_id}` : sizeLabel;
+
+            $select.html(`<option value="${selectedFile.key_visual_size_id}">${escapeHtml(optionLabel)}</option>`)
+                .prop('disabled', false)
+                .val(String(selectedFile.key_visual_size_id))
+                .trigger('change.select2');
+        }
+
         function refreshFilterAssets() {
             populateAssetOptions(
                 $('#filter-asset'),
@@ -660,23 +743,31 @@
         }
 
         function refreshModalKeyVisuals(selectedKeyVisualId = '', selectedFileId = '') {
+            const hasAsset = !!$('#modal-asset').val();
+            const shouldAutoSelectFirstKeyVisual = !selectedKeyVisualId && hasAsset && !!($('#modal-brand').val() || $('#modal-category').val());
+
             populateKeyVisualOptions($('#modal-key-visual'), {
-                assetTypeId: $('#modal-asset-type').val(),
                 brandId: $('#modal-brand').val(),
                 categoryId: $('#modal-category').val(),
                 selectedId: selectedKeyVisualId,
-                placeholder: 'Select Key Visual'
-            }, true);
+                placeholder: hasAsset ? 'Select Key Visual' : 'Select Asset First',
+                autoSelectFirst: shouldAutoSelectFirstKeyVisual
+            }, false);
+
+            $('#modal-key-visual').prop('disabled', !hasAsset).trigger('change.select2');
+
             populateKeyVisualFileOptions($('#modal-key-visual-file'), $('#modal-key-visual').val(), selectedFileId, 'Select KV File', true);
+            populateKeyVisualSizeOptions($('#modal-key-visual-size'), $('#modal-key-visual-file').val(), 'Select KV File First');
+            syncModalKeyVisualDependencyVisibility();
         }
 
         function resetModalForm() {
             $('#assignmentForm')[0].reset();
             $('#assignment_id').val('');
+            modalAssetTypeId = '';
             $('#modal-division').val('').trigger('change.select2');
             populateDistrictOptions($('#modal-district'), '', '', 'All Districts');
             populateStoreOptions($('#modal-store'), '', '', '', 'All Stores');
-            $('#modal-asset-type').val('').trigger('change.select2');
             $('#modal-brand').val('').trigger('change.select2');
             $('#modal-category').val('').trigger('change.select2');
             modalAssets = [];
@@ -757,8 +848,8 @@
                         </td>
                         <td>
                             <div class="btn-list">
-                                <button class="btn btn-icon btn-sm btn-primary-light btn-wave btn-edit" data-id="${item.id}" title="Edit"><i class="ri-edit-box-line"></i></button>
-                                <button class="btn btn-icon btn-sm btn-danger-light btn-wave btn-delete" data-id="${item.id}" data-asset="${escapeHtml(asset.name || '')}" data-key-visual="${escapeHtml(keyVisual.name || '')}" title="Delete"><i class="ri-delete-bin-line"></i></button>
+                                ${assignKvPermissions.canEdit ? `<button class="btn btn-icon btn-sm btn-primary-light btn-wave btn-edit" data-id="${item.id}" title="Edit"><i class="ri-edit-box-line"></i></button>` : ''}
+                                ${assignKvPermissions.canDelete ? `<button class="btn btn-icon btn-sm btn-danger-light btn-wave btn-delete" data-id="${item.id}" data-asset="${escapeHtml(asset.name || '')}" data-key-visual="${escapeHtml(keyVisual.name || '')}" title="Delete"><i class="ri-delete-bin-line"></i></button>` : ''}
                             </div>
                         </td>
                     </tr>
@@ -814,7 +905,8 @@
             const fieldMap = {
                 asset_id: '#modal-asset',
                 key_visual_id: '#modal-key-visual',
-                key_visual_files_id: '#modal-key-visual-file'
+                key_visual_files_id: '#modal-key-visual-file',
+                key_visual_size_id: '#modal-key-visual-size'
             };
 
             Object.entries(errors || {}).forEach(function ([field, messages]) {
@@ -863,25 +955,23 @@
             loadModalAssets();
         });
 
-        $('#modal-asset-type, #modal-brand, #modal-category').on('change', function () {
+        $('#modal-brand, #modal-category').on('change', function () {
             refreshModalKeyVisuals();
         });
 
         $('#modal-asset').on('change', function () {
-            const selectedAsset = modalAssets.find(asset => String(asset.id) === String($(this).val()));
-            if (!selectedAsset) {
-                return;
-            }
-
-            if (String($('#modal-asset-type').val() || '') !== String(selectedAsset.asset_type_id)) {
-                $('#modal-asset-type').val(String(selectedAsset.asset_type_id)).trigger('change.select2');
-            }
-
-            refreshModalKeyVisuals();
+            refreshModalKeyVisuals($('#modal-key-visual').val());
         });
 
         $('#modal-key-visual').on('change', function () {
             populateKeyVisualFileOptions($('#modal-key-visual-file'), $(this).val(), $('#modal-key-visual-file').val(), 'Select KV File', true);
+            populateKeyVisualSizeOptions($('#modal-key-visual-size'), '', 'Select KV File First');
+            syncModalKeyVisualDependencyVisibility();
+        });
+
+        $('#modal-key-visual-file').on('change', function () {
+            populateKeyVisualSizeOptions($('#modal-key-visual-size'), $(this).val(), 'Select KV File First');
+            syncModalKeyVisualDependencyVisibility();
         });
 
         $('#btn-filter').on('click', loadData);
@@ -898,13 +988,16 @@
             loadData();
         });
 
+        @if($permissions['canCreate'])
         $('#btn-add-assignment').on('click', function () {
             resetModalForm();
-            $('#assignmentModalLabel').text('Add KV Assignment');
+            $('#assignmentModalLabel').text('Add KV To Asset');
             $('#btn-save-assignment .btn-text').html('<i class="ri-save-line me-1"></i>Save Assignment');
-            assignmentModal.show();
+            assignmentModal?.show();
         });
+        @endif
 
+        @if($permissions['canEdit'])
         $(document).on('click', '.btn-edit', function () {
             const id = $(this).data('id');
             resetModalForm();
@@ -925,18 +1018,20 @@
                 const brandId = data.key_visual?.brands?.[0]?.id || '';
                 const categoryId = data.key_visual?.categories?.[0]?.id || '';
 
-                $('#modal-asset-type').val(assetTypeId ? String(assetTypeId) : '').trigger('change.select2');
+                modalAssetTypeId = assetTypeId ? String(assetTypeId) : '';
                 $('#modal-brand').val(brandId ? String(brandId) : '').trigger('change.select2');
                 $('#modal-category').val(categoryId ? String(categoryId) : '').trigger('change.select2');
                 refreshModalKeyVisuals(data.key_visual_id, data.key_visual_files_id);
 
                 loadModalAssets(data.asset_id);
-                assignmentModal.show();
+                assignmentModal?.show();
             }).fail(function () {
                 showToast('Failed to load KV assignment data.', 'danger');
             });
         });
+        @endif
 
+        @if($permissions['canCreate'] || $permissions['canEdit'])
         $('#assignmentForm').on('submit', function (event) {
             event.preventDefault();
             clearErrors();
@@ -960,7 +1055,7 @@
                         return;
                     }
 
-                    assignmentModal.hide();
+                    assignmentModal?.hide();
                     loadData();
                     showToast(response.message, 'success');
                 },
@@ -976,11 +1071,13 @@
                 }
             });
         });
+        @endif
 
+        @if($permissions['canDelete'])
         $(document).on('click', '.btn-delete', function () {
             $('#delete-assignment-id').val($(this).data('id'));
             $('#delete-message').html(`Remove <strong>${$(this).data('key-visual') || 'this key visual'}</strong> from <strong>${$(this).data('asset') || 'this asset'}</strong>?`);
-            deleteModal.show();
+            deleteModal?.show();
         });
 
         $('#btn-confirm-delete').on('click', function () {
@@ -1000,7 +1097,7 @@
                         return;
                     }
 
-                    deleteModal.hide();
+                    deleteModal?.hide();
                     loadData();
                     showToast(response.message, 'success');
                 },
@@ -1012,6 +1109,7 @@
                 }
             });
         });
+        @endif
 
         populateDistrictOptions($('#filter-district'), '', '', 'All Districts');
         populateStoreOptions($('#filter-store'), '', '', '', 'All Stores');

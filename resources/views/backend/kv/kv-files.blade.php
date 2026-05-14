@@ -17,9 +17,11 @@
                         <div class="card-title mb-1">Key Visual Files</div>
                         <p class="text-muted fs-12 mb-0">Manage key visual files.</p>
                     </div>
+                    @if($permissions['canCreate'])
                     <button type="button" class="btn btn-sm btn-primary btn-wave" id="btn-add-file" @disabled(!$hasDependencies) title="{{ $hasDependencies ? 'Add key visual file' : 'Create key visual and size first' }}">
                         <i class="ri-add-line me-1"></i> Add File
                     </button>
+                    @endif
                 </div>
                 <div class="card-body">
                     @unless($hasDependencies)
@@ -125,15 +127,21 @@
                                         <td>{{ optional($kvFile->created_at)->format('d M Y') }}</td>
                                         <td>
                                             <div class="btn-list">
+                                                @if($permissions['canView'])
                                                 <button class="btn btn-icon btn-sm btn-info-light btn-wave btn-view" data-id="{{ $kvFile->id }}" title="View">
                                                     <i class="ri-eye-line"></i>
                                                 </button>
+                                                @endif
+                                                @if($permissions['canEdit'])
                                                 <button class="btn btn-icon btn-sm btn-primary-light btn-wave btn-edit" data-id="{{ $kvFile->id }}" title="Edit">
                                                     <i class="ri-edit-box-line"></i>
                                                 </button>
+                                                @endif
+                                                @if($permissions['canDelete'])
                                                 <button class="btn btn-icon btn-sm btn-danger-light btn-wave btn-delete" data-id="{{ $kvFile->id }}" data-name="{{ $kvFile->name }}" title="Delete">
                                                     <i class="ri-delete-bin-line"></i>
                                                 </button>
+                                                @endif
                                             </div>
                                         </td>
                                     </tr>
@@ -186,21 +194,28 @@
 @push('scripts')
 @include('backend.includes.plugins.datatable')
 @include('backend.includes.plugins.select2')
+@if($permissions['canCreate'] || $permissions['canEdit'])
 <script src="{{ asset('backend/build/assets/libs/filepond/filepond.min.js') }}"></script>
 <script src="{{ asset('backend/build/assets/libs/filepond-plugin-image-preview/filepond-plugin-image-preview.min.js') }}"></script>
 <script src="{{ asset('backend/build/assets/libs/filepond-plugin-image-exif-orientation/filepond-plugin-image-exif-orientation.min.js') }}"></script>
 <script src="{{ asset('backend/build/assets/libs/filepond-plugin-file-validate-type/filepond-plugin-file-validate-type.min.js') }}"></script>
 <script src="{{ asset('backend/build/assets/libs/filepond-plugin-file-validate-size/filepond-plugin-file-validate-size.min.js') }}"></script>
+@endif
 <script>
+const kvFilesPermissions = @json($permissions);
 $(function () {
-    const fileModal = new bootstrap.Modal(document.getElementById('fileModal'));
-    const viewModal = new bootstrap.Modal(document.getElementById('viewModal'));
-    const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    const fileModal   = (kvFilesPermissions.canCreate || kvFilesPermissions.canEdit)
+        ? new bootstrap.Modal(document.getElementById('fileModal'))   : null;
+    const viewModal   = kvFilesPermissions.canView
+        ? new bootstrap.Modal(document.getElementById('viewModal'))   : null;
+    const deleteModal = kvFilesPermissions.canDelete
+        ? new bootstrap.Modal(document.getElementById('deleteModal')) : null;
     const preselectedKeyVisualId = @json($selectedKeyVisualId);
 
     const BASE = base_url;
     const apiUrl = (id = '') => base_url + 'key-visual-files' + (id ? '/' + id : '');
 
+    @if($permissions['canCreate'] || $permissions['canEdit'])
     FilePond.registerPlugin(
         FilePondPluginImagePreview,
         FilePondPluginImageExifOrientation,
@@ -210,6 +225,25 @@ $(function () {
 
     const MAX_IMAGE_FILE_SIZE = 5 * 1024 * 1024;
     const MAX_VIDEO_FILE_SIZE = 10 * 1024 * 1024;
+
+    const IMAGE_MIMES = ['image/jpeg','image/png','image/jpg','image/gif','image/svg+xml','image/webp'];
+    const VIDEO_MIMES = ['video/mp4','video/quicktime','video/x-msvideo','video/x-matroska','video/webm'];
+
+    function configureFilePondByKvType() {
+        const kvType = $('#key_visual_id option:selected').data('kv-type') || '';
+        const isVideo = kvType === 'video';
+        const isImage = kvType === 'image';
+        if (isVideo) {
+            kvFilePond.setOptions({ acceptedFileTypes: VIDEO_MIMES });
+            $('#kv-upload-hint').html('Videos only &bull; MP4 / MOV / AVI / MKV / WEBM &bull; max 10 MB');
+        } else if (isImage) {
+            kvFilePond.setOptions({ acceptedFileTypes: IMAGE_MIMES });
+            $('#kv-upload-hint').html('Images only &bull; JPG / PNG / GIF / SVG / WEBP &bull; max 5 MB');
+        } else {
+            kvFilePond.setOptions({ acceptedFileTypes: [...IMAGE_MIMES, ...VIDEO_MIMES] });
+            $('#kv-upload-hint').html('Images: max 5 MB &bull; Videos: max 10 MB');
+        }
+    }
 
     function getUploadSizeLimit(file) {
         const fileType = String(file?.type || '');
@@ -256,9 +290,22 @@ $(function () {
                 return false;
             }
 
-            const limit = getUploadSizeLimit(file);
+            const type = String(file.type || '');
+            const isImage = type.startsWith('image/');
+            const isVideo = type.startsWith('video/');
+            const kvType = $('#key_visual_id option:selected').data('kv-type') || '';
             $('#error-kv_file_upload').text('');
 
+            if (kvType === 'image' && !isImage) {
+                $('#error-kv_file_upload').text('This key visual only accepts image files.');
+                return false;
+            }
+            if (kvType === 'video' && !isVideo) {
+                $('#error-kv_file_upload').text('This key visual only accepts video files.');
+                return false;
+            }
+
+            const limit = getUploadSizeLimit(file);
             if ((file.size || 0) > limit.maxBytes) {
                 $('#error-kv_file_upload').text(limit.message);
                 return false;
@@ -267,6 +314,7 @@ $(function () {
             return true;
         },
     });
+    @endif
 
     const metaFields = {
         kv_size: {
@@ -406,6 +454,7 @@ $(function () {
         $('#existing-file-wrap').addClass('d-none');
         kvFilePond.removeFiles();
         clearErrors();
+        configureFilePondByKvType();
     }
 
     function applyFileMeta(file) {
@@ -489,6 +538,7 @@ $(function () {
         }
     }
 
+    @if($permissions['canCreate'] || $permissions['canEdit'])
     kvFilePond.on('addfile', function (error, fileItem) {
         if (error || !fileItem?.file) return;
         $('#error-kv_file_upload').text('');
@@ -508,6 +558,13 @@ $(function () {
         }
     });
 
+    $('#key_visual_id').on('change', function () {
+        kvFilePond.removeFiles();
+        $('#error-kv_file_upload').text('');
+        configureFilePondByKvType();
+    });
+    @endif
+
     function formatDate(dateString) {
         return dateString
             ? new Date(dateString).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
@@ -520,13 +577,16 @@ $(function () {
         return Number.isNaN(number) ? value : number.toFixed(4);
     }
 
+    @if($permissions['canCreate'])
     $('#btn-add-file').on('click', function () {
         resetForm();
         $('#fileModalLabel').text('Add Key Visual File');
         $('#btn-save .btn-text').text('Save');
-        fileModal.show();
+        fileModal?.show();
     });
+    @endif
 
+    @if($permissions['canEdit'])
     $(document).on('click', '.btn-edit', function () {
         resetForm();
         const id = $(this).data('id');
@@ -536,6 +596,7 @@ $(function () {
                 $('#kv_file_id').val(data.id);
                 $('#name').val(data.name || '');
                 $('#key_visual_id').val(data.key_visual_id || '');
+                configureFilePondByKvType();
                 $('#key_visual_size_id').val(data.key_visual_size_id || '');
                 fallbackSizeId = data.key_visual_size_id || '';
                 setMediaDimensions();
@@ -559,13 +620,15 @@ $(function () {
                 $('#fileModalLabel').text('Edit Key Visual File');
                 $('#btn-save .btn-text').text('Update');
 
-                fileModal.show();
+                fileModal?.show();
             })
             .fail(function () {
                 showToast('Failed to load key visual file data.', 'danger');
             });
     });
+    @endif
 
+    @if($permissions['canView'])
     $(document).on('click', '.btn-view', function () {
         const id = $(this).data('id');
 
@@ -596,17 +659,19 @@ $(function () {
                     : '<span class="badge bg-danger-transparent">Inactive</span>');
                 $('#view-created').text(formatDate(data.created_at));
                 $('#view-updated').text(formatDate(data.updated_at));
-                viewModal.show();
+                viewModal?.show();
             })
             .fail(function () {
                 showToast('Failed to load details.', 'danger');
             });
     });
+    @endif
 
+    @if($permissions['canDelete'])
     $(document).on('click', '.btn-delete', function () {
         $('#delete-file-id').val($(this).data('id'));
         $('#delete-file-name').text($(this).data('name'));
-        deleteModal.show();
+        deleteModal?.show();
     });
 
     $('#btn-confirm-delete').on('click', function () {
@@ -621,7 +686,7 @@ $(function () {
             url: apiUrl(id),
             type: 'DELETE',
             success: function (res) {
-                deleteModal.hide();
+                deleteModal?.hide();
                 showToast(res.message || 'Deleted successfully.', 'success');
                 setTimeout(() => location.reload(), 700);
             },
@@ -635,7 +700,9 @@ $(function () {
             }
         });
     });
+    @endif
 
+    @if($permissions['canCreate'] || $permissions['canEdit'])
     $('#fileForm').on('submit', function (e) {
         e.preventDefault();
         clearErrors();
@@ -663,7 +730,7 @@ $(function () {
             processData: false,
             contentType: false,
             success: function (res) {
-                fileModal.hide();
+                fileModal?.hide();
                 showToast(res.message || 'Saved successfully.', 'success');
                 setTimeout(() => location.reload(), 700);
             },
@@ -692,6 +759,7 @@ $(function () {
             }
         });
     });
+    @endif
 });
 </script>
 @endpush

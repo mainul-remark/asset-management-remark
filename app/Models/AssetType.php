@@ -7,12 +7,15 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Mainul\CustomHelperFunctions\Helpers\CustomHelper;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class AssetType extends Model
 {
     use HasFactory;
     use Searchable;
     use SoftDeletes;
+    use LogsActivity;
 
     protected $fillable = [
         'name',
@@ -30,14 +33,88 @@ class AssetType extends Model
         'need_asset_image',
         'need_asset_planogram',
         'has_asset_self',
+        'total_kv_slot',
+        'code',
+        'is_double_side',
+        'is_ground_type_assets',
     ];
 
     protected $searchableFields = ['*'];
 
     protected $table = 'asset_types';
 
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->useLogName('data')
+            ->logOnly([
+                'name',
+                'default_image',
+                'height',
+                'width',
+                'depth',
+                'dimention_unit_name',
+                'default_price',
+                'status',
+                'is_digital',
+                'total_self',
+                'has_kv_space',
+                'has_default_dimension',
+                'need_asset_image',
+                'need_asset_planogram',
+                'has_asset_self',
+                'total_kv_slot',
+                'code',
+                'is_double_side',
+                'is_ground_type_assets',
+            ])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
+    }
+
+    public static function generateUniqueCodeFromName(string $name, ?int $ignoreId = null): string
+    {
+        $baseCode = static::buildCodeSeed($name);
+        $candidate = $baseCode;
+        $suffix = 2;
+
+        while (static::withTrashed()
+            ->when($ignoreId, fn ($query) => $query->where('id', '!=', $ignoreId))
+            ->where('code', $candidate)
+            ->exists()) {
+            $candidate = $baseCode . $suffix;
+            $suffix++;
+        }
+
+        return $candidate;
+    }
+
+    protected static function buildCodeSeed(string $name): string
+    {
+        preg_match_all('/[A-Za-z0-9]+/', strtoupper($name), $matches);
+        $words = $matches[0] ?? [];
+
+        if (count($words) > 1) {
+            $seed = implode('', array_map(fn ($word) => substr($word, 0, 1), $words));
+
+            return $seed !== '' ? $seed : 'AST';
+        }
+
+        if (! empty($words[0])) {
+            return substr($words[0], 0, 3);
+        }
+
+        return 'AST';
+    }
+
     public static function updateOrCreateAssetType($request, ?self $assetType = null): self
     {
+        $resolvedCode = strtoupper(trim((string) ($request->code ?? '')));
+
+        if ($resolvedCode === '') {
+            $resolvedCode = static::generateUniqueCodeFromName((string) $request->name, $assetType?->id);
+        }
+
         $data = [
             'name'                  => $request->name,
             'height'                => $request->height,
@@ -53,6 +130,10 @@ class AssetType extends Model
             'need_asset_image'      => $request->need_asset_image ?? 0,
             'need_asset_planogram'  => $request->need_asset_planogram ?? 0,
             'has_asset_self'        => $request->has_asset_self ?? 0,
+            'total_kv_slot'         => $request->total_kv_slot ?? 0,
+            'code'                  => $resolvedCode,
+            'is_double_side'        => $request->is_double_side ?? 0,
+            'is_ground_type_assets' => $request->is_ground_type_assets ?? 0,
         ];
 
         if ($request->hasFile('default_image')) {
@@ -82,5 +163,10 @@ class AssetType extends Model
     public function keyVisuals()
     {
         return $this->hasMany(KeyVisual::class);
+    }
+
+    public function assignedAssets()
+    {
+        return $this->belongsToMany(Asset::class);
     }
 }

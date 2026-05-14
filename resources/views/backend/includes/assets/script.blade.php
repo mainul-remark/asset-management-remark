@@ -55,5 +55,7 @@
 <link rel="modulepreload" href="{{ asset('/backend/build/assets/app-ClKBXEo6.js') }}" />
 <script type="module" src="{{ asset('/backend/build/assets/app-ClKBXEo6.js') }}"></script>
 <!-- Center horizontal menu - JS files have been modified to use removeProperty instead of setting margin to 0 -->
+<script>const saveUrl = @json(route('site-settings.theme'));</script>
+<script src="{{ asset('/backend/build/custom-mod-assets/js/master-file-theme-settings.js') }}"></script>
 <!-- END SCRIPTS -->
 

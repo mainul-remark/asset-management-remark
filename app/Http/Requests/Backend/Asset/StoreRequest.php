@@ -22,7 +22,8 @@ class StoreRequest extends FormRequest
      */
     public function rules(): array
     {
-        $ignoreId = $this->route('store')?->id;
+        $store = $this->route('store');
+        $ignoreId = $store instanceof \App\Models\Store ? $store->id : $store;
         return [
             'title'               => ['required', 'string', 'max:255', Rule::unique('stores', 'title')->ignore($ignoreId)],
             'code'                => ['required', 'string', 'min:2', Rule::unique('stores', 'code')->ignore($ignoreId)],
@@ -43,6 +44,7 @@ class StoreRequest extends FormRequest
             'shop_official_mobile'=> ['required', 'string', 'size:11', 'regex:/^01[3-9]\d{8}$/'],
             'shop_official_email' => 'required|email|max:255',
             'status'              => 'required|in:0,1',
+            'store_type'          => 'required',
 //            'store_manager_id'    => 'nullable|exists:users,id',
             'opened_date'         => 'nullable|date',
         ];

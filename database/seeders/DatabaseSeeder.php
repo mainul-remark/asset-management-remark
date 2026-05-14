@@ -24,6 +24,10 @@ class DatabaseSeeder extends Seeder
 //            BrandSeeder::class,
             RoleTableSeeder::class,
             UserRoleTableSeeder::class,
+            DivisionSeeder::class,
+            DistrictSeeder::class,
+            ThanaSeeder::class,
+            StoreSeeder::class,
         ]);
     }
 }

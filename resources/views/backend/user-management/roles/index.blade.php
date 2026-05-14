@@ -29,9 +29,11 @@
                         <h5 class="card-title mb-0">
                             <i class="mdi mdi-view-list me-1"></i> Roles List
                         </h5>
-                        <a href="{{ route('roles.create') }}" class="btn btn-sm btn-outline-primary">
-                            <i class="mdi mdi-plus-circle me-1"></i> Create
-                        </a>
+                        @allowed('roles.create')
+                            <a href="{{ route('roles.create') }}" class="btn btn-sm btn-outline-primary">
+                                <i class="mdi mdi-plus-circle me-1"></i> Create
+                            </a>
+                        @endallowed
                     </div>
 
                     <div class="card-body">
@@ -58,12 +60,14 @@
                                             @endif
                                         </td>
                                         <td>
-                                            <a href="{{route('roles.edit',$row??'')}}" class="btn btn-outline-primary btn-sm" title="Edit"><i class="fa fa-pencil-alt"></i></a>
+                                            @allowed('roles.edit')
+                                                <a href="{{route('roles.edit',$row)}}" class="btn btn-outline-primary btn-sm" title="Edit"><i class="fa fa-pencil-alt"></i></a>
+                                            @endallowed
 
-                                           @hasRole(['super-admin'])
-                                                <form action="{{route('roles.destroy',$row??'')}}" method="POST" class="d-inline">
+                                            @hasRole(['super-admin'])
+                                                <form action="{{route('roles.destroy',$row)}}" method="POST" class="d-inline">
                                                     @csrf @method('DELETE')
-                                                    <button type="submit" class="btn btn-outline-danger btn-sm ms-2" title="Delete" onclick="return confirm('Are you sure ?? want to delete this ...')"><i class="fa fa-trash-alt"></i></button>
+                                                    <button type="submit" class="btn btn-outline-danger btn-sm ms-2 delete-data" title="Delete"><i class="fa fa-trash-alt"></i></button>
                                                 </form>
                                             @endhasRole
                                         </td>
@@ -82,6 +86,7 @@
 
 @push('scripts')
     @include('backend.user-management.datatables.datatable-script')
+    @include('backend.includes.plugins.sweetalert2')
     <script>
         $(document).ready(function () {
             $('#roleDataTable').DataTable();

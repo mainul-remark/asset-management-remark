@@ -3,25 +3,46 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\UserImportRequest;
+use App\Imports\User\UsersImport;
 use App\Models\Role;
+use App\Models\Store;
 use App\Models\User;
 use App\Models\UserRole;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Exception;
 use Illuminate\Support\Carbon;
+use Maatwebsite\Excel\Facades\Excel;
 use Yajra\DataTables\DataTables;
 
 class UsersController extends Controller
 {
     public function index(Request $request){
         if (!$request->ajax()) {
-            return view('backend.user-management.users.index');
+            return view('backend.user-management.users.index', [
+                'stores' => Store::query()
+                    ->where('status', 1)
+                    ->whereNull('deleted_at')
+                    ->orderBy('title')
+                    ->get(['id', 'title', 'code']),
+                'roles' => Role::query()
+                    ->where('role_id', '!=', 1)
+                    ->orderBy('name')
+                    ->get(['role_id', 'name']),
+            ]);
         }
         try {
-            $users = User::with(['roles:role_id,name'])
-                ->select('id','name','email','profile_image','created_at')
+            $users = User::with([
+                    'roles:role_id,name',
+                    'userStoreAssignments.store:id,title',
+                ])
+                ->select('id','name','email','employee_id','profile_image','created_at', 'usages_sector')
+                ->when($request->input('role_id'), function ($query, $roleId) {
+                    $query->whereHas('roles', fn ($q) => $q->where('roles.role_id', $roleId));
+                })
                 ->latest()
                 ->get();
 
@@ -30,20 +51,30 @@ class UsersController extends Controller
                 'data' => $users->map(function ($user) {
 
                     $roleNames = $user->roles->pluck('name')->filter()->values();
+                    $assignedStoreTitles = $user->userStoreAssignments
+                        ->map(fn ($assignment) => $assignment->store?->title)
+                        ->filter()
+                        ->unique()
+                        ->sort()
+                        ->values();
 
                     return [
-                        'id'            => $user->id,
-                        'name'          => $user->name,
-                        'email'         => $user->email,
+                        'id'                    => $user->id,
+                        'name'                  => $user->name,
+                        'email'                 => $user->email,
+                        'employee_id'           => $user->employee_id,
+                        'assigned_stores'       => $assignedStoreTitles->all(),
+                        'assigned_store_names'  => $assignedStoreTitles->implode(', '),
 //                        'mobile_no'     => $user->mobile_no,
 //                        'account_type'  => $user->account_type,
-                        'profile_image' => (!empty($user->profile_image) && file_exists(public_path($user->profile_image)))
+                        'profile_image'         => (!empty($user->profile_image) && file_exists(public_path($user->profile_image)))
                             ? asset($user->profile_image)
                             : asset('backend/remark-logo.png'),
-                        'roles'         => $roleNames,
-                        'role_names'    => $roleNames->implode(', '),
-                        'created_at'  => optional($user->created_at)->format('Y-m-d'),
-                        'is_active'    => $user->is_active,
+                        'roles'                 => $roleNames,
+                        'role_names'            => $roleNames->implode(', '),
+                        'created_at'            => optional($user->created_at)->format('Y-m-d'),
+                        'is_active'             => $user->is_active,
+                        'usages_sector'         => $user->usages_sector,
                     ];
                 }),
             ];
@@ -66,6 +97,53 @@ class UsersController extends Controller
         $roles = Role::whereNotIn('role_id',[1])->get(['role_id','name'])??'';
         return view('backend.user-management.users.create',['roles'=>$roles]);
     }
+
+    public function import(UserImportRequest $request): JsonResponse
+    {
+        $import = new UsersImport();
+        $uploadedFile = $request->file('file');
+
+        Excel::import($import, $uploadedFile);
+
+        if ($import->hasFailures()) {
+            $failures = $import->getFailures();
+
+            activity('system')
+                ->causedBy(auth()->user())
+                ->event('user_import_failed')
+                ->withProperties([
+                    'file_name' => $uploadedFile?->getClientOriginalName(),
+                    'imported_count' => $import->getImportedCount(),
+                    'error_count' => count($failures),
+                ])
+                ->log('User import failed.');
+
+            return response()->json([
+                'success'        => false,
+                'message'        => 'Import failed. Please fix the listed rows and re-upload.',
+                'imported_count' => $import->getImportedCount(),
+                'error_count'    => count($failures),
+                'errors'         => $failures,
+            ], 422);
+        }
+
+        activity('system')
+            ->causedBy(auth()->user())
+            ->event('user_import_completed')
+            ->withProperties([
+                'file_name' => $uploadedFile?->getClientOriginalName(),
+                'imported_count' => $import->getImportedCount(),
+                'error_count' => 0,
+            ])
+            ->log('User import completed successfully.');
+
+        return response()->json([
+            'success'        => true,
+            'message'        => "Import successful. {$import->getImportedCount()} user(s) imported.",
+            'imported_count' => $import->getImportedCount(),
+        ]);
+    }
+
     public function store(Request $request)
     {
         try {

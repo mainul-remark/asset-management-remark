@@ -9,7 +9,7 @@
             <!-- Start::header-element -->
             <div class="header-element">
                 <div class="horizontal-logo">
-                    <a href="{{ route('dashboard') }}" class="header-logo">
+                    <a href="{{ route('admin.dashboard') }}" class="header-logo">
 {{--                        <img src="{{ asset('/') }}backend/build/assets/images/brand-logos/desktop-logo.png" alt="logo" class="desktop-logo">--}}
                         <img src="{{ asset('/backend/remark.png') }}" alt="logo" class="desktop-logo">
                         <img src="{{ asset('/backend/remark-logo.png') }}" alt="logo" class="toggle-logo">
@@ -236,10 +236,10 @@
             <!-- Notification popup -->
             <div class="header-element notifications-dropdown main-header-notification">
                 <!-- Start::header-link|dropdown-toggle -->
-                <a href="javascript:void(0);" class="header-link dropdown-toggle" data-bs-toggle="dropdown" data-bs-auto-close="outside" id="messageDropdown" aria-expanded="false">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="header-link-icon"  height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2zm-2 1H8v-6c0-2.48 1.51-4.5 4-4.5s4 2.02 4 4.5v6z"/></svg>
-                    <span class="pulse-success"></span>
-                </a>
+{{--                <a href="javascript:void(0);" class="header-link dropdown-toggle" data-bs-toggle="dropdown" data-bs-auto-close="outside" id="messageDropdown" aria-expanded="false">--}}
+{{--                    <svg xmlns="http://www.w3.org/2000/svg" class="header-link-icon"  height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2zm-2 1H8v-6c0-2.48 1.51-4.5 4-4.5s4 2.02 4 4.5v6z"/></svg>--}}
+{{--                    <span class="pulse-success"></span>--}}
+{{--                </a>--}}
                 <!-- End::header-link|dropdown-toggle -->
                 <!-- Start::main-header-dropdown -->
                 <div class="main-header-dropdown dropdown-menu dropdown-menu-end main-header-message" data-popper-placement="none">
@@ -388,7 +388,9 @@
 {{--                    <li><a class="dropdown-item d-flex border-block-end" href="mail.html"><i class="bx bxs-inbox fs-18 me-2 op-7"></i>Inbox</a></li>--}}
 {{--                    <li><a class="dropdown-item d-flex" href="chat.html"><i class="bx bx-envelope fs-18 me-2 op-7"></i>Messages</a></li>--}}
                     <li><a class="dropdown-item d-flex border-block-end" href=""><i class="bx bx-slider-alt fs-18 me-2 op-7"></i>Account Settings</a></li>
-                    <li><a class="dropdown-item d-flex border-block-end" target="_blank" href="{{ asset('backend/template/valex/index.html') }}"><i class="bx bx-slider-alt fs-18 me-2 op-7"></i>Valex Template</a></li>
+{{--                    <li><a class="dropdown-item d-flex border-block-end" target="_blank" href="{{ asset('backend/template/valex/index.html') }}"><i class="bx bx-slider-alt fs-18 me-2 op-7"></i>Valex Template</a></li>--}}
+                    <li><a class="dropdown-item d-flex border-block-end" target="_blank" href="{{ url('/log-viewer') }}"><i class="bx bx-slider-alt fs-18 me-2 op-7"></i>Error Logs</a></li>
+                    <li><a class="dropdown-item d-flex border-block-end" target="_blank" href="{{ route('admin.activity-logs') }}"><i class="bx bx-slider-alt fs-18 me-2 op-7"></i>Activity Log</a></li>
                     <li><a class="dropdown-item d-flex" href="javascript:void(0)" onclick="event.preventDefault(); document.getElementById('signOutForm').submit()"><i class="bx bx-log-out fs-18 me-2 op-7"></i>Sign Out</a></li>
                     <form action="{{ route('logout') }}" method="post" id="signOutForm">@csrf</form>
                 </ul>

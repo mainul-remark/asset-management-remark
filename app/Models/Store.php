@@ -7,12 +7,16 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Mainul\CustomHelperFunctions\Helpers\CustomHelper;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Store extends Model
 {
     use HasFactory;
     use Searchable;
     use SoftDeletes;
+    use LogsActivity;
 
     protected $fillable = [
         'title',
@@ -38,9 +42,42 @@ class Store extends Model
         'district_id',
         'thana_id',
         'slug',
+        'store_type',
     ];
 
     protected $searchableFields = ['*'];
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->useLogName('data')
+            ->logOnly([
+                'title',
+                'code',
+                'total_area_sqft',
+                'address',
+                'area',
+                'postal_code',
+                'latitude',
+                'longitude',
+                'monthly_rent',
+                'per_sqr_feet_rent',
+                'store_layout_pdf',
+                'contact_person',
+                'shop_official_mobile',
+                'shop_official_email',
+                'status',
+                'opened_date',
+                'division_id',
+                'store_code',
+                'district_id',
+                'thana_id',
+                'slug',
+                'store_type',
+            ])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
+    }
 
     public static function updateOrCreateStore($request, $store = null)
     {
@@ -54,28 +91,29 @@ class Store extends Model
 //        $request['store_layout_pdf']    = CustomHelper::fileUpload($request->file('store_layout_pdf'), "stores", 'store_layout', null, null, $store->store_layout_pdf ?? null);
 
         $storeRecord = static::updateOrCreate(['id' => $store?->id], [
-            'title'               => $request->title,
-            'code'                => strtoupper($request->code),
-            'total_area_sqft'     => $request->total_area_sqft,
-            'address'             => $request->address,
-            'area'                => $request->area,
-            'postal_code'         => $request->postal_code,
-            'latitude'            => $request->latitude,
-            'longitude'           => $request->longitude,
-            'monthly_rent'        => $request->monthly_rent,
-            'per_sqr_feet_rent'        => $request->per_sqr_feet_rent,
-            'contact_person'     => $request->contact_person,
-            'shop_official_mobile'=> $request->shop_official_mobile,
-            'shop_official_email' => $request->shop_official_email,
-            'status'              => $request->status,
+            'title'                     => $request->title,
+            'code'                      => strtoupper($request->code),
+            'total_area_sqft'           => $request->total_area_sqft,
+            'address'                   => $request->address,
+            'area'                      => $request->area,
+            'postal_code'               => $request->postal_code,
+            'latitude'                  => $request->latitude,
+            'longitude'                 => $request->longitude,
+            'monthly_rent'              => $request->monthly_rent,
+            'per_sqr_feet_rent'         => $request->per_sqr_feet_rent,
+            'contact_person'            => $request->contact_person,
+            'shop_official_mobile'      => $request->shop_official_mobile,
+            'shop_official_email'       => $request->shop_official_email,
+            'status'                    => $request->status,
 //            'store_manager_id'    => $request->store_manager_id ?: null,
-            'opened_date'         => $request->opened_date,
-            'store_code'         => $request->store_code,
-            'division_id'         => $request->division_id,
-            'district_id'         => $request->district_id,
-            'thana_id'         => $request->thana_id,
-            'slug'              => str()->slug($request->title.'-'.$request->code),
-            'store_layout_pdf'      => CustomHelper::fileUpload($request->file('store_layout_pdf'), "stores", 'store_layout', null, null, $store->store_layout_pdf ?? null),
+            'opened_date'               => $request->opened_date,
+            'store_code'                => $request->store_code,
+            'division_id'               => $request->division_id,
+            'district_id'               => $request->district_id,
+            'thana_id'                  => $request->thana_id,
+            'store_type'                => $request->store_type,
+            'slug'                      => str()->slug($request->title.'-'.$request->code),
+            'store_layout_pdf'          => CustomHelper::fileUpload($request->file('store_layout_pdf'), "stores", 'store_layout', null, null, $store->store_layout_pdf ?? null),
         ]);
 
         // Create a StoreLayout record whenever layout pdf is uploaded
@@ -99,7 +137,7 @@ class Store extends Model
         return $this->belongsTo(User::class, 'store_manager_id');
     }
 
-    public function storeLayouts()
+    public function storeLayouts(): HasMany
     {
         return $this->hasMany(StoreLayout::class);
     }
@@ -124,13 +162,28 @@ class Store extends Model
         return $this->belongsTo(Thana::class);
     }
 
-    public function assets()
+    public function assets(): HasMany
     {
         return $this->hasMany(Asset::class);
     }
 
-    public function assignAssetToStores()
+    public function assignAssetToStores(): HasMany
     {
         return $this->hasMany(AssignAssetToStore::class);
+    }
+
+    public function visualMerchandisings(): HasMany
+    {
+        return $this->hasMany(VisualMerchandising::class);
+    }
+
+    public function userStoreAssignments(): HasMany
+    {
+        return $this->hasMany(UserStoreAssignment::class);
+    }
+
+    public function planogramHistories()
+    {
+        return $this->hasMany(PlanogramHistory::class);
     }
 }

@@ -9,18 +9,20 @@
                 <div class="card custom-card">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <div class="card-title">Asset Category Management</div>
-                        <button type="button" class="btn btn-sm btn-primary btn-wave" id="btn-add-asset-type">
-                            <i class="ri-add-line me-1"></i> Add Asset Category
-                        </button>
+                        @allowed('asset-types.store')
+                            <button type="button" class="btn btn-sm btn-primary btn-wave" id="btn-add-asset-type">
+                                <i class="ri-add-line me-1"></i> Add Asset Category
+                            </button>
+                        @endallowed
                     </div>
                     @php
                         $hasImage      = $assetTypes->contains(fn($r) => $r->default_image);
                         $hasDimensions = $assetTypes->contains(fn($r) => $r->height || $r->width);
-                        $hasProperties = $assetTypes->contains(fn($r) => $r->is_digital || $r->has_kv_space || $r->total_self > 0 || $r->need_asset_image || $r->need_asset_planogram || $r->has_asset_self);
+                        $hasProperties = $assetTypes->contains(fn($r) => $r->is_digital || $r->has_kv_space || $r->total_self > 0 || $r->need_asset_image || $r->need_asset_planogram || $r->has_asset_self || $r->is_double_side|| $r->is_ground_type_assets);
                     @endphp
                     <div class="card-body">
                         <div class="table-responsive">
-                            <table id="data-table" class="table table-bordered text-nowrap w-100">
+                            <table id="data-table" class="table table-bordered text-nowrap w-100" data-datatable-manual="true">
                                 <thead>
                                     <tr>
                                         <th>#</th>
@@ -45,7 +47,7 @@
                                             @endif
                                         </td>
                                         @endif
-                                        <td class="fw-semibold">{{ $assetType->name }}</td>
+                                        <td class="fw-semibold">{{ $assetType->name }} ({{ $assetType->code ?? '' }})</td>
                                         @if($hasDimensions)
                                         <td>
                                             @if($assetType->height || $assetType->width)
@@ -59,25 +61,31 @@
                                         </td>
                                         @endif
                                         @if($hasProperties)
-                                        <td>
-                                            @if($assetType->is_digital)
-                                                <span class="badge bg-info-transparent me-1">Digital</span>
-                                            @endif
-                                            @if($assetType->has_kv_space)
-                                                <span class="badge bg-warning-transparent me-1">KV Space</span>
-                                            @endif
-                                            @if($assetType->need_asset_image)
-                                                <span class="badge bg-primary-transparent me-1">Asset Image</span>
-                                            @endif
-                                            @if($assetType->need_asset_planogram)
-                                                <span class="badge bg-secondary-transparent me-1">Planogram</span>
-                                            @endif
-                                            @if($assetType->has_asset_self)
-                                                <span class="badge bg-teal-transparent me-1">Self ({{ $assetType->total_self ?? 0 }})</span>
-                                            @elseif($assetType->total_self > 0)
-                                                <span class="badge bg-light text-dark border">{{ $assetType->total_self }} Shelf</span>
-                                            @endif
-                                        </td>
+                                            <td>
+                                                @if($assetType->is_digital)
+                                                    <span class="badge bg-info-transparent me-1">Digital</span>
+                                                @endif
+                                                @if($assetType->has_kv_space)
+                                                    <span class="badge bg-warning-transparent me-1">KV ({{ $assetType->total_kv_slot ?? 0 }})</span>
+                                                @endif
+                                                @if($assetType->need_asset_image)
+                                                    <span class="badge bg-primary-transparent me-1">Asset Image</span>
+                                                @endif
+                                                @if($assetType->need_asset_planogram)
+                                                    <span class="badge bg-secondary-transparent me-1">Planogram</span>
+                                                @endif
+                                                    @if($assetType->is_double_side)
+                                                        <span class="badge bg-teal-transparent me-1">Both Side</span>
+                                                    @endif
+                                                    @if($assetType->is_ground_type_assets)
+                                                        <span class="badge bg-teal-transparent me-1">Ground Assets</span>
+                                                    @endif
+                                                @if($assetType->has_asset_self)
+                                                    <span class="badge bg-teal-transparent me-1">Self ({{ $assetType->total_self ?? 0 }})</span>
+                                                @elseif($assetType->total_self > 0)
+                                                    <span class="badge bg-light text-dark border">{{ $assetType->total_self }} Shelf</span>
+                                                @endif
+                                            </td>
                                         @endif
                                         <td>
                                             @if($assetType->status == 1)
@@ -88,18 +96,27 @@
                                         </td>
                                         <td>
                                             <div class="btn-list">
-                                                <button class="btn btn-icon btn-sm btn-info-light btn-wave btn-view"
-                                                    data-id="{{ $assetType->id }}" title="View">
-                                                    <i class="ri-eye-line"></i>
-                                                </button>
-                                                <button class="btn btn-icon btn-sm btn-primary-light btn-wave btn-edit"
-                                                    data-id="{{ $assetType->id }}" title="Edit">
-                                                    <i class="ri-edit-box-line"></i>
-                                                </button>
-                                                <button class="btn btn-icon btn-sm btn-danger-light btn-wave btn-delete"
-                                                    data-id="{{ $assetType->id }}" data-name="{{ $assetType->name }}" title="Delete">
-                                                    <i class="ri-delete-bin-line"></i>
-                                                </button>
+                                                @allowed('asset-types.show')
+                                                    <button class="btn btn-icon btn-sm btn-info-light btn-wave btn-view"
+                                                            data-id="{{ $assetType->id }}" title="View">
+                                                        <i class="ri-eye-line"></i>
+                                                    </button>
+                                                @endallowed
+
+                                                @allowed('asset-types.edit')
+                                                    <button class="btn btn-icon btn-sm btn-primary-light btn-wave btn-edit"
+                                                            data-id="{{ $assetType->id }}" title="Edit">
+                                                        <i class="ri-edit-box-line"></i>
+                                                    </button>
+                                                @endallowed
+
+                                                @allowed('asset-types.destroy')
+                                                    <button class="btn btn-icon btn-sm btn-danger-light btn-wave btn-delete"
+                                                            data-id="{{ $assetType->id }}" data-name="{{ $assetType->name }}" title="Delete">
+                                                        <i class="ri-delete-bin-line"></i>
+                                                    </button>
+                                                @endallowed
+
                                             </div>
                                         </td>
                                     </tr>
@@ -117,6 +134,7 @@
 @section('modal')
 
     {{-- ── Create / Edit Modal ──────────────────────────────────────────────── --}}
+    @if(allowed('asset-types.store') || allowed('asset-types.edit'))
     <div class="modal fade" id="assetTypeModal" tabindex="-1" aria-labelledby="assetTypeModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-scrollable">
             <div class="modal-content">
@@ -137,13 +155,21 @@
                         <div class="form-section mb-4">
                             <p class="form-section-label"><i class="ri-information-line me-1"></i>Basic Information</p>
                             <div class="row g-3">
-                                <div class="col-12">
+                                <div class="col-8">
                                     <label for="name" class="form-label">
                                         Asset Category Name <span class="text-danger">*</span>
                                     </label>
                                     <input type="text" class="form-control" id="name" name="name"
                                         placeholder="e.g. Billboard, LED Screen, Banner">
                                     <div class="invalid-feedback" id="error-name"></div>
+                                </div>
+                                <div class="col-4">
+                                    <label for="code" class="form-label">
+                                        Asset Type Code <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="text" class="form-control" id="code" name="code"
+                                        placeholder="BIL">
+                                    <div class="invalid-feedback" id="error-code"></div>
                                 </div>
                             </div>
                         </div>
@@ -192,7 +218,7 @@
                         </div>
 
                         {{-- ── Section: Storage & Image ── --}}
-                        <div class="form-section mb-4">
+                        <div class="form-section mb-4 d-none">
                             <p class="form-section-label"><i class="ri-image-line me-1"></i>Storage & Image</p>
                             <div class="row g-3 align-items-start">
                                 <div class="col-12 d-none">
@@ -288,12 +314,43 @@
                                         <div class="invalid-feedback" id="error-has_asset_self"></div>
                                     </div>
                                 </div>
+                                <div class="col-md-4">
+                                    <div class="switch-option-card">
+                                        <div class="form-check form-switch mb-0">
+                                            <input class="form-check-input form-checked-teal" type="checkbox"
+                                                role="switch" id="is_double_side">
+                                            <label class="form-check-label fw-medium" for="is_double_side">Both Side Asset?</label>
+                                        </div>
+                                        <small class="text-muted d-block mt-1">Asset contains Both Side View?</small>
+                                        <div class="invalid-feedback" id="error-is_double_side"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="switch-option-card">
+                                        <div class="form-check form-switch mb-0">
+                                            <input class="form-check-input form-checked-teal" type="checkbox"
+                                                role="switch" id="is_ground_type_assets">
+                                            <label class="form-check-label fw-medium" for="is_ground_type_assets">Is Ground Asset?</label>
+                                        </div>
+                                        <small class="text-muted d-block mt-1">Is Ground Category Asset?</small>
+                                        <div class="invalid-feedback" id="error-is_ground_type_assets"></div>
+                                    </div>
+                                </div>
                                 <div class="col-md-4 d-none" id="total-self-wrap">
                                     <label for="total_self" class="form-label">Total Shelf</label>
                                     <input type="number" min="0" class="form-control"
                                         id="total_self" name="total_self" placeholder="0">
                                     <div class="invalid-feedback" id="error-total_self"></div>
                                     <div class="form-text">Number of shelf units</div>
+                                </div>
+                                <div class="col-md-4" id="total-kv-slot-wrap">
+                                    <div class="switch-option-card">
+                                        <label for="total_kv_slot" class="form-label">Total KV Slot</label>
+                                        <input type="number" min="0" class="form-control"
+                                               id="total_kv_slot" name="total_kv_slot" placeholder="0">
+                                        <div class="invalid-feedback" id="error-total_kv_slot"></div>
+                                        <div class="form-text">Number of KV Slots</div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -314,8 +371,10 @@
             </div>
         </div>
     </div>
+    @endif
 
     {{-- ── View Modal ───────────────────────────────────────────────────────── --}}
+    @allowed('asset-types.show')
     <div class="modal fade" id="viewModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -366,6 +425,10 @@
                                     <td id="view-kv"></td>
                                 </tr>
                                 <tr>
+                                    <th class="text-muted fw-medium fs-12">Total KV Slot</th>
+                                    <td id="view-total-kv-slot"></td>
+                                </tr>
+                                <tr>
                                     <th class="text-muted fw-medium fs-12">Default Dimension</th>
                                     <td id="view-has-default-dimension"></td>
                                 </tr>
@@ -391,8 +454,10 @@
             </div>
         </div>
     </div>
+    @endallowed
 
     {{-- ── Delete Confirmation Modal ────────────────────────────────────────── --}}
+    @allowed('asset-types.destroy')
     <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-sm">
             <div class="modal-content text-center">
@@ -420,6 +485,7 @@
             </div>
         </div>
     </div>
+    @endallowed
 
 @endsection
 
@@ -492,17 +558,54 @@
     @include('backend.includes.plugins.datatable')
     <script>
     $(document).ready(function () {
+        const hasImageColumn = @json($hasImage);
+        const nameColumnIndex = hasImageColumn ? 2 : 1;
+        const nonOrderableColumns = hasImageColumn ? [0, 1, -1] : [0, -1];
+        const nonSearchableColumns = hasImageColumn ? [0, 1, -1] : [0, -1];
 
-        // ── Bootstrap modals & global AJAX setup ──────────────────────────────
-        const assetTypeModal = new bootstrap.Modal(document.getElementById('assetTypeModal'));
-        const viewModalEl    = new bootstrap.Modal(document.getElementById('viewModal'));
-        const deleteModalEl  = new bootstrap.Modal(document.getElementById('deleteModal'));
+        $('#data-table').DataTable({
+            dom: '<"d-flex justify-content-between align-items-center mb-3"<"d-flex align-items-center"l><"d-flex align-items-center gap-2"f>>rt<"d-flex justify-content-between align-items-center mt-3"ip>',
+            language: {
+                searchPlaceholder: "Search data...",
+                sSearch: "",
+                lengthMenu: "Show _MENU_ entries",
+                info: "Showing _START_ to _END_ of _TOTAL_ data",
+                infoEmpty: "No data found",
+                zeroRecords: "No matching records found",
+                paginate: { previous: "<i class='ri-arrow-left-s-line'></i>", next: "<i class='ri-arrow-right-s-line'></i>" }
+            },
+            pageLength: 10,
+            lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+            order: [[nameColumnIndex, 'asc']],
+            columnDefs: [
+                { orderable: false, targets: nonOrderableColumns },
+                { searchable: false, targets: nonSearchableColumns }
+            ],
+            stateSave: false
+        });
+
+        // ── Permission flags (from server) ────────────────────────────────────
+        const canStore   = @json(allowed('asset-types.store'));
+        const canEdit    = @json(allowed('asset-types.edit'));
+        const canShow    = @json(allowed('asset-types.show'));
+        const canDestroy = @json(allowed('asset-types.destroy'));
+
+        // ── Bootstrap modals (null-safe — elements absent when permission denied) ──
+        const assetTypeModalEl = document.getElementById('assetTypeModal');
+        const viewModalElNode  = document.getElementById('viewModal');
+        const deleteModalElNode= document.getElementById('deleteModal');
+        const assetTypeModal = assetTypeModalEl ? new bootstrap.Modal(assetTypeModalEl) : null;
+        const viewModalEl    = viewModalElNode   ? new bootstrap.Modal(viewModalElNode)  : null;
+        const deleteModalEl  = deleteModalElNode ? new bootstrap.Modal(deleteModalElNode): null;
 
         const csrfToken = $('meta[name="csrf-token"]').attr('content');
         $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': csrfToken } });
 
         // ── Utility helpers ───────────────────────────────────────────────────
         const apiUrl = id => base_url + 'asset-types' + (id ? '/' + id : '');
+        const nextCodeUrl = base_url + 'asset-types/next-code';
+        let lastAutoGeneratedCode = '';
+        let codeManuallyEdited = false;
 
         const badge = (cond, trueColor, trueLabel, falseColor, falseLabel) =>
             cond ? `<span class="badge bg-${trueColor}-transparent">${trueLabel}</span>`
@@ -530,6 +633,42 @@
         function clearErrors() {
             $('.is-invalid').removeClass('is-invalid');
             $('.invalid-feedback').text('');
+        }
+
+        function shouldAutoFillCode() {
+            const currentCode = $('#code').val().trim();
+            return !codeManuallyEdited || currentCode === '' || currentCode === lastAutoGeneratedCode;
+        }
+
+        function requestAssetTypeCode(name, assetTypeId = '') {
+            return $.get(nextCodeUrl, {
+                name,
+                asset_type_id: assetTypeId || '',
+            });
+        }
+
+        function fillGeneratedCode(force = false) {
+            const name = $('#name').val().trim();
+
+            if (!name) {
+                if (force || shouldAutoFillCode()) {
+                    $('#code').val('');
+                    lastAutoGeneratedCode = '';
+                    codeManuallyEdited = false;
+                }
+                return;
+            }
+
+            if (!force && !shouldAutoFillCode()) return;
+
+            requestAssetTypeCode(name, $('#asset_type_id').val())
+                .done(res => {
+                    const generatedCode = (res.code || '').trim().toUpperCase();
+                    $('#code').val(generatedCode).removeClass('is-invalid');
+                    $('#error-code').text('');
+                    lastAutoGeneratedCode = generatedCode;
+                    codeManuallyEdited = false;
+                });
         }
 
         // ── Image upload zone ──────────────────────────────────────────────────
@@ -568,6 +707,19 @@
 
         $('#btn-remove-image').on('click', e => { e.stopPropagation(); clearImagePreview(); });
 
+        $('#name').on('blur', function () {
+            fillGeneratedCode();
+        });
+
+        $('#code').on('input', function () {
+            const normalizedCode = this.value.toUpperCase();
+            if (this.value !== normalizedCode) {
+                this.value = normalizedCode;
+            }
+
+            codeManuallyEdited = this.value.trim() !== '' && this.value.trim() !== lastAutoGeneratedCode;
+        });
+
         // ── Form: open / populate / reset ─────────────────────────────────────
         function openFormModal(mode) {
             resetForm();
@@ -597,9 +749,21 @@
             toggleTotalShelf(this.checked);
         });
 
+        // ── has_kv_space toggle (shows total kv slot) ─────────────────────────
+        function toggleTotalKvSlot(show) {
+            $('#total-kv-slot-wrap').toggleClass('d-none', !show);
+        }
+
+        $('#has_kv_space').on('change', function () {
+            toggleTotalKvSlot(this.checked);
+        });
+
         function populateForm(data) {
-            ['name', 'height', 'width', 'total_self']
+            ['name', 'height', 'width', 'total_self', 'total_kv_slot', 'code']
                 .forEach(f => $('#' + f).val(data[f] ?? ''));
+
+            lastAutoGeneratedCode = ($('#code').val() || '').trim().toUpperCase();
+            codeManuallyEdited = lastAutoGeneratedCode !== '';
 
             // DB column is `dimention_unit_name` (typo), form field is `dimension_unit_name`
             $('#dimension_unit_name').val(data.dimention_unit_name || '');
@@ -609,11 +773,14 @@
             $('#has_kv_space').prop('checked',          data.has_kv_space == 1);
             $('#has_default_dimension').prop('checked', data.has_default_dimension == 1);
             $('#need_asset_image').prop('checked',      data.need_asset_image == 1);
+            $('#is_double_side').prop('checked',        data.is_double_side == 1);
+            $('#is_ground_type_assets').prop('checked', data.is_ground_type_assets == 1);
             $('#need_asset_planogram').prop('checked',  data.need_asset_planogram == 1);
             $('#has_asset_self').prop('checked',        data.has_asset_self == 1);
 
             toggleDimensionFields(data.has_default_dimension == 1);
             toggleTotalShelf(data.has_asset_self == 1);
+            toggleTotalKvSlot(data.has_kv_space == 1);
 
             if (data.default_image) {
                 $('#upload-placeholder').hide();
@@ -625,6 +792,8 @@
         function resetForm() {
             $('#assetTypeForm')[0].reset();
             $('#asset_type_id').val('');
+            lastAutoGeneratedCode = '';
+            codeManuallyEdited = false;
             clearImagePreview();
             $('#dimension_unit_name').val('');
             $('#status').prop('checked', true);
@@ -632,21 +801,26 @@
             $('#has_kv_space').prop('checked', true);
             $('#has_default_dimension').prop('checked', false);
             $('#need_asset_image').prop('checked', false);
+            $('#is_double_side').prop('checked', false);
+            $('#is_ground_type_assets').prop('checked', false);
             $('#need_asset_planogram').prop('checked', false);
             $('#has_asset_self').prop('checked', false);
             toggleDimensionFields(false);
             toggleTotalShelf(false);
+            toggleTotalKvSlot(true);
             clearErrors();
         }
 
         // ── Add ───────────────────────────────────────────────────────────────
         $('#btn-add-asset-type').on('click', () => {
+            if (!canStore || !assetTypeModal) return;
             openFormModal('add');
             assetTypeModal.show();
         });
 
         // ── Edit ──────────────────────────────────────────────────────────────
         $(document).on('click', '.btn-edit', function () {
+            if (!canEdit || !assetTypeModal) return;
             openFormModal('edit');
             $.get(apiUrl($(this).data('id')) + '/edit', data => {
                 $('#asset_type_id').val(data.id);
@@ -657,6 +831,7 @@
 
         // ── View ──────────────────────────────────────────────────────────────
         $(document).on('click', '.btn-view', function () {
+            if (!canShow || !viewModalEl) return;
             $.get(apiUrl($(this).data('id')), data => {
                 const depth  = data.depth > 0 ? ` × ${data.depth}` : '';
                 const unit   = data.dimention_unit_name ? ` ${data.dimention_unit_name}` : '';
@@ -669,6 +844,7 @@
                 $('#view-status').html(badge(data.status == 1,                 'success',   'Active',    'danger',  'Inactive'));
                 $('#view-digital').html(badge(data.is_digital == 1,            'info',      'Yes',       null,      'No'));
                 $('#view-kv').html(badge(data.has_kv_space == 1,               'warning',   'Yes',       null,      'No'));
+                $('#view-total-kv-slot').text(data.has_kv_space == 1 ? `${data.total_kv_slot ?? 0} slot(s)` : '—');
                 $('#view-has-default-dimension').html(badge(data.has_default_dimension == 1, 'success', 'Yes', null, 'No'));
                 $('#view-need-asset-image').html(badge(data.need_asset_image == 1,           'primary',  'Yes', null, 'No'));
                 $('#view-need-planogram').html(badge(data.need_asset_planogram == 1,         'secondary','Yes', null, 'No'));
@@ -679,12 +855,13 @@
                     .attr('src', data.default_image ? base_url + data.default_image : '');
                 $('#view-image-placeholder').toggle(!data.default_image);
 
-                viewModalEl.show();
+                viewModalEl?.show();
             });
         });
 
         // ── Delete ────────────────────────────────────────────────────────────
         $(document).on('click', '.btn-delete', function () {
+            if (!canDestroy || !deleteModalEl) return;
             $('#delete-asset-type-id').val($(this).data('id'));
             $('#delete-asset-type-name').text($(this).data('name'));
             deleteModalEl.show();
@@ -699,7 +876,7 @@
                 type:    'DELETE',
                 headers: { 'X-CSRF-TOKEN': csrfToken },
                 success: res => {
-                    deleteModalEl.hide();
+                    deleteModalEl?.hide();
                     showToast(res.message, 'success');
                     setTimeout(() => location.reload(), 800);
                 },
@@ -738,13 +915,24 @@
 
             formData.set('_token', csrfToken);
 
-            ['status', 'is_digital', 'has_kv_space', 'has_default_dimension', 'need_asset_image', 'need_asset_planogram', 'has_asset_self']
+            ['status', 'is_digital', 'has_kv_space', 'has_default_dimension', 'need_asset_image', 'need_asset_planogram', 'has_asset_self', 'is_double_side', 'is_ground_type_assets']
                 .forEach(f => formData.set(f, $(`#${f}`).is(':checked') ? 1 : 0));
 
             if (id) formData.append('_method', 'PUT');
 
             const $btn = $('#btn-save').prop('disabled', true);
             $('#btn-spinner').removeClass('d-none');
+
+            let hasError = false;
+            sendAjaxRequest('asset/check-asset-type-code', 'POST', {code: $('#code').val()}).then(function (response) {
+                if (!response.success)
+                {
+                    $('#error-width').text('Code already exists.');
+                    hasError = true;
+                    return;
+                }
+            })
+            if (hasError) return;
 
             $.ajax({
                 url: apiUrl(id || null),
@@ -754,7 +942,7 @@
                 contentType: false,
                 headers: { 'X-CSRF-TOKEN': csrfToken },
                 success: res => {
-                    assetTypeModal.hide();
+                    assetTypeModal?.hide();
                     showToast(res.message, 'success');
                     setTimeout(() => location.reload(), 800);
                 },

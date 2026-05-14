@@ -9,7 +9,7 @@
                 <div class="card custom-card">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <div>
-                            <div class="card-title mb-1">Categories Management</div>
+                            <div class="card-title mb-1">KV Categories Management</div>
                             {{-- Breadcrumb Navigation --}}
                             <nav aria-label="breadcrumb">
                                 <ol class="breadcrumb mb-0" style="font-size: 0.8rem;">
@@ -40,9 +40,11 @@
                                     <i class="ri-arrow-left-line me-1"></i> Back
                                 </a>
                             @endif
+                            @allowed('categories.create')
                             <button type="button" class="btn btn-sm btn-primary btn-wave" id="btn-add-category">
-                                <i class="ri-add-line me-1"></i> Add {{ $parent ? 'Subcategory' : 'Category' }}
+                                <i class="ri-add-line me-1"></i> Add KV {{ $parent ? 'Subcategory' : 'Category' }}
                             </button>
+                            @endallowed
                         </div>
                     </div>
                     <div class="card-body">
@@ -97,9 +99,15 @@
                                         </td>
                                         <td>
                                             <div class="btn-list">
-                                                <button class="btn btn-icon btn-sm btn-info-light btn-wave btn-view" data-id="{{ $category->id }}" title="View"><i class="ri-eye-line"></i></button>
-                                                <button class="btn btn-icon btn-sm btn-primary-light btn-wave btn-edit" data-id="{{ $category->id }}" title="Edit"><i class="ri-edit-box-line"></i></button>
-                                                <button class="btn btn-icon btn-sm btn-danger-light btn-wave btn-delete" data-id="{{ $category->id }}" data-name="{{ $category->name }}" data-has-children="{{ $category->children_count > 0 ? 1 : 0 }}" title="Delete"><i class="ri-delete-bin-line"></i></button>
+                                                @allowed('categories.show')
+                                                    <button class="btn btn-icon btn-sm btn-info-light btn-wave btn-view" data-id="{{ $category->id }}" title="View"><i class="ri-eye-line"></i></button>
+                                                @endallowed
+                                                @allowed('categories.edit')
+                                                    <button class="btn btn-icon btn-sm btn-primary-light btn-wave btn-edit" data-id="{{ $category->id }}" title="Edit"><i class="ri-edit-box-line"></i></button>
+                                                @endallowed
+                                                @allowed('categories.destroy')
+                                                    <button class="btn btn-icon btn-sm btn-danger-light btn-wave btn-delete" data-id="{{ $category->id }}" data-name="{{ $category->name }}" data-has-children="{{ $category->children_count > 0 ? 1 : 0 }}" title="Delete"><i class="ri-delete-bin-line"></i></button>
+                                                @endallowed
                                             </div>
                                         </td>
                                     </tr>
@@ -116,11 +124,12 @@
 
 @section('modal')
     {{-- Create / Edit Modal --}}
+    @if($permissions['canCreate'] || $permissions['canEdit'])
     <div class="modal fade" id="categoryModal" tabindex="-1" aria-labelledby="categoryModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h6 class="modal-title" id="categoryModalLabel">Add Category</h6>
+                    <h6 class="modal-title" id="categoryModalLabel">Add KV Category</h6>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <form id="categoryForm" style="display:flex;flex-direction:column;flex:1;overflow:hidden;min-height:0;">
@@ -137,7 +146,7 @@
 {{--                            <div class="invalid-feedback" id="error-category_id"></div>--}}
 {{--                        </div>--}}
                         <div class="mb-3">
-                            <label for="name" class="form-label">Category Name <span class="text-danger">*</span></label>
+                            <label for="name" class="form-label">KV Category Name <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" id="name" name="name" placeholder="Enter category name">
                             <div class="invalid-feedback" id="error-name"></div>
                         </div>
@@ -192,8 +201,10 @@
             </div>
         </div>
     </div>
+    @endif
 
     {{-- View Modal --}}
+    @if($permissions['canView'])
     <div class="modal fade" id="viewModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -215,8 +226,10 @@
             </div>
         </div>
     </div>
+    @endif
 
     {{-- Delete Confirmation Modal --}}
+    @if($permissions['canDelete'])
     <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-sm">
             <div class="modal-content text-center">
@@ -234,6 +247,7 @@
             </div>
         </div>
     </div>
+    @endif
 @endsection
 
 @push('styles')
@@ -254,10 +268,11 @@
 @push('scripts')
     @include('backend.includes.plugins.datatable')
     <script>
+    const categoryPermissions = @json($permissions);
     $(document).ready(function () {
-        const categoryModal = new bootstrap.Modal(document.getElementById('categoryModal'));
-        const viewModal = new bootstrap.Modal(document.getElementById('viewModal'));
-        const deleteModalEl = new bootstrap.Modal(document.getElementById('deleteModal'));
+        const categoryModal  = categoryPermissions.canCreate || categoryPermissions.canEdit ? new bootstrap.Modal(document.getElementById('categoryModal')) : null;
+        const viewModal      = categoryPermissions.canView   ? new bootstrap.Modal(document.getElementById('viewModal'))   : null;
+        const deleteModalEl  = categoryPermissions.canDelete ? new bootstrap.Modal(document.getElementById('deleteModal'))  : null;
         const currentParentId = '{{ $parent?->id ?? '' }}';
 
         // Auto-generate code from name
@@ -306,7 +321,7 @@
             // if (currentParentId) {
             //     $('#category_id_parent').val(currentParentId);
             // }
-            categoryModal.show();
+            categoryModal?.show();
         });
 
         // Open Edit Modal
@@ -328,7 +343,7 @@
                 $('#status-switch').prop('checked', data.status == 1).trigger('change');
                 $('#isCommon').val(data.is_common);
                 $('#common-switch').prop('checked', data.is_common == 1).trigger('change');
-                categoryModal.show();
+                categoryModal?.show();
             });
         });
 
@@ -347,7 +362,7 @@
                     ? '<span class="badge bg-success-transparent">Published</span>'
                     : '<span class="badge bg-danger-transparent">Unpublished</span>');
                 $('#view-created').text(new Date(data.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }));
-                viewModal.show();
+                viewModal?.show();
             });
         });
 
@@ -360,7 +375,7 @@
             } else {
                 $('#delete-warning').addClass('d-none');
             }
-            deleteModalEl.show();
+            deleteModalEl?.show();
         });
 
         // Confirm Delete
@@ -372,7 +387,7 @@
                 url: base_url + 'categories/' + id,
                 type: 'DELETE',
                 success: function (res) {
-                    deleteModalEl.hide();
+                    deleteModalEl?.hide();
                     showToast(res.message, 'success');
                     setTimeout(() => location.reload(), 800);
                 },
@@ -405,7 +420,7 @@
                 processData: false,
                 contentType: false,
                 success: function (res) {
-                    categoryModal.hide();
+                    categoryModal?.hide();
                     showToast(res.message, 'success');
                     setTimeout(() => location.reload(), 800);
                 },

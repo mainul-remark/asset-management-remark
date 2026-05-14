@@ -8,12 +8,15 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Support\Facades\File;
 use Mainul\CustomHelperFunctions\Helpers\CustomHelper;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class KeyVisual extends Model
 {
     use HasFactory;
     use Searchable;
     use SoftDeletes;
+    use LogsActivity;
 
     protected $fillable = [
         'asset_type_id',
@@ -30,6 +33,25 @@ class KeyVisual extends Model
     protected $searchableFields = ['*'];
 
     protected $table = 'key_visuals';
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->useLogName('data')
+            ->logOnly([
+                'asset_type_id',
+                'name',
+                'unique_code',
+                'minimum_res_height',
+                'minimum_res_width',
+                'kv_type',
+                'kv_sample_file',
+                'kv_thumb',
+                'status',
+            ])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
+    }
 
     protected static function booted(): void
     {
@@ -106,5 +128,15 @@ class KeyVisual extends Model
     public function categories()
     {
         return $this->belongsToMany(Category::class);
+    }
+
+    public function assignKvToAssets()
+    {
+        return $this->hasMany(AssignKvToAsset::class);
+    }
+
+    public function allKeyVisualFiles()
+    {
+        return $this->hasMany(KeyVisualFiles::class);
     }
 }

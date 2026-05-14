@@ -14,17 +14,18 @@ class AssetRequest extends FormRequest
 
     public function rules(): array
     {
-        $isUpdate  = $this->isMethod('PUT') || $this->isMethod('PATCH');
-        $assetType = AssetType::find($this->asset_type_id);
+        $isUpdate      = $this->isMethod('PUT') || $this->isMethod('PATCH');
+        $assetTypeId   = is_array($this->asset_type_id) ? ($this->asset_type_id[0] ?? null) : $this->asset_type_id;
+        $assetType     = AssetType::find($assetTypeId);
 
-        $needImage    = $assetType?->need_asset_image    == 1;
+        $needImage     = $assetType?->need_asset_image    == 1;
         $needPlanogram = $assetType?->need_asset_planogram == 1;
 
         return [
             'asset_type_id'  => ['required', 'exists:asset_types,id'],
             'name'           => ['required', 'string', 'max:255'],
             'default_image'  => [!$isUpdate && $needImage ? 'required' : 'nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
-            'store_id'       => ['nullable', 'exists:stores,id'],
+            'store_id'       => ['required', 'nullable', 'exists:stores,id'],
             'has_kv_slot'    => ['nullable', 'boolean'],
             'minimum_fee'    => ['nullable', 'numeric', 'min:0'],
             'asset_price'    => ['nullable', 'numeric', 'min:0'],
@@ -33,6 +34,7 @@ class AssetRequest extends FormRequest
             'status'         => ['nullable', 'boolean'],
             'has_self'       => ['nullable', 'boolean'],
             'total_self'     => ['nullable', 'integer', 'min:0', 'max:127'],
+
         ];
     }
 
@@ -42,9 +44,9 @@ class AssetRequest extends FormRequest
             'asset_type_id.required' => 'Please select an asset type.',
             'asset_type_id.exists'   => 'The selected asset type is invalid.',
 
-            'name.required' => 'Asset name is required.',
-            'name.string'   => 'Asset name must be valid text.',
-            'name.max'      => 'Asset name cannot exceed 255 characters.',
+            'name.required'          => 'Asset name is required.',
+            'name.string'            => 'Asset name must be valid text.',
+            'name.max'               => 'Asset name cannot exceed 255 characters.',
 
             'default_image.required' => 'A default image is required for this asset category.',
             'default_image.image'    => 'The uploaded file must be a valid image.',

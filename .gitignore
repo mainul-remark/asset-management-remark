@@ -24,3 +24,5 @@ Homestead.yaml
 Thumbs.db
 /storage/debugbar
 /.claude
+composer.lock
+AGENTS.md

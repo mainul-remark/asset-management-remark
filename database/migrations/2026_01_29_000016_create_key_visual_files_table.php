@@ -27,6 +27,10 @@ return new class extends Migration {
             $table->string('file_type')->nullable();
             $table->string('file_duration')->nullable();
             $table
+                ->string('kv_file_code')
+                ->nullable()
+                ->unique();
+            $table
                 ->tinyInteger('status')
                 ->default(1)
                 ->nullable();
