@@ -22,7 +22,9 @@ class AdminViewController extends Controller
 {
     public function dashboard()
     {
-
+        if (!auth()->user()->isAdmin()) {
+            return view('backend.common-pages.dashboard.dashboard-common');
+        }
         $kpis = [
             'stores' => [
                 'label' => 'Active Stores',
