@@ -369,4 +369,10 @@ class User extends Authenticatable
         return $this->belongsTo(Brand::class, 'represented_brand_id');
     }
 
+//    check if super admin
+    public function isAdmin(): bool
+    {
+        return $this->roles()->whereIn('name', ['super-admin', 'system-admin'])->exists();
+    }
+
 }

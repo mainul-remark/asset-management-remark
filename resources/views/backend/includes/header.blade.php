@@ -372,7 +372,8 @@
             <div class="header-element headerProfile-dropdown">
                 <!-- Start::header-link|dropdown-toggle -->
                 <a href="javascript:void(0);" class="header-link dropdown-toggle" id="mainHeaderProfile" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
-                    <img src="{{ asset('/') }}backend/build/assets/images/faces/6.jpg" alt="img" width="37" height="37" class="rounded-circle">
+{{--                    <img src="{{ asset('/') }}backend/build/assets/images/faces/6.jpg" alt="img" width="37" height="37" class="rounded-circle">--}}
+                    <img src="https://www.pngitem.com/pimgs/m/22-220721_circled-user-male-type-user-colorful-icon-png.png" alt="img" width="37" height="37" class="rounded-circle">
                 </a>
                 <!-- End::header-link|dropdown-toggle -->
                 <ul class="main-header-dropdown dropdown-menu pt-0 header-profile-dropdown dropdown-menu-end main-profile-menu" aria-labelledby="mainHeaderProfile">

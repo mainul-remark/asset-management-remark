@@ -15,12 +15,14 @@ use App\Models\VisualMerchandising;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Mainul\CustomHelperFunctions\Helpers\CustomHelper;
 use Spatie\Activitylog\Models\Activity;
 
 class AdminViewController extends Controller
 {
     public function dashboard()
     {
+
         $kpis = [
             'stores' => [
                 'label' => 'Active Stores',
